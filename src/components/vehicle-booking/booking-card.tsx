@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Car, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
+import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { RelativeTime } from "@/components/relative-time"
 import type { VehicleBooking } from "@/types/vehicle-booking"
@@ -58,7 +58,7 @@ export function BookingCard({
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-            <Car className="size-5" />
+            <Truck className="size-5" />
           </div>
           <div>
             <h4 className="font-semibold">{booking.vehicle_number}</h4>

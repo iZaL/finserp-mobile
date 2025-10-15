@@ -5,7 +5,7 @@ import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Car, Search, Filter, Plus, RefreshCw, Calendar, Package } from "lucide-react"
+import { Truck, Search, Filter, Plus, RefreshCw, Calendar, Package } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import type { VehicleBooking, BookingStats, BookingFilters, DailyCapacity } from "@/types/vehicle-booking"
 import { toast } from "sonner"
@@ -162,10 +162,10 @@ export default function VehicleBookingsPage() {
       <CapacityCard capacity={capacityInfo} loading={loading} />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2">
         {loading ? (
           <>
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2].map((i) => (
               <div key={i} className="rounded-xl border bg-card text-card-foreground shadow-sm p-4">
                 <div className="h-4 w-20 bg-muted animate-pulse rounded mb-2" />
                 <div className="h-8 w-16 bg-muted animate-pulse rounded" />
@@ -179,7 +179,7 @@ export default function VehicleBookingsPage() {
               onClick={() => setStatusFilter("booked")}
             >
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Car className="size-4" />
+                <Truck className="size-4" />
                 <span className="text-xs font-medium">{t('stats.booked')}</span>
               </div>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
@@ -197,32 +197,6 @@ export default function VehicleBookingsPage() {
               </div>
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 {stats?.received_vehicles || 0}
-              </p>
-            </div>
-
-            <div
-              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setStatusFilter("exited")}
-            >
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Calendar className="size-4" />
-                <span className="text-xs font-medium">{t('stats.exited')}</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {stats?.exited_vehicles || 0}
-              </p>
-            </div>
-
-            <div
-              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setStatusFilter("all")}
-            >
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Car className="size-4" />
-                <span className="text-xs font-medium">{t('stats.total')}</span>
-              </div>
-              <p className="text-2xl font-bold">
-                {stats?.total_vehicles || 0}
               </p>
             </div>
           </>
@@ -254,7 +228,7 @@ export default function VehicleBookingsPage() {
           </>
         ) : filteredBookings.length === 0 ? (
           <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-12 text-center">
-            <Car className="size-12 mx-auto mb-4 text-muted-foreground" />
+            <Truck className="size-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">{t('noBookingsFound')}</h3>
             <p className="text-sm text-muted-foreground mb-4">
               {t('noBookingsDescription')}
