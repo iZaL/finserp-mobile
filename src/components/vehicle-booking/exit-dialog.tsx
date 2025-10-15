@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -30,6 +31,8 @@ export function ExitDialog({
   onOpenChange,
   onSuccess,
 }: ExitDialogProps) {
+  const t = useTranslations('vehicleBookings.exitDialog')
+  const tCommon = useTranslations('common')
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -52,7 +55,7 @@ export function ExitDialog({
       setLoading(true)
       await vehicleBookingService.exitVehicle(booking.id)
 
-      toast.success(`Vehicle ${booking.vehicle_number} has exited successfully`)
+      toast.success(t('success', { vehicle: booking.vehicle_number }))
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
@@ -68,9 +71,9 @@ export function ExitDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] !bg-black border-gray-800">
         <DialogHeader>
-          <DialogTitle>Exit Vehicle</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Mark vehicle {booking.vehicle_number} as exited from the facility
+            {t('description', { vehicle: booking.vehicle_number })}
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +83,7 @@ export function ExitDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
+                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -89,8 +92,8 @@ export function ExitDialog({
                 </div>
                 {booking.actual_box_count && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">Received Boxes</p>
-                    <p className="font-medium">{booking.actual_box_count} boxes</p>
+                    <p className="text-muted-foreground text-xs">{t('receivedBoxes', { ns: 'vehicleBookings.bookingCard' })}</p>
+                    <p className="font-medium">{booking.actual_box_count} {t('boxes')}</p>
                   </div>
                 )}
               </div>
@@ -98,24 +101,24 @@ export function ExitDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="exit_notes">Exit Notes (Optional)</Label>
+              <Label htmlFor="exit_notes">{t('exitNotes')} ({tCommon('optional')})</Label>
               <Textarea
                 id="exit_notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any exit notes or observations..."
+                placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
-                {notes.length}/500 characters
+                {notes.length}/500 {t('charactersCount', { ns: 'vehicleBookings.newBooking' }).split('/')[1]}
               </p>
             </div>
 
             {/* Info */}
             <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-3">
               <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                ℹ️ Exit Confirmation
+                ℹ️ {t('title')}
               </p>
               <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">
                 The vehicle will be marked as exited and removed from the active queue.
@@ -130,7 +133,7 @@ export function ExitDialog({
               onClick={() => handleOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -140,12 +143,12 @@ export function ExitDialog({
               {loading ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Exiting...
+                  {t('exiting')}
                 </>
               ) : (
                 <>
                   <LogOut className="size-4 mr-2" />
-                  Confirm Exit
+                  {t('exit')}
                 </>
               )}
             </Button>

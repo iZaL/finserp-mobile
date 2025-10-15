@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Car, Calendar, User, Package, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { VehicleBooking } from "@/types/vehicle-booking"
@@ -25,6 +26,8 @@ export function BookingCard({
   onDelete,
   onClick,
 }: BookingCardProps) {
+  const t = useTranslations('vehicleBookings.bookingCard')
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "booked":
@@ -59,7 +62,7 @@ export function BookingCard({
           <div>
             <h4 className="font-semibold">{booking.vehicle_number}</h4>
             <p className="text-xs text-muted-foreground">
-              {booking.box_count} boxes · {Number(booking.weight_tons || 0).toFixed(2)} tons
+              {booking.box_count} {t('boxes')} · {Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}
             </p>
           </div>
         </div>
@@ -68,7 +71,7 @@ export function BookingCard({
             booking.status
           )}`}
         >
-          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+          {t(booking.status)}
         </span>
       </div>
 
@@ -89,7 +92,7 @@ export function BookingCard({
         <div className="flex items-center gap-2 text-muted-foreground col-span-2">
           <Calendar className="size-4" />
           <span className="text-xs">
-            Booked: {new Date(booking.entry_datetime || booking.created_at).toLocaleString()}
+            {t('booked')}: {new Date(booking.entry_datetime || booking.created_at).toLocaleString()}
           </span>
         </div>
       </div>
@@ -97,7 +100,7 @@ export function BookingCard({
       {/* Received Info */}
       {booking.status === "received" && booking.actual_box_count && (
         <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
-          Received: {booking.actual_box_count} boxes
+          {t('received')}: {booking.actual_box_count} {t('boxes')}
           {booking.actual_box_count !== booking.box_count && (
             <span className="font-medium text-orange-600 dark:text-orange-400 ml-1">
               (Diff: {booking.actual_box_count - booking.box_count > 0 ? "+" : ""}
@@ -111,7 +114,7 @@ export function BookingCard({
       {booking.status === "rejected" && booking.rejection_reason && (
         <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800">
           <p className="font-medium text-red-600 dark:text-red-400">
-            Rejected: {booking.rejection_reason}
+            {t('rejected')}: {booking.rejection_reason}
           </p>
           {booking.rejection_notes && (
             <p className="mt-1">{booking.rejection_notes}</p>
@@ -131,7 +134,7 @@ export function BookingCard({
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
               >
                 <CheckCircle className="size-4 mr-1" />
-                Receive
+                {t('actions.receive')}
               </Button>
             )}
             {booking.can_reject && onReject && (
@@ -142,7 +145,7 @@ export function BookingCard({
                 className="flex-1"
               >
                 <XCircle className="size-4 mr-1" />
-                Reject
+                {t('actions.reject')}
               </Button>
             )}
             {booking.can_edit && onEdit && (
@@ -152,7 +155,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onEdit(booking))}
               >
                 <Edit className="size-4 mr-1" />
-                Edit
+                {t('actions.edit')}
               </Button>
             )}
             {booking.can_delete && onDelete && (
@@ -162,7 +165,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onDelete(booking))}
               >
                 <Trash2 className="size-4 mr-1" />
-                Delete
+                {t('actions.delete')}
               </Button>
             )}
           </>
@@ -178,7 +181,7 @@ export function BookingCard({
                 className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 <LogOut className="size-4 mr-1" />
-                Exit
+                {t('actions.exit')}
               </Button>
             )}
             {booking.can_unreceive && onUnreceive && (
@@ -189,7 +192,7 @@ export function BookingCard({
                 className="flex-1"
               >
                 <RotateCcw className="size-4 mr-1" />
-                Undo
+                {t('actions.unreceive')}
               </Button>
             )}
             {booking.can_reject && onReject && (
@@ -200,7 +203,7 @@ export function BookingCard({
                 className="flex-1"
               >
                 <XCircle className="size-4 mr-1" />
-                Reject
+                {t('actions.reject')}
               </Button>
             )}
           </>
@@ -209,7 +212,7 @@ export function BookingCard({
         {/* Exited/Rejected Status - No Actions */}
         {(booking.status === "exited" || booking.status === "rejected") && (
           <div className="text-xs text-muted-foreground text-center w-full py-1">
-            No actions available
+            {t('noActions', { ns: 'vehicleBookings', defaultValue: 'No actions available' })}
           </div>
         )}
       </div>

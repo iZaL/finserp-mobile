@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -38,6 +39,10 @@ export function RejectDialog({
   onOpenChange,
   onSuccess,
 }: RejectDialogProps) {
+  const t = useTranslations('vehicleBookings.rejectDialog')
+  const tCommon = useTranslations('common')
+  const tValidation = useTranslations('vehicleBookings.validation')
+  const tReasons = useTranslations('vehicleBookings.rejectionReasons')
   const [rejectionReason, setRejectionReason] = useState("")
   const [rejectionNotes, setRejectionNotes] = useState("")
   const [loading, setLoading] = useState(false)
@@ -59,7 +64,7 @@ export function RejectDialog({
     if (!booking) return
 
     if (!rejectionReason) {
-      toast.error("Please select a rejection reason")
+      toast.error(tValidation('rejectionReasonRequired'))
       return
     }
 
@@ -70,7 +75,7 @@ export function RejectDialog({
         rejection_notes: rejectionNotes.trim() || undefined,
       })
 
-      toast.success(`Vehicle ${booking.vehicle_number} has been rejected`)
+      toast.success(t('success', { vehicle: booking.vehicle_number }))
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
@@ -86,9 +91,9 @@ export function RejectDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] !bg-black border-gray-800">
         <DialogHeader>
-          <DialogTitle>Reject Vehicle</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Please select a reason for rejecting vehicle {booking.vehicle_number}
+            {t('description', { vehicle: booking.vehicle_number })}
           </DialogDescription>
         </DialogHeader>
 
@@ -98,16 +103,16 @@ export function RejectDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
+                  <p className="text-muted-foreground text-xs">{t('vehicleNumber', { ns: 'vehicleBookings.newBooking' })}</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Box Count</p>
+                  <p className="text-muted-foreground text-xs">{t('boxCount', { ns: 'vehicleBookings.newBooking' })}</p>
                   <p className="font-medium">{booking.box_count}</p>
                 </div>
                 {booking.driver_name && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">Driver</p>
+                    <p className="text-muted-foreground text-xs">{t('driver', { ns: 'vehicleBookings.bookingCard' })}</p>
                     <p className="font-medium">{booking.driver_name}</p>
                   </div>
                 )}
@@ -117,16 +122,16 @@ export function RejectDialog({
             {/* Rejection Reason */}
             <div className="space-y-2">
               <Label htmlFor="rejection_reason">
-                Rejection Reason <span className="text-red-500">*</span>
+                {t('rejectionReason')} <span className="text-red-500">*</span>
               </Label>
               <Select value={rejectionReason} onValueChange={setRejectionReason}>
                 <SelectTrigger id="rejection_reason">
-                  <SelectValue placeholder="Select a reason" />
+                  <SelectValue placeholder={t('selectReason')} />
                 </SelectTrigger>
                 <SelectContent className="!bg-black border-gray-800">
                   {REJECTION_REASONS.map((reason) => (
                     <SelectItem key={reason} value={reason}>
-                      {reason}
+                      {tReasons(reason.toLowerCase().replace(/ /g, ''))}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -136,30 +141,26 @@ export function RejectDialog({
             {/* Additional Notes */}
             <div className="space-y-2">
               <Label htmlFor="rejection_notes">
-                Additional Notes {rejectionReason === "Other" && <span className="text-red-500">*</span>}
+                {t('additionalNotes')} {rejectionReason === "Other" && <span className="text-red-500">*</span>}
               </Label>
               <Textarea
                 id="rejection_notes"
                 value={rejectionNotes}
                 onChange={(e) => setRejectionNotes(e.target.value)}
-                placeholder={
-                  rejectionReason === "Other"
-                    ? "Please explain the rejection reason..."
-                    : "Add any additional details (optional)..."
-                }
+                placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
                 required={rejectionReason === "Other"}
               />
               <p className="text-xs text-muted-foreground">
-                {rejectionNotes.length}/500 characters
+                {rejectionNotes.length}/500 {t('charactersCount', { ns: 'vehicleBookings.newBooking' }).split('/')[1]}
               </p>
             </div>
 
             {/* Warning */}
             <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 p-3">
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                ⚠ Warning: This action cannot be undone
+                ⚠ {tCommon('required')}: {t('deleteConfirm', { ns: 'vehicleBookings', vehicle: '' }).split('?')[0]}
               </p>
               <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
                 The vehicle will be marked as rejected and removed from the active queue.
@@ -174,7 +175,7 @@ export function RejectDialog({
               onClick={() => handleOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -184,12 +185,12 @@ export function RejectDialog({
               {loading ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Rejecting...
+                  {t('rejecting')}
                 </>
               ) : (
                 <>
                   <XCircle className="size-4 mr-2" />
-                  Confirm Reject
+                  {t('reject')}
                 </>
               )}
             </Button>

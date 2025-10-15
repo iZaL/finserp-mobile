@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,6 +25,9 @@ import { toast } from "sonner"
 
 export default function NewBookingPage() {
   const router = useRouter()
+  const t = useTranslations('vehicleBookings.newBooking')
+  const tCommon = useTranslations('common')
+  const tValidation = useTranslations('vehicleBookings.validation')
   const vehicleNumberRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -159,7 +163,7 @@ export default function NewBookingPage() {
   // Form validation
   const validateForm = (): boolean => {
     if (!vehicleNumber.trim()) {
-      toast.error("Vehicle number is required")
+      toast.error(tValidation('vehicleNumberRequired'))
       return false
     }
 
@@ -167,27 +171,27 @@ export default function NewBookingPage() {
     const weight = parseFloat(boxWeightKg) || 0
 
     if (boxes <= 0) {
-      toast.error("Box count must be greater than 0")
+      toast.error(tValidation('boxCountRequired'))
       return false
     }
 
     if (boxes > 10000) {
-      toast.error("Box count cannot exceed 10,000")
+      toast.error(tValidation('boxCountMax'))
       return false
     }
 
     if (weight <= 0) {
-      toast.error("Box weight must be greater than 0")
+      toast.error(tValidation('boxWeightRequired'))
       return false
     }
 
     if (weight < 1) {
-      toast.error("Box weight cannot be less than 1 kg")
+      toast.error(tValidation('boxWeightMin'))
       return false
     }
 
     if (weight > 1000) {
-      toast.error("Box weight cannot exceed 1000 kg")
+      toast.error(tValidation('boxWeightMax'))
       return false
     }
 
@@ -228,7 +232,7 @@ export default function NewBookingPage() {
         allow_override: allowOverride,
       })
 
-      toast.success(`Vehicle ${vehicleNumber} added successfully!`)
+      toast.success(t('vehicleAdded', { number: vehicleNumber }))
 
       // Reset form
       setVehicleNumber("")
@@ -279,8 +283,8 @@ export default function NewBookingPage() {
             <ArrowLeft className="size-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight">New Booking</h2>
-            <p className="text-sm text-muted-foreground">Add a new vehicle booking</p>
+            <h2 className="text-2xl font-bold tracking-tight">{t('title')}</h2>
+            <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
           </div>
         </div>
       </div>
@@ -289,7 +293,7 @@ export default function NewBookingPage() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Zap className="size-4 text-blue-600 dark:text-blue-400" />
-            Quick Vehicle Entry
+            {t('quickEntry')}
           </CardTitle>
         </CardHeader>
 
@@ -297,7 +301,7 @@ export default function NewBookingPage() {
           {/* Quick Picks */}
           {quickPicks.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs text-muted-foreground mb-2">Quick picks</div>
+              <div className="text-xs text-muted-foreground mb-2">{t('quickPicks')}</div>
               <div className="flex flex-wrap gap-2">
                 {quickPicks.slice(0, 8).map((pick, idx) => (
                   <Badge
@@ -317,7 +321,7 @@ export default function NewBookingPage() {
             {/* Vehicle Number with Autocomplete */}
             <div className="vehicle-number-container">
               <Label htmlFor="vehicle_number">
-                Vehicle Number <span className="text-red-500">*</span>
+                {t('vehicleNumber')} <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -326,7 +330,7 @@ export default function NewBookingPage() {
                   name="vehicle_number"
                   value={vehicleNumber}
                   onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-                  placeholder="e.g. ABC123, 123XYZ"
+                  placeholder={t('placeholders.vehicleNumber')}
                   className="pr-10"
                   autoComplete="off"
                   onFocus={() => setShowSuggestions(suggestions.length > 0)}
@@ -345,7 +349,7 @@ export default function NewBookingPage() {
                         <div className="flex items-center justify-between">
                           <span className="font-medium">{suggestion.vehicle_number}</span>
                           <span className="text-xs text-muted-foreground">
-                            {suggestion.box_count} boxes
+                            {suggestion.box_count} {t('boxes', { ns: 'vehicleBookings.capacity' })}
                           </span>
                         </div>
                       </button>
@@ -359,7 +363,7 @@ export default function NewBookingPage() {
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <Label htmlFor="box_count">
-                  Box Count <span className="text-red-500">*</span>
+                  {t('boxCount')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="box_count"
@@ -367,7 +371,7 @@ export default function NewBookingPage() {
                   type="number"
                   value={boxCount}
                   onChange={(e) => handleBoxCountChange(e.target.value)}
-                  placeholder="0"
+                  placeholder={t('placeholders.boxCount')}
                   min="0"
                   max="10000"
                 />
@@ -375,7 +379,7 @@ export default function NewBookingPage() {
 
               <div>
                 <Label htmlFor="box_weight_kg">
-                  Weight (kg) <span className="text-red-500">*</span>
+                  {t('boxWeight')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="box_weight_kg"
@@ -384,14 +388,14 @@ export default function NewBookingPage() {
                   step="0.1"
                   value={boxWeightKg}
                   onChange={(e) => handleBoxWeightChange(e.target.value)}
-                  placeholder="20.0"
+                  placeholder={t('placeholders.boxWeight')}
                   min="1"
                   max="1000"
                 />
               </div>
 
               <div>
-                <Label htmlFor="total_weight_tons">Total (tons)</Label>
+                <Label htmlFor="total_weight_tons">{t('totalWeight')}</Label>
                 <Input
                   id="total_weight_tons"
                   name="total_weight_tons"
@@ -410,9 +414,9 @@ export default function NewBookingPage() {
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-amber-800 dark:text-amber-400">Capacity Warning</p>
+                    <p className="font-medium text-amber-800 dark:text-amber-400">{t('capacityWarning')}</p>
                     <p className="text-amber-700 dark:text-amber-500">
-                      Will exceed by {exceeding} boxes
+                      {t('willExceedBy', { count: exceeding })}
                     </p>
                   </div>
                 </div>
@@ -425,7 +429,7 @@ export default function NewBookingPage() {
                       onCheckedChange={(checked) => setAllowOverride(checked as boolean)}
                     />
                     <Label htmlFor="allow_override" className="text-sm text-amber-700 dark:text-amber-500 cursor-pointer">
-                      Allow override
+                      {t('allowOverride')}
                     </Label>
                   </div>
                 )}
@@ -435,22 +439,22 @@ export default function NewBookingPage() {
             {/* Driver Details */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="driver_name">Driver Name</Label>
+                <Label htmlFor="driver_name">{t('driverName')}</Label>
                 <Input
                   id="driver_name"
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value)}
-                  placeholder="Optional"
+                  placeholder={tCommon('optional')}
                 />
               </div>
 
               <div>
-                <Label htmlFor="driver_phone">Driver Phone</Label>
+                <Label htmlFor="driver_phone">{t('driverPhone')}</Label>
                 <Input
                   id="driver_phone"
                   value={driverPhone}
                   onChange={(e) => setDriverPhone(e.target.value)}
-                  placeholder="Optional"
+                  placeholder={tCommon('optional')}
                 />
               </div>
             </div>
@@ -458,39 +462,39 @@ export default function NewBookingPage() {
             {/* Supplier Details */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="supplier_name">Supplier Name</Label>
+                <Label htmlFor="supplier_name">{t('supplierName')}</Label>
                 <Input
                   id="supplier_name"
                   value={supplierName}
                   onChange={(e) => setSupplierName(e.target.value)}
-                  placeholder="Optional"
+                  placeholder={tCommon('optional')}
                 />
               </div>
 
               <div>
-                <Label htmlFor="supplier_phone">Supplier Phone</Label>
+                <Label htmlFor="supplier_phone">{t('supplierPhone')}</Label>
                 <Input
                   id="supplier_phone"
                   value={supplierPhone}
                   onChange={(e) => setSupplierPhone(e.target.value)}
-                  placeholder="Optional"
+                  placeholder={tCommon('optional')}
                 />
               </div>
             </div>
 
             {/* Notes */}
             <div>
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t('notes')}</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional notes..."
+                placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                {notes.length}/500 characters
+                {t('charactersCount', { count: notes.length })}
               </p>
             </div>
 
@@ -503,12 +507,12 @@ export default function NewBookingPage() {
               {submitting ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Adding...
+                  {t('adding')}
                 </>
               ) : (
                 <>
                   <Plus className="size-4 mr-2" />
-                  Add Vehicle
+                  {t('addVehicle')}
                   {isCapacityWarning && (
                     <AlertTriangle className="size-3 ml-2 text-amber-300" />
                   )}
@@ -525,10 +529,10 @@ export default function NewBookingPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="size-5 text-amber-500" />
-              Capacity Override Required
+              {t('capacityOverrideRequired')}
             </DialogTitle>
             <DialogDescription>
-              This will exceed the daily capacity limit. Do you want to proceed with override?
+              {t('capacityOverrideDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -536,12 +540,12 @@ export default function NewBookingPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Remaining:</span>
-                  <span className="font-medium">{remainingCapacity} boxes</span>
+                  <span className="text-muted-foreground">{t('remaining')}</span>
+                  <span className="font-medium">{remainingCapacity} {t('boxes', { ns: 'vehicleBookings.capacity' })}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Adding:</span>
-                  <span className="font-medium">{boxes} boxes ({totalWeightTons} tons)</span>
+                  <span className="text-muted-foreground">{t('adding2')}</span>
+                  <span className="font-medium">{boxes} {t('boxes', { ns: 'vehicleBookings.capacity' })} ({totalWeightTons} {t('tons', { ns: 'vehicleBookings.bookingCard' })})</span>
                 </div>
               </div>
               <div className="flex items-center justify-center">
@@ -549,7 +553,7 @@ export default function NewBookingPage() {
                   <div className="text-2xl font-bold text-amber-600">
                     +{exceeding}
                   </div>
-                  <div className="text-xs text-muted-foreground">boxes over limit</div>
+                  <div className="text-xs text-muted-foreground">{t('boxesOverLimit')}</div>
                 </div>
               </div>
             </div>
@@ -560,13 +564,13 @@ export default function NewBookingPage() {
               variant="outline"
               onClick={() => setShowCapacityDialog(false)}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               onClick={handleCapacityProceed}
               className="bg-amber-600 hover:bg-amber-700"
             >
-              Proceed with Override
+              {t('proceedWithOverride')}
             </Button>
           </DialogFooter>
         </DialogContent>

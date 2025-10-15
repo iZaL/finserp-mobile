@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,6 +32,9 @@ export function ReceiveDialog({
   onOpenChange,
   onSuccess,
 }: ReceiveDialogProps) {
+  const t = useTranslations('vehicleBookings.receiveDialog')
+  const tCommon = useTranslations('common')
+  const tValidation = useTranslations('vehicleBookings.validation')
   const [receivedBoxCount, setReceivedBoxCount] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
@@ -53,7 +57,7 @@ export function ReceiveDialog({
 
     const boxCount = parseInt(receivedBoxCount)
     if (isNaN(boxCount) || boxCount < 0 || boxCount > 10000) {
-      toast.error("Please enter a valid box count (0-10000)")
+      toast.error(tValidation('actualBoxCountRequired'))
       return
     }
 
@@ -64,14 +68,7 @@ export function ReceiveDialog({
         notes: notes.trim() || undefined,
       })
 
-      const difference = boxCount - booking.box_count
-      let message = `Vehicle ${booking.vehicle_number} received successfully!`
-
-      if (difference !== 0) {
-        message += ` (Actual: ${boxCount}, Expected: ${booking.box_count}, Difference: ${difference > 0 ? "+" : ""}${difference})`
-      }
-
-      toast.success(message)
+      toast.success(t('success', { vehicle: booking.vehicle_number }))
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
@@ -96,9 +93,9 @@ export function ReceiveDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] !bg-black border-gray-800">
         <DialogHeader>
-          <DialogTitle>Receive Vehicle</DialogTitle>
+          <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            Enter the actual number of boxes received for vehicle {booking.vehicle_number}
+            {t('description', { vehicle: booking.vehicle_number })}
           </DialogDescription>
         </DialogHeader>
 
@@ -108,20 +105,20 @@ export function ReceiveDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
+                  <p className="text-muted-foreground text-xs">{t('vehicleNumber', { ns: 'vehicleBookings.newBooking' })}</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Expected Boxes</p>
+                  <p className="text-muted-foreground text-xs">{t('expectedBoxes')}</p>
                   <p className="font-medium">{booking.box_count}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Box Weight</p>
+                  <p className="text-muted-foreground text-xs">{t('boxWeight', { ns: 'vehicleBookings.newBooking' })}</p>
                   <p className="font-medium">{booking.box_weight_kg || 'N/A'} kg</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Total Weight</p>
-                  <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} tons</p>
+                  <p className="text-muted-foreground text-xs">{t('totalWeight', { ns: 'vehicleBookings.newBooking' })}</p>
+                  <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} {t('tons', { ns: 'vehicleBookings.bookingCard' })}</p>
                 </div>
               </div>
             </div>
@@ -129,7 +126,7 @@ export function ReceiveDialog({
             {/* Received Box Count */}
             <div className="space-y-2">
               <Label htmlFor="received_box_count">
-                Actual Boxes Received <span className="text-red-500">*</span>
+                {t('actualBoxCount')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="received_box_count"
@@ -138,31 +135,31 @@ export function ReceiveDialog({
                 max="10000"
                 value={receivedBoxCount}
                 onChange={(e) => setReceivedBoxCount(e.target.value)}
-                placeholder="Enter actual box count"
+                placeholder={tValidation('actualBoxCountRequired')}
                 required
                 autoFocus
               />
               {difference !== 0 && receivedBoxCount && (
                 <p className={`text-xs ${difference > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}>
-                  Difference: {difference > 0 ? "+" : ""}{difference} boxes
-                  {difference > 0 ? " (more than expected)" : " (less than expected)"}
+                  {t('discrepancy')}: {difference > 0 ? "+" : ""}{difference} {t('boxes', { ns: 'vehicleBookings.capacity' })}
+                  {difference > 0 ? ` (${t('more')})` : ` (${t('less')})`}
                 </p>
               )}
             </div>
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">{t('notes')} ({tCommon('optional')})</Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes..."
+                placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
-                {notes.length}/500 characters
+                {notes.length}/500 {t('charactersCount', { ns: 'vehicleBookings.newBooking' }).split('/')[1]}
               </p>
             </div>
           </div>
@@ -174,7 +171,7 @@ export function ReceiveDialog({
               onClick={() => handleOpenChange(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -184,12 +181,12 @@ export function ReceiveDialog({
               {loading ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Receiving...
+                  {t('receiving')}
                 </>
               ) : (
                 <>
                   <CheckCircle className="size-4 mr-2" />
-                  Confirm Receive
+                  {t('receive')}
                 </>
               )}
             </Button>
