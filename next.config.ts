@@ -14,7 +14,7 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
-  swSrc: "public/sw.js", // Use custom service worker for push notifications
+  // Custom service worker in public/sw.js will be automatically used
   runtimeCaching: [
     {
       urlPattern: /^https?.*/,
