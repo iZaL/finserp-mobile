@@ -48,7 +48,7 @@ export default function NewBookingPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [quickPicks, setQuickPicks] = useState<VehicleTemplate[]>([])
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
-  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
+  const [, setSettings] = useState<VehicleBookingSettings | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showCapacityDialog, setShowCapacityDialog] = useState(false)
 

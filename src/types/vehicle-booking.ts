@@ -12,6 +12,7 @@ export interface VehicleBooking {
   notes?: string
   status: "booked" | "received" | "exited" | "rejected"
   rejection_reason?: string
+  rejection_notes?: string
   entry_date: string
   entry_datetime: string
   received_at?: string

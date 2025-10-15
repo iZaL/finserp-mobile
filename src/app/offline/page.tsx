@@ -36,7 +36,7 @@ export default function OfflinePage() {
           <div className="mx-auto mb-4 size-20 rounded-full bg-muted flex items-center justify-center">
             <WifiOff className="size-10 text-muted-foreground" />
           </div>
-          <CardTitle className="text-2xl">You're Offline</CardTitle>
+          <CardTitle className="text-2xl">You&apos;re Offline</CardTitle>
           <CardDescription>
             {isOnline
               ? "Connection restored! You can reload the page."

@@ -43,11 +43,9 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
   const usagePercent = capacity.capacity_used_percent
   const isWarning = usagePercent >= 80 && usagePercent < 100
   const isDanger = usagePercent >= 100
-  const isNormal = usagePercent < 80
 
   // Determine color scheme
   let progressColor = "bg-green-600"
-  let badgeVariant = "default"
   let badgeColor = "bg-green-600 text-white"
 
   if (isDanger) {

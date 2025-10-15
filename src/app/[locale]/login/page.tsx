@@ -34,7 +34,7 @@ export default function LoginPage() {
     try {
       await login(email, password, rememberMe)
       router.push("/")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err)
       // Error toast is handled by API interceptor
     } finally {

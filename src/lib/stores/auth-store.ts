@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthStore>()(
           const user = await authService.me()
           get().setUser(user)
           set({ isLoading: false })
-        } catch (error) {
+        } catch {
           get().setToken(null)
           get().setUser(null)
           set({ isLoading: false })
