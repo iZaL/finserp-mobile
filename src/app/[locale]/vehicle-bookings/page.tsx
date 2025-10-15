@@ -16,6 +16,7 @@ import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
 import { UnreceiveDialog } from "@/components/vehicle-booking/unreceive-dialog"
 import { DeleteDialog } from "@/components/vehicle-booking/delete-dialog"
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
+import { NotificationSettings } from "@/components/notification-settings"
 
 export default function VehicleBookingsPage() {
   const router = useRouter()
@@ -124,6 +125,7 @@ export default function VehicleBookingsPage() {
           <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2">
+          <NotificationSettings />
           <Button
             onClick={handleRefresh}
             disabled={refreshing}
