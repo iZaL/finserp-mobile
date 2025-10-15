@@ -1,0 +1,218 @@
+"use client"
+
+import { Car, Calendar, User, Package, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import type { VehicleBooking } from "@/types/vehicle-booking"
+
+interface BookingCardProps {
+  booking: VehicleBooking
+  onReceive?: (booking: VehicleBooking) => void
+  onReject?: (booking: VehicleBooking) => void
+  onExit?: (booking: VehicleBooking) => void
+  onUnreceive?: (booking: VehicleBooking) => void
+  onEdit?: (booking: VehicleBooking) => void
+  onDelete?: (booking: VehicleBooking) => void
+  onClick?: (booking: VehicleBooking) => void
+}
+
+export function BookingCard({
+  booking,
+  onReceive,
+  onReject,
+  onExit,
+  onUnreceive,
+  onEdit,
+  onDelete,
+  onClick,
+}: BookingCardProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "booked":
+        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+      case "received":
+        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+      case "exited":
+        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+      case "rejected":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+      default:
+        return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+    }
+  }
+
+  const handleAction = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation()
+    action()
+  }
+
+  return (
+    <div
+      className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow"
+      onClick={() => onClick?.(booking)}
+    >
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+            <Car className="size-5" />
+          </div>
+          <div>
+            <h4 className="font-semibold">{booking.vehicle_number}</h4>
+            <p className="text-xs text-muted-foreground">
+              {booking.box_count} boxes · {Number(booking.weight_tons || 0).toFixed(2)} tons
+            </p>
+          </div>
+        </div>
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+            booking.status
+          )}`}
+        >
+          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+        </span>
+      </div>
+
+      {/* Details */}
+      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+        {booking.driver_name && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <User className="size-4" />
+            <span className="truncate">{booking.driver_name}</span>
+          </div>
+        )}
+        {booking.supplier_name && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Package className="size-4" />
+            <span className="truncate">{booking.supplier_name}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2 text-muted-foreground col-span-2">
+          <Calendar className="size-4" />
+          <span className="text-xs">
+            Booked: {new Date(booking.entry_datetime || booking.created_at).toLocaleString()}
+          </span>
+        </div>
+      </div>
+
+      {/* Received Info */}
+      {booking.status === "received" && booking.actual_box_count && (
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
+          Received: {booking.actual_box_count} boxes
+          {booking.actual_box_count !== booking.box_count && (
+            <span className="font-medium text-orange-600 dark:text-orange-400 ml-1">
+              (Diff: {booking.actual_box_count - booking.box_count > 0 ? "+" : ""}
+              {booking.actual_box_count - booking.box_count})
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Rejection Info */}
+      {booking.status === "rejected" && booking.rejection_reason && (
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800">
+          <p className="font-medium text-red-600 dark:text-red-400">
+            Rejected: {booking.rejection_reason}
+          </p>
+          {booking.rejection_notes && (
+            <p className="mt-1">{booking.rejection_notes}</p>
+          )}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-2">
+        {/* Booked Status Actions */}
+        {booking.status === "booked" && (
+          <>
+            {booking.can_receive && onReceive && (
+              <Button
+                size="sm"
+                onClick={(e) => handleAction(e, () => onReceive(booking))}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+              >
+                <CheckCircle className="size-4 mr-1" />
+                Receive
+              </Button>
+            )}
+            {booking.can_reject && onReject && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={(e) => handleAction(e, () => onReject(booking))}
+                className="flex-1"
+              >
+                <XCircle className="size-4 mr-1" />
+                Reject
+              </Button>
+            )}
+            {booking.can_edit && onEdit && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => onEdit(booking))}
+              >
+                <Edit className="size-4 mr-1" />
+                Edit
+              </Button>
+            )}
+            {booking.can_delete && onDelete && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => onDelete(booking))}
+              >
+                <Trash2 className="size-4 mr-1" />
+                Delete
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Received Status Actions */}
+        {booking.status === "received" && (
+          <>
+            {booking.can_exit && onExit && (
+              <Button
+                size="sm"
+                onClick={(e) => handleAction(e, () => onExit(booking))}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                <LogOut className="size-4 mr-1" />
+                Exit
+              </Button>
+            )}
+            {booking.can_unreceive && onUnreceive && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => onUnreceive(booking))}
+                className="flex-1"
+              >
+                <RotateCcw className="size-4 mr-1" />
+                Undo
+              </Button>
+            )}
+            {booking.can_reject && onReject && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={(e) => handleAction(e, () => onReject(booking))}
+                className="flex-1"
+              >
+                <XCircle className="size-4 mr-1" />
+                Reject
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Exited/Rejected Status - No Actions */}
+        {(booking.status === "exited" || booking.status === "rejected") && (
+          <div className="text-xs text-muted-foreground text-center w-full py-1">
+            No actions available
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

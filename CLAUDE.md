@@ -1,0 +1,1 @@
+- do not erp-mobile@0.1.0 dev as we already doing it
