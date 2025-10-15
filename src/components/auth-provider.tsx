@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "@/i18n/navigation"
 import { useAuthStore } from "@/lib/stores/auth-store"
-import { useLanguageStore } from "@/lib/i18n/language-store"
 
 const publicRoutes = ["/login"]
 
@@ -11,28 +10,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isAuthenticated, isLoading, checkAuth } = useAuthStore()
-  const { language, setLanguage, dir } = useLanguageStore()
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Initialize language on mount
-    const savedLang = localStorage.getItem('language-storage')
-    if (savedLang) {
-      try {
-        const parsed = JSON.parse(savedLang)
-        if (parsed.state?.language) {
-          setLanguage(parsed.state.language)
-        }
-      } catch (e) {
-        // Ignore parse errors
-      }
-    }
-
-    // Check authentication
+    // Check authentication - locale is handled by next-intl automatically
     checkAuth().finally(() => {
       setIsInitialized(true)
     })
-  }, [checkAuth, setLanguage])
+  }, [checkAuth])
 
   useEffect(() => {
     if (!isInitialized || isLoading) return

@@ -58,12 +58,12 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
-          <User className="mr-2 size-4" />
+          <User className="me-2 size-4" />
           Profile
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
-          <LogOut className="mr-2 size-4" />
+          <LogOut className="me-2 size-4" />
           Logout
         </DropdownMenuItem>
       </DropdownMenuContent>

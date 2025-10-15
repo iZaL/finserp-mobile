@@ -31,7 +31,7 @@ export default function Home() {
             className="h-auto flex-col items-start gap-2 p-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             <ClipboardList className="size-5" />
-            <div className="text-left">
+            <div className="text-start">
               <div className="font-semibold">{t('viewBookings')}</div>
               <div className="text-xs opacity-90 font-normal">{t('manageVehicles')}</div>
             </div>
@@ -42,7 +42,7 @@ export default function Home() {
             className="h-auto flex-col items-start gap-2 p-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
           >
             <Plus className="size-5" />
-            <div className="text-left">
+            <div className="text-start">
               <div className="font-semibold">{t('vehicleBookings')}</div>
               <div className="text-xs opacity-90 font-normal">{t('manageVehicles')}</div>
             </div>
@@ -53,7 +53,7 @@ export default function Home() {
             className="h-auto flex-col items-start gap-2 p-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
           >
             <Calendar className="size-5" />
-            <div className="text-left">
+            <div className="text-start">
               <div className="font-semibold">Calendar View</div>
               <div className="text-xs opacity-90 font-normal">View booking schedule</div>
             </div>

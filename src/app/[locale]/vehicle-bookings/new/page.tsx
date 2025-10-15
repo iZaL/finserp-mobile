@@ -25,7 +25,7 @@ import { toast } from "sonner"
 
 export default function NewBookingPage() {
   const router = useRouter()
-  const t = useTranslations('vehicleBookings.newBooking')
+  const t = useTranslations('vehicleBookings.newBookingForm')
   const tCommon = useTranslations('common')
   const tValidation = useTranslations('vehicleBookings.validation')
   const vehicleNumberRef = useRef<HTMLInputElement>(null)

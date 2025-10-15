@@ -32,6 +32,8 @@
     "noBookingsDescription": "ابدأ بإنشاء أول حجز",
     "searchPlaceholder": "البحث حسب المركبة أو السائق أو المورد...",
     "createBooking": "إنشاء حجز",
+    "boxes": "بانات",
+    "tons": "طن",
     "stats": {
       "booked": "محجوز",
       "received": "مستلم",
@@ -46,19 +48,19 @@
       "booked": "محجوز",
       "received": "مستلم",
       "remaining": "المتبقي",
-      "boxes": "صناديق",
+      "boxes": "بانات",
       "exceeded": "تم تجاوز السعة",
       "exceededDescription": "تم تجاوز الحد اليومي. مطلوب تجاوز للحجوزات الجديدة.",
       "approaching": "الاقتراب من الحد",
       "approachingDescription": "{count} صندوق متبقي قبل الوصول إلى الحد."
     },
-    "newBooking": {
+    "newBookingForm": {
       "title": "حجز جديد",
       "subtitle": "إضافة حجز مركبة جديد",
       "quickEntry": "إدخال سريع للمركبة",
       "quickPicks": "اختيارات سريعة",
       "vehicleNumber": "رقم المركبة",
-      "boxCount": "عدد الصناديق",
+      "boxCount": "عدد البانات",
       "boxWeight": "الوزن (كجم)",
       "totalWeight": "الإجمالي (طن)",
       "driverName": "اسم السائق",
@@ -77,9 +79,11 @@
       "capacityOverrideDescription": "سيتجاوز هذا الحد اليومي للسعة. هل تريد المتابعة بالتجاوز؟",
       "remaining": "المتبقي:",
       "adding2": "الإضافة:",
-      "boxesOverLimit": "صناديق تجاوزت الحد",
+      "boxesOverLimit": "بانات تجاوزت الحد",
       "proceedWithOverride": "المتابعة بالتجاوز",
       "vehicleAdded": "تمت إضافة المركبة {number} بنجاح!",
+      "boxes": "بانات",
+      "tons": "طن",
       "placeholders": {
         "vehicleNumber": "مثال: ABC123، 123XYZ",
         "boxCount": "0",
@@ -87,7 +91,7 @@
       }
     },
     "bookingCard": {
-      "boxes": "صناديق",
+      "boxes": "بانات",
       "tons": "طن",
       "driver": "السائق",
       "supplier": "المورد",
@@ -98,8 +102,9 @@
       "waitTime": "وقت الانتظار",
       "factoryTime": "وقت المصنع",
       "totalTime": "الوقت الإجمالي",
-      "receivedBoxes": "الصناديق المستلمة",
+      "receivedBoxes": "البانات المستلمة",
       "rejectionReason": "سبب الرفض",
+      "noActions": "لا توجد إجراءات متاحة",
       "actions": {
         "receive": "استلام",
         "reject": "رفض",
@@ -111,9 +116,9 @@
     },
     "receiveDialog": {
       "title": "استلام المركبة",
-      "description": "أدخل العدد الفعلي للصناديق المستلمة لـ {vehicle}",
-      "expectedBoxes": "الصناديق المتوقعة",
-      "actualBoxCount": "العدد الفعلي للصناديق",
+      "description": "أدخل العدد الفعلي للبانات المستلمة لـ {vehicle}",
+      "expectedBoxes": "البانات المتوقعة",
+      "actualBoxCount": "العدد الفعلي للبانات",
       "discrepancy": "الفرق",
       "boxesDifference": "{count} صندوق {type}",
       "more": "زيادة",
@@ -140,7 +145,7 @@
       "description": "وضع علامة على {vehicle} كخارجة من المنشأة",
       "summary": "ملخص",
       "vehicleNumber": "المركبة",
-      "boxes": "الصناديق",
+      "boxes": "البانات",
       "weight": "الوزن",
       "tons": "طن",
       "exitNotes": "ملاحظات الخروج",
@@ -165,12 +170,12 @@
     },
     "validation": {
       "vehicleNumberRequired": "رقم المركبة مطلوب",
-      "boxCountRequired": "يجب أن يكون عدد الصناديق أكبر من 0",
-      "boxCountMax": "لا يمكن أن يتجاوز عدد الصناديق 10,000",
+      "boxCountRequired": "يجب أن يكون عدد البانات أكبر من 0",
+      "boxCountMax": "لا يمكن أن يتجاوز عدد البانات 10,000",
       "boxWeightRequired": "يجب أن يكون وزن الصندوق أكبر من 0",
       "boxWeightMin": "لا يمكن أن يقل وزن الصندوق عن 1 كجم",
       "boxWeightMax": "لا يمكن أن يتجاوز وزن الصندوق 1000 كجم",
-      "actualBoxCountRequired": "العدد الفعلي للصناديق مطلوب",
+      "actualBoxCountRequired": "العدد الفعلي للبانات مطلوب",
       "rejectionReasonRequired": "سبب الرفض مطلوب"
     }
   },
@@ -182,5 +187,16 @@
     "home": "الرئيسية",
     "bookings": "الحجوزات",
     "more": "المزيد"
+  },
+  "login": {
+    "title": "تسجيل الدخول",
+    "subtitle": "تسجيل الدخول إلى حسابك",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberMe": "تذكرني",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "loginButton": "تسجيل الدخول",
+    "loggingIn": "جاري تسجيل الدخول...",
+    "demoCredentials": "تجريبي: admin@example.com / password"
   }
 }

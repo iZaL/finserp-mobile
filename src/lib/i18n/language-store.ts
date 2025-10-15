@@ -17,8 +17,9 @@ export const useLanguageStore = create<LanguageStore>()(
       dir: 'ltr',
       setLanguage: (lang: Language) => {
         Cookies.set('language', lang, { expires: 365 })
-        document.documentElement.lang = lang
-        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+        // NOTE: DOM manipulation removed - next-intl handles this via server-side rendering
+        // document.documentElement.lang = lang
+        // document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
         set({
           language: lang,
           dir: lang === 'ar' ? 'rtl' : 'ltr'

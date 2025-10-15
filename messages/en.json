@@ -52,7 +52,7 @@
       "approaching": "Approaching Limit",
       "approachingDescription": "{count} boxes remaining before limit is reached."
     },
-    "newBooking": {
+    "newBookingForm": {
       "title": "New Booking",
       "subtitle": "Add a new vehicle booking",
       "quickEntry": "Quick Vehicle Entry",
@@ -80,6 +80,8 @@
       "boxesOverLimit": "boxes over limit",
       "proceedWithOverride": "Proceed with Override",
       "vehicleAdded": "Vehicle {number} added successfully!",
+      "boxes": "Boxes",
+      "tons": "Tons",
       "placeholders": {
         "vehicleNumber": "e.g. ABC123, 123XYZ",
         "boxCount": "0",
@@ -100,6 +102,7 @@
       "totalTime": "Total time",
       "receivedBoxes": "Received boxes",
       "rejectionReason": "Rejection reason",
+      "noActions": "No actions available",
       "actions": {
         "receive": "Receive",
         "reject": "Reject",
@@ -182,5 +185,16 @@
     "home": "Home",
     "bookings": "Bookings",
     "more": "More"
+  },
+  "login": {
+    "title": "Login",
+    "subtitle": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "loginButton": "Sign in",
+    "loggingIn": "Signing in...",
+    "demoCredentials": "Demo: admin@example.com / password"
   }
 }

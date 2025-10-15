@@ -1,7 +1,7 @@
 "use client"
 
 import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/navigation';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,11 +18,8 @@ export function LanguageSwitcher() {
   const pathname = usePathname();
 
   const switchLocale = (newLocale: string) => {
-    // Remove current locale from pathname if it exists
-    const pathWithoutLocale = pathname.replace(/^\/(en|ar)/, '');
-    // Add new locale to the path
-    const newPath = `/${newLocale}${pathWithoutLocale}`;
-    router.push(newPath);
+    // Use next-intl's router which handles locale routing automatically
+    router.push(pathname, { locale: newLocale });
   };
 
   return (
@@ -32,7 +29,7 @@ export function LanguageSwitcher() {
           <Languages className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="!bg-black border-gray-800">
+      <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => switchLocale('en')}
           className={locale === 'en' ? 'bg-accent' : ''}

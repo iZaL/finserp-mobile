@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "@/i18n/navigation"
+import { useTranslations, useLocale } from "next-intl"
 import { useAuthStore } from "@/lib/stores/auth-store"
-import { useLanguageStore } from "@/lib/i18n/language-store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Box, Globe } from "lucide-react"
+import { Link } from "@/i18n/navigation"
 
 export default function LoginPage() {
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('login')
   const { login, isAuthenticated } = useAuthStore()
-  const { t, language, setLanguage } = useLanguageStore()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -40,24 +42,33 @@ export default function LoginPage() {
     }
   }
 
-  const toggleLanguage = () => {
-    setLanguage(language === "en" ? "ar" : "en")
-  }
-
   return (
     <div className="h-screen overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
       <div className="w-full max-w-md overflow-y-auto max-h-full">
         {/* Language Selector */}
         <div className="flex justify-end mb-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleLanguage}
-            className="gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
-          >
-            <Globe className="size-4" />
-            {language === "en" ? "العربية" : "English"}
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/login" locale="en">
+              <Button
+                variant={locale === "en" ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+              >
+                <Globe className="size-4" />
+                English
+              </Button>
+            </Link>
+            <Link href="/login" locale="ar">
+              <Button
+                variant={locale === "ar" ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+              >
+                <Globe className="size-4" />
+                العربية
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Login Card */}
@@ -74,7 +85,7 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold tracking-tight mb-2 text-gray-900 dark:text-white">
               ERP Mobile
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{t("login")}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{t("subtitle")}</p>
           </div>
 
           {/* Login Form */}
@@ -142,7 +153,7 @@ export default function LoginPage() {
           {/* Demo Credentials */}
           <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
             <p className="text-xs text-center text-blue-700 dark:text-blue-300 font-medium">
-              Demo: admin@example.com / password
+              {t("demoCredentials")}
             </p>
           </div>
         </div>

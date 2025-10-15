@@ -102,7 +102,7 @@ export function BookingCard({
         <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
           {t('received')}: {booking.actual_box_count} {t('boxes')}
           {booking.actual_box_count !== booking.box_count && (
-            <span className="font-medium text-orange-600 dark:text-orange-400 ml-1">
+            <span className="font-medium text-orange-600 dark:text-orange-400 ms-1">
               (Diff: {booking.actual_box_count - booking.box_count > 0 ? "+" : ""}
               {booking.actual_box_count - booking.box_count})
             </span>
@@ -133,7 +133,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onReceive(booking))}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
               >
-                <CheckCircle className="size-4 mr-1" />
+                <CheckCircle className="size-4 me-1" />
                 {t('actions.receive')}
               </Button>
             )}
@@ -144,7 +144,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onReject(booking))}
                 className="flex-1"
               >
-                <XCircle className="size-4 mr-1" />
+                <XCircle className="size-4 me-1" />
                 {t('actions.reject')}
               </Button>
             )}
@@ -154,7 +154,7 @@ export function BookingCard({
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onEdit(booking))}
               >
-                <Edit className="size-4 mr-1" />
+                <Edit className="size-4 me-1" />
                 {t('actions.edit')}
               </Button>
             )}
@@ -164,7 +164,7 @@ export function BookingCard({
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onDelete(booking))}
               >
-                <Trash2 className="size-4 mr-1" />
+                <Trash2 className="size-4 me-1" />
                 {t('actions.delete')}
               </Button>
             )}
@@ -180,7 +180,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onExit(booking))}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
-                <LogOut className="size-4 mr-1" />
+                <LogOut className="size-4 me-1" />
                 {t('actions.exit')}
               </Button>
             )}
@@ -191,7 +191,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onUnreceive(booking))}
                 className="flex-1"
               >
-                <RotateCcw className="size-4 mr-1" />
+                <RotateCcw className="size-4 me-1" />
                 {t('actions.unreceive')}
               </Button>
             )}
@@ -202,7 +202,7 @@ export function BookingCard({
                 onClick={(e) => handleAction(e, () => onReject(booking))}
                 className="flex-1"
               >
-                <XCircle className="size-4 mr-1" />
+                <XCircle className="size-4 me-1" />
                 {t('actions.reject')}
               </Button>
             )}
@@ -212,7 +212,7 @@ export function BookingCard({
         {/* Exited/Rejected Status - No Actions */}
         {(booking.status === "exited" || booking.status === "rejected") && (
           <div className="text-xs text-muted-foreground text-center w-full py-1">
-            {t('noActions', { ns: 'vehicleBookings', defaultValue: 'No actions available' })}
+            {t('noActions')}
           </div>
         )}
       </div>

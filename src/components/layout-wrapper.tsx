@@ -26,8 +26,8 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 z-40">
-          <SidebarTrigger className="-ml-1 md:flex hidden" />
-          <Separator orientation="vertical" className="mr-2 h-6 md:flex hidden" />
+          <SidebarTrigger className="-ms-1 md:flex hidden" />
+          <Separator orientation="vertical" className="me-2 h-6 md:flex hidden" />
           <div className="flex flex-1 items-center justify-between gap-2">
             <h1 className="text-sm font-semibold">ERP Mobile</h1>
             <div className="flex items-center gap-2">
