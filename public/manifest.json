@@ -3,7 +3,7 @@
   "short_name": "FinsERP",
   "description": "ERP Mobile Progressive Web App for managing vehicle bookings and operations",
   "start_url": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait",
