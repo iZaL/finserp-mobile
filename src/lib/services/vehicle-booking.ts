@@ -3,6 +3,7 @@ import type {
   VehicleBooking,
   BookingStats,
   DailyCapacity,
+  VehicleBookingSettings,
   VehicleTemplate,
   BookingFilters,
   CreateBookingRequest,
@@ -56,6 +57,14 @@ export const vehicleBookingService = {
     const params = date ? `?date=${date}` : ""
     const response = await api.get<ApiResponse<DailyCapacity>>(
       `/fish-purchase-vehicles/daily-capacity${params}`
+    )
+    return response.data.data!
+  },
+
+  // Get system settings
+  getSettings: async (): Promise<VehicleBookingSettings> => {
+    const response = await api.get<ApiResponse<VehicleBookingSettings>>(
+      `/fish-purchase-vehicles/settings`
     )
     return response.data.data!
   },

@@ -73,6 +73,11 @@ export interface DailyCapacity {
   can_override: boolean
 }
 
+export interface VehicleBookingSettings {
+  default_box_weight_kg: number
+  vehicle_display_time_limit_hours: number
+}
+
 export interface VehicleTemplate {
   vehicle_number: string
   box_count: number

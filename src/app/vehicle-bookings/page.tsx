@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Car, Search, Filter, Plus, RefreshCw, Calendar, Package } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import type { VehicleBooking, BookingStats, BookingFilters } from "@/types/vehicle-booking"
+import type { VehicleBooking, BookingStats, BookingFilters, DailyCapacity } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
+import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
 
 export default function VehicleBookingsPage() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function VehicleBookingsPage() {
   const [statusFilter, setStatusFilter] = useState<BookingFilters["status"]>("all")
   const [bookings, setBookings] = useState<VehicleBooking[]>([])
   const [stats, setStats] = useState<BookingStats | null>(null)
+  const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -32,15 +34,17 @@ export default function VehicleBookingsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const [bookingsData, statsData] = await Promise.all([
+      const [bookingsData, statsData, capacityData] = await Promise.all([
         vehicleBookingService.getBookings({
           status: statusFilter,
           per_page: 50
         }),
         vehicleBookingService.getStats(),
+        vehicleBookingService.getDailyCapacity(),
       ])
       setBookings(bookingsData.data)
       setStats(statsData)
+      setCapacityInfo(capacityData)
     } catch (error) {
       console.error("Error fetching bookings:", error)
     } finally {
@@ -165,6 +169,9 @@ export default function VehicleBookingsPage() {
           <Filter className="size-4" />
         </Button>
       </div>
+
+      {/* Capacity Card */}
+      <CapacityCard capacity={capacityInfo} loading={loading} />
 
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">

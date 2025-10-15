@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, Search, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import type { VehicleTemplate, DailyCapacity } from "@/types/vehicle-booking"
+import type { VehicleTemplate, DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 
 export default function NewBookingPage() {
@@ -30,7 +30,7 @@ export default function NewBookingPage() {
   // Form state
   const [vehicleNumber, setVehicleNumber] = useState("")
   const [boxCount, setBoxCount] = useState("")
-  const [boxWeightKg, setBoxWeightKg] = useState("20")
+  const [boxWeightKg, setBoxWeightKg] = useState("")
   const [totalWeightTons, setTotalWeightTons] = useState("")
   const [driverName, setDriverName] = useState("")
   const [driverPhone, setDriverPhone] = useState("")
@@ -44,6 +44,7 @@ export default function NewBookingPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [quickPicks, setQuickPicks] = useState<VehicleTemplate[]>([])
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
+  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showCapacityDialog, setShowCapacityDialog] = useState(false)
 
@@ -55,14 +56,21 @@ export default function NewBookingPage() {
 
   const fetchInitialData = async () => {
     try {
-      const [picksData, capacityData] = await Promise.all([
+      const [picksData, capacityData, settingsData] = await Promise.all([
         vehicleBookingService.getQuickPicks(),
         vehicleBookingService.getDailyCapacity(),
+        vehicleBookingService.getSettings(),
       ])
       setQuickPicks(picksData)
       setCapacityInfo(capacityData)
+      setSettings(settingsData)
+
+      // Set initial box weight from settings
+      setBoxWeightKg(settingsData.default_box_weight_kg.toString())
     } catch (error) {
       console.error("Error fetching initial data:", error)
+      // Fallback to default if fetching fails
+      setBoxWeightKg("20")
     }
   }
 
@@ -225,7 +233,7 @@ export default function NewBookingPage() {
       // Reset form
       setVehicleNumber("")
       setBoxCount("")
-      setBoxWeightKg("20")
+      setBoxWeightKg(settings?.default_box_weight_kg.toString() || "20")
       setTotalWeightTons("")
       setDriverName("")
       setDriverPhone("")
