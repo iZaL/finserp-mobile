@@ -11,38 +11,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 import { toast } from "sonner"
-import { LogOut, Loader2 } from "lucide-react"
+import { Trash2, Loader2 } from "lucide-react"
 
-interface ExitDialogProps {
+interface DeleteDialogProps {
   booking: VehicleBooking | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function ExitDialog({
+export function DeleteDialog({
   booking,
   open,
   onOpenChange,
   onSuccess,
-}: ExitDialogProps) {
-  const t = useTranslations('vehicleBookings.exitDialog')
+}: DeleteDialogProps) {
+  const t = useTranslations('vehicleBookings')
   const tCommon = useTranslations('common')
-  const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!loading) {
       onOpenChange(newOpen)
-      if (!newOpen) {
-        // Reset form when closing
-        setNotes("")
-      }
     }
   }
 
@@ -53,13 +46,13 @@ export function ExitDialog({
 
     try {
       setLoading(true)
-      await vehicleBookingService.exitVehicle(booking.id)
+      await vehicleBookingService.deleteBooking(booking.id)
 
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
+      toast.success(t('deleteSuccess', { vehicle: booking.vehicle_number }))
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
-      console.error("Error exiting vehicle:", error)
+      console.error("Error deleting vehicle:", error)
     } finally {
       setLoading(false)
     }
@@ -71,9 +64,9 @@ export function ExitDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogTitle>Delete Vehicle</DialogTitle>
           <DialogDescription>
-            {t('description', { vehicle: booking.vehicle_number })}
+            {t('deleteConfirm', { vehicle: booking.vehicle_number })}
           </DialogDescription>
         </DialogHeader>
 
@@ -83,45 +76,29 @@ export function ExitDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
+                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">Status</p>
-                  <p className="font-medium capitalize">{booking.status}</p>
+                  <p className="text-muted-foreground text-xs">Box Count</p>
+                  <p className="font-medium">{booking.box_count}</p>
                 </div>
-                {booking.actual_box_count && (
+                {booking.driver_name && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">{t('receivedBoxes')}</p>
-                    <p className="font-medium">{booking.actual_box_count} {t('boxes')}</p>
+                    <p className="text-muted-foreground text-xs">Driver</p>
+                    <p className="font-medium">{booking.driver_name}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="exit_notes">{t('exitNotes')} ({tCommon('optional')})</Label>
-              <Textarea
-                id="exit_notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t('notesPlaceholder')}
-                rows={3}
-                maxLength={500}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('charactersCount', { count: notes.length })}
+            {/* Warning */}
+            <div className="rounded-lg border border-red-800 dark:border-red-800 p-3">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                ⚠️ Warning
               </p>
-            </div>
-
-            {/* Info */}
-            <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-3">
-              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-                ℹ️ {t('title')}
-              </p>
-              <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">
-                The vehicle will be marked as exited and removed from the active queue.
+              <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
+                This action cannot be undone. The vehicle booking will be permanently deleted from the system.
               </p>
             </div>
           </div>
@@ -137,17 +114,18 @@ export function ExitDialog({
             </Button>
             <Button
               type="submit"
+              variant="destructive"
               disabled={loading}
             >
               {loading ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  {t('exiting')}
+                  Deleting...
                 </>
               ) : (
                 <>
-                  <LogOut className="size-4 mr-2" />
-                  {t('exit')}
+                  <Trash2 className="size-4 mr-2" />
+                  Delete
                 </>
               )}
             </Button>

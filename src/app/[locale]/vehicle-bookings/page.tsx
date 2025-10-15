@@ -13,6 +13,8 @@ import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
+import { UnreceiveDialog } from "@/components/vehicle-booking/unreceive-dialog"
+import { DeleteDialog } from "@/components/vehicle-booking/delete-dialog"
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
 
 export default function VehicleBookingsPage() {
@@ -30,6 +32,8 @@ export default function VehicleBookingsPage() {
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
   const [exitDialogOpen, setExitDialogOpen] = useState(false)
+  const [unreceiveDialogOpen, setUnreceiveDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
   // Fetch bookings and stats
@@ -86,18 +90,9 @@ export default function VehicleBookingsPage() {
     setExitDialogOpen(true)
   }
 
-  const handleUnreceive = async (booking: VehicleBooking) => {
-    if (!confirm(t('unreceiveConfirm', { vehicle: booking.vehicle_number }))) {
-      return
-    }
-
-    try {
-      await vehicleBookingService.unreceiveVehicle(booking.id)
-      toast.success(t('unreceiveSuccess', { vehicle: booking.vehicle_number }))
-      fetchData()
-    } catch (error) {
-      console.error("Error unreceiving vehicle:", error)
-    }
+  const handleUnreceive = (booking: VehicleBooking) => {
+    setSelectedBooking(booking)
+    setUnreceiveDialogOpen(true)
   }
 
   const handleEdit = (booking: VehicleBooking) => {
@@ -105,18 +100,9 @@ export default function VehicleBookingsPage() {
     router.push(`/vehicle-bookings/${booking.id}/edit`)
   }
 
-  const handleDelete = async (booking: VehicleBooking) => {
-    if (!confirm(t('deleteConfirm', { vehicle: booking.vehicle_number }))) {
-      return
-    }
-
-    try {
-      await vehicleBookingService.deleteBooking(booking.id)
-      toast.success(t('deleteSuccess', { vehicle: booking.vehicle_number }))
-      fetchData()
-    } catch (error) {
-      console.error("Error deleting vehicle:", error)
-    }
+  const handleDelete = (booking: VehicleBooking) => {
+    setSelectedBooking(booking)
+    setDeleteDialogOpen(true)
   }
 
   const handleDialogSuccess = () => {
@@ -319,6 +305,20 @@ export default function VehicleBookingsPage() {
         booking={selectedBooking}
         open={exitDialogOpen}
         onOpenChange={setExitDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <UnreceiveDialog
+        booking={selectedBooking}
+        open={unreceiveDialogOpen}
+        onOpenChange={setUnreceiveDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <DeleteDialog
+        booking={selectedBooking}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
         onSuccess={handleDialogSuccess}
       />
     </>

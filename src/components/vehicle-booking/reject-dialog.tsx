@@ -89,7 +89,7 @@ export function RejectDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] !bg-black border-gray-800">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
@@ -103,16 +103,16 @@ export function RejectDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('vehicleNumber', { ns: 'vehicleBookings.newBooking' })}</p>
+                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('boxCount', { ns: 'vehicleBookings.newBooking' })}</p>
+                  <p className="text-muted-foreground text-xs">{t('boxCount')}</p>
                   <p className="font-medium">{booking.box_count}</p>
                 </div>
                 {booking.driver_name && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">{t('driver', { ns: 'vehicleBookings.bookingCard' })}</p>
+                    <p className="text-muted-foreground text-xs">{t('driver')}</p>
                     <p className="font-medium">{booking.driver_name}</p>
                   </div>
                 )}
@@ -128,7 +128,7 @@ export function RejectDialog({
                 <SelectTrigger id="rejection_reason">
                   <SelectValue placeholder={t('selectReason')} />
                 </SelectTrigger>
-                <SelectContent className="!bg-black border-gray-800">
+                <SelectContent>
                   {REJECTION_REASONS.map((reason) => (
                     <SelectItem key={reason} value={reason}>
                       {tReasons(reason.toLowerCase().replace(/ /g, ''))}
@@ -153,14 +153,14 @@ export function RejectDialog({
                 required={rejectionReason === "Other"}
               />
               <p className="text-xs text-muted-foreground">
-                {rejectionNotes.length}/500 {t('charactersCount', { ns: 'vehicleBookings.newBooking' }).split('/')[1]}
+                {t('charactersCount', { count: rejectionNotes.length })}
               </p>
             </div>
 
             {/* Warning */}
             <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 p-3">
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                ⚠ {tCommon('required')}: {t('deleteConfirm', { ns: 'vehicleBookings', vehicle: '' }).split('?')[0]}
+                ⚠️ {tCommon('required')}: {t('deleteConfirm')}
               </p>
               <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
                 The vehicle will be marked as rejected and removed from the active queue.

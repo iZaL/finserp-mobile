@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { Toaster } from "@/components/ui/sonner";
+import { isRTL } from "@/lib/utils";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -60,7 +61,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   // Set direction based on locale
-  const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const dir = isRTL(locale) ? 'rtl' : 'ltr';
 
   return (
     <html key={locale} lang={locale} dir={dir} suppressHydrationWarning>

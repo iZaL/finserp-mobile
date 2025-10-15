@@ -24,10 +24,10 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-3">
-            <div className="h-2 bg-gray-700 rounded"></div>
+            <div className="h-2 bg-muted rounded"></div>
             <div className="grid grid-cols-4 gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-16 bg-gray-700 rounded"></div>
+                <div key={i} className="h-16 bg-muted rounded"></div>
               ))}
             </div>
           </div>
@@ -81,7 +81,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
               {capacity.total_booked_boxes} / {capacity.daily_limit_boxes} {t('boxes')}
             </span>
           </div>
-          <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${progressColor}`}
               style={{ width: `${Math.min(usagePercent, 100)}%` }}
@@ -130,11 +130,11 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
 
         {/* Warning Message */}
         {isDanger && (
-          <div className="flex items-start gap-2 p-3 bg-red-950/30 border border-red-800 rounded-lg">
-            <AlertTriangle className="size-4 text-red-400 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-2 p-3 border border-red-800 dark:border-red-800 rounded-lg">
+            <AlertTriangle className="size-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-red-400">{t('exceeded')}</p>
-              <p className="text-red-500 text-xs">
+              <p className="font-medium text-red-600 dark:text-red-400">{t('exceeded')}</p>
+              <p className="text-red-600/80 dark:text-red-400/80 text-xs">
                 {t('exceededDescription')}
               </p>
             </div>
@@ -142,11 +142,11 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
         )}
 
         {isWarning && !isDanger && (
-          <div className="flex items-start gap-2 p-3 bg-amber-950/30 border border-amber-800 rounded-lg">
-            <AlertTriangle className="size-4 text-amber-400 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-2 p-3 border border-amber-800 dark:border-amber-800 rounded-lg">
+            <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-amber-400">{t('approaching')}</p>
-              <p className="text-amber-500 text-xs">
+              <p className="font-medium text-amber-600 dark:text-amber-400">{t('approaching')}</p>
+              <p className="text-amber-600/80 dark:text-amber-400/80 text-xs">
                 {t('approachingDescription', { count: capacity.remaining_capacity_boxes })}
               </p>
             </div>

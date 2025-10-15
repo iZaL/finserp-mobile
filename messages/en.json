@@ -115,14 +115,20 @@
     "receiveDialog": {
       "title": "Receive Vehicle",
       "description": "Enter the actual number of boxes received for {vehicle}",
+      "vehicleNumber": "Vehicle Number",
       "expectedBoxes": "Expected boxes",
       "actualBoxCount": "Actual Box Count",
+      "boxWeight": "Weight (kg)",
+      "totalWeight": "Total (tons)",
+      "tons": "tons",
       "discrepancy": "Discrepancy",
       "boxesDifference": "{count} boxes {type}",
+      "boxes": "boxes",
       "more": "more",
       "less": "less",
       "notes": "Notes",
       "notesPlaceholder": "Optional notes about the reception...",
+      "charactersCount": "{count}/500 characters",
       "receiving": "Receiving...",
       "receive": "Receive Vehicle",
       "success": "Vehicle {vehicle} received successfully!"
@@ -130,13 +136,18 @@
     "rejectDialog": {
       "title": "Reject Vehicle",
       "description": "Select a reason for rejecting {vehicle}",
+      "vehicleNumber": "Vehicle Number",
+      "boxCount": "Box Count",
+      "driver": "Driver",
       "rejectionReason": "Rejection Reason",
       "selectReason": "Select a reason...",
       "additionalNotes": "Additional Notes",
       "notesPlaceholder": "Optional additional details...",
+      "charactersCount": "{count}/500 characters",
       "rejecting": "Rejecting...",
       "reject": "Reject Vehicle",
-      "success": "Vehicle {vehicle} rejected successfully!"
+      "success": "Vehicle {vehicle} rejected successfully!",
+      "deleteConfirm": "This action cannot be undone"
     },
     "exitDialog": {
       "title": "Exit Vehicle",
@@ -146,8 +157,10 @@
       "boxes": "Boxes",
       "weight": "Weight",
       "tons": "tons",
+      "receivedBoxes": "Received boxes",
       "exitNotes": "Exit Notes",
       "notesPlaceholder": "Optional notes about the exit...",
+      "charactersCount": "{count}/500 characters",
       "exiting": "Exiting...",
       "exit": "Exit Vehicle",
       "success": "Vehicle {vehicle} exited successfully!"
@@ -164,7 +177,13 @@
       "capacityExceeded": "Capacity exceeded",
       "deliveryTimeMismatch": "Delivery time mismatch",
       "wrongVehicle": "Wrong vehicle arrived",
-      "other": "Other"
+      "other": "Other",
+      "vehicleconditionunsatisfactory": "Vehicle condition unsatisfactory",
+      "fishqualitybelowstandards": "Fish quality below standards",
+      "documentationincomplete": "Documentation incomplete",
+      "capacityexceeded": "Capacity exceeded",
+      "deliverytimemismatch": "Delivery time mismatch",
+      "wrongvehiclearrived": "Wrong vehicle arrived"
     },
     "validation": {
       "vehicleNumberRequired": "Vehicle number is required",

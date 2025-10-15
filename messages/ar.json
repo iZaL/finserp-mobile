@@ -117,14 +117,20 @@
     "receiveDialog": {
       "title": "استلام المركبة",
       "description": "أدخل العدد الفعلي للبانات المستلمة لـ {vehicle}",
+      "vehicleNumber": "رقم المركبة",
       "expectedBoxes": "البانات المتوقعة",
       "actualBoxCount": "العدد الفعلي للبانات",
+      "boxWeight": "الوزن (كجم)",
+      "totalWeight": "الإجمالي (طن)",
+      "tons": "طن",
       "discrepancy": "الفرق",
       "boxesDifference": "{count} صندوق {type}",
+      "boxes": "بانات",
       "more": "زيادة",
       "less": "نقص",
       "notes": "ملاحظات",
       "notesPlaceholder": "ملاحظات اختيارية حول الاستلام...",
+      "charactersCount": "{count}/500 حرف",
       "receiving": "جاري الاستلام...",
       "receive": "استلام المركبة",
       "success": "تم استلام المركبة {vehicle} بنجاح!"
@@ -132,13 +138,18 @@
     "rejectDialog": {
       "title": "رفض المركبة",
       "description": "حدد سببًا لرفض {vehicle}",
+      "vehicleNumber": "رقم المركبة",
+      "boxCount": "عدد البانات",
+      "driver": "السائق",
       "rejectionReason": "سبب الرفض",
       "selectReason": "اختر سببًا...",
       "additionalNotes": "ملاحظات إضافية",
       "notesPlaceholder": "تفاصيل إضافية اختيارية...",
+      "charactersCount": "{count}/500 حرف",
       "rejecting": "جاري الرفض...",
       "reject": "رفض المركبة",
-      "success": "تم رفض المركبة {vehicle} بنجاح!"
+      "success": "تم رفض المركبة {vehicle} بنجاح!",
+      "deleteConfirm": "لا يمكن التراجع عن هذا الإجراء"
     },
     "exitDialog": {
       "title": "خروج المركبة",
@@ -148,8 +159,10 @@
       "boxes": "البانات",
       "weight": "الوزن",
       "tons": "طن",
+      "receivedBoxes": "البانات المستلمة",
       "exitNotes": "ملاحظات الخروج",
       "notesPlaceholder": "ملاحظات اختيارية حول الخروج...",
+      "charactersCount": "{count}/500 حرف",
       "exiting": "جاري الخروج...",
       "exit": "خروج المركبة",
       "success": "خرجت المركبة {vehicle} بنجاح!"
@@ -166,7 +179,13 @@
       "capacityExceeded": "تم تجاوز السعة",
       "deliveryTimeMismatch": "عدم تطابق وقت التسليم",
       "wrongVehicle": "وصلت المركبة الخطأ",
-      "other": "أخرى"
+      "other": "أخرى",
+      "vehicleconditionunsatisfactory": "حالة المركبة غير مرضية",
+      "fishqualitybelowstandards": "جودة الأسماك أقل من المعايير",
+      "documentationincomplete": "الوثائق غير مكتملة",
+      "capacityexceeded": "تم تجاوز السعة",
+      "deliverytimemismatch": "عدم تطابق وقت التسليم",
+      "wrongvehiclearrived": "وصلت المركبة الخطأ"
     },
     "validation": {
       "vehicleNumberRequired": "رقم المركبة مطلوب",

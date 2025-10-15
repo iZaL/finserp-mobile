@@ -91,7 +91,7 @@ export function ReceiveDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] !bg-black border-gray-800">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
@@ -105,7 +105,7 @@ export function ReceiveDialog({
             <div className="rounded-lg border p-3 bg-muted/50">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('vehicleNumber', { ns: 'vehicleBookings.newBooking' })}</p>
+                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -113,12 +113,12 @@ export function ReceiveDialog({
                   <p className="font-medium">{booking.box_count}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('boxWeight', { ns: 'vehicleBookings.newBooking' })}</p>
+                  <p className="text-muted-foreground text-xs">{t('boxWeight')}</p>
                   <p className="font-medium">{booking.box_weight_kg || 'N/A'} kg</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('totalWeight', { ns: 'vehicleBookings.newBooking' })}</p>
-                  <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} {t('tons', { ns: 'vehicleBookings.bookingCard' })}</p>
+                  <p className="text-muted-foreground text-xs">{t('totalWeight')}</p>
+                  <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}</p>
                 </div>
               </div>
             </div>
@@ -141,7 +141,7 @@ export function ReceiveDialog({
               />
               {difference !== 0 && receivedBoxCount && (
                 <p className={`text-xs ${difference > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400"}`}>
-                  {t('discrepancy')}: {difference > 0 ? "+" : ""}{difference} {t('boxes', { ns: 'vehicleBookings.capacity' })}
+                  {t('discrepancy')}: {difference > 0 ? "+" : ""}{difference} {t('boxes')}
                   {difference > 0 ? ` (${t('more')})` : ` (${t('less')})`}
                 </p>
               )}
@@ -159,7 +159,7 @@ export function ReceiveDialog({
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
-                {notes.length}/500 {t('charactersCount', { ns: 'vehicleBookings.newBooking' }).split('/')[1]}
+                {t('charactersCount', { count: notes.length })}
               </p>
             </div>
           </div>
@@ -176,7 +176,7 @@ export function ReceiveDialog({
             <Button
               type="submit"
               disabled={loading || !receivedBoxCount}
-              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
             >
               {loading ? (
                 <>
