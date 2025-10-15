@@ -97,6 +97,7 @@
       "received": "Received",
       "exited": "Exited",
       "rejected": "Rejected",
+      "createdBy": "Created by",
       "waitTime": "Wait time",
       "factoryTime": "Factory time",
       "totalTime": "Total time",

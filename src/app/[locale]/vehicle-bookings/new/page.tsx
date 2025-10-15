@@ -234,25 +234,8 @@ export default function NewBookingPage() {
 
       toast.success(t('vehicleAdded', { number: vehicleNumber }))
 
-      // Reset form
-      setVehicleNumber("")
-      setBoxCount("")
-      setBoxWeightKg(settings?.default_box_weight_kg.toString() || "20")
-      setTotalWeightTons("")
-      setDriverName("")
-      setDriverPhone("")
-      setSupplierName("")
-      setSupplierPhone("")
-      setNotes("")
-      setAllowOverride(false)
-      setShowCapacityDialog(false)
-
-      // Refresh capacity info
-      const newCapacity = await vehicleBookingService.getDailyCapacity()
-      setCapacityInfo(newCapacity)
-
-      // Focus on vehicle number
-      setTimeout(() => vehicleNumberRef.current?.focus(), 100)
+      // Redirect to booking dashboard
+      router.push('/vehicle-bookings')
     } catch (error) {
       console.error("Error creating booking:", error)
     } finally {

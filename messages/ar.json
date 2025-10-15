@@ -99,6 +99,7 @@
       "received": "مستلم",
       "exited": "خارج",
       "rejected": "مرفوض",
+      "createdBy": "أنشأ بواسطة",
       "waitTime": "وقت الانتظار",
       "factoryTime": "وقت المصنع",
       "totalTime": "الوقت الإجمالي",

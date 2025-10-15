@@ -1,8 +1,9 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Car, Calendar, User, Package, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
+import { Car, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { RelativeTime } from "@/components/relative-time"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
 interface BookingCardProps {
@@ -85,16 +86,24 @@ export function BookingCard({
         )}
         {booking.supplier_name && (
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Package className="size-4" />
+            <Users className="size-4" />
             <span className="truncate">{booking.supplier_name}</span>
           </div>
         )}
         <div className="flex items-center gap-2 text-muted-foreground col-span-2">
           <Calendar className="size-4" />
           <span className="text-xs">
-            {t('booked')}: {new Date(booking.entry_datetime || booking.created_at).toLocaleString()}
+            {t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} />
           </span>
         </div>
+        {booking.created_by_name && (
+          <div className="flex items-center gap-2 text-muted-foreground col-span-2">
+            <User className="size-4" />
+            <span className="text-xs">
+              {t('createdBy')}: {booking.created_by_name}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Received Info */}

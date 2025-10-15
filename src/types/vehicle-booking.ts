@@ -23,6 +23,10 @@ export interface VehicleBooking {
   received_by?: number
   rejected_by?: number
   exited_by?: number
+  created_by_name?: string
+  received_by_name?: string
+  rejected_by_name?: string
+  exited_by_name?: string
 
   // Permissions
   can_edit: boolean
