@@ -22,6 +22,15 @@ export const metadata: Metadata = {
   title: "ERP Mobile",
   description: "ERP Mobile Progressive Web App",
   manifest: "/manifest.json",
+  icons: {
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon-180x180.png", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon-152x152.png", sizes: "152x152", type: "image/png" },
+      { url: "/apple-touch-icon-120x120.png", sizes: "120x120", type: "image/png" },
+      { url: "/apple-touch-icon-76x76.png", sizes: "76x76", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -33,7 +42,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#000000",
+  themeColor: "#2563eb",
 };
 
 export default async function LocaleLayout({

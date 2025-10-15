@@ -14,6 +14,21 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
+  runtimeCaching: [
+    {
+      urlPattern: /^https?.*/,
+      handler: 'NetworkFirst',
+      options: {
+        cacheName: 'offlineCache',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
+        },
+      },
+    },
+  ],
+  // Note: fallbacks property removed due to TypeScript compatibility
+  // Offline handling is done through runtime caching strategy above
 })(nextConfig);
 
 export default withNextIntl(pwaConfig);

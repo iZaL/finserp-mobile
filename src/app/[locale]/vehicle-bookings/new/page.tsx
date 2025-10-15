@@ -436,29 +436,6 @@ export default function NewBookingPage() {
               </div>
             )}
 
-            {/* Driver Details */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="driver_name">{t('driverName')}</Label>
-                <Input
-                  id="driver_name"
-                  value={driverName}
-                  onChange={(e) => setDriverName(e.target.value)}
-                  placeholder={tCommon('optional')}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="driver_phone">{t('driverPhone')}</Label>
-                <Input
-                  id="driver_phone"
-                  value={driverPhone}
-                  onChange={(e) => setDriverPhone(e.target.value)}
-                  placeholder={tCommon('optional')}
-                />
-              </div>
-            </div>
-
             {/* Supplier Details */}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -482,6 +459,28 @@ export default function NewBookingPage() {
               </div>
             </div>
 
+{/* Driver Details */}
+<div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="driver_name">{t('driverName')}</Label>
+                <Input
+                  id="driver_name"
+                  value={driverName}
+                  onChange={(e) => setDriverName(e.target.value)}
+                  placeholder={tCommon('optional')}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="driver_phone">{t('driverPhone')}</Label>
+                <Input
+                  id="driver_phone"
+                  value={driverPhone}
+                  onChange={(e) => setDriverPhone(e.target.value)}
+                  placeholder={tCommon('optional')}
+                />
+              </div>
+            </div>
             {/* Notes */}
             <div>
               <Label htmlFor="notes">{t('notes')}</Label>

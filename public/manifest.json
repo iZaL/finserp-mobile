@@ -1,18 +1,32 @@
 {
   "name": "ERP Mobile",
   "short_name": "ERP",
-  "description": "ERP Mobile Progressive Web App",
+  "description": "ERP Mobile Progressive Web App for managing vehicle bookings and operations",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#2563eb",
   "orientation": "portrait",
+  "scope": "/",
+  "categories": ["business", "productivity"],
   "icons": [
+    {
+      "src": "/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icon-512x512.png",
