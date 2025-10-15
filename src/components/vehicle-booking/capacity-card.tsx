@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Gauge } from "lucide-react"
@@ -11,13 +12,14 @@ interface CapacityCardProps {
 }
 
 export function CapacityCard({ capacity, loading }: CapacityCardProps) {
+  const t = useTranslations('vehicleBookings.capacity')
   if (loading) {
     return (
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <Gauge className="size-4" />
-            Daily Capacity
+            {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -62,7 +64,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
             <Gauge className="size-4 text-blue-600 dark:text-blue-400" />
-            Daily Capacity
+            {t('title')}
           </CardTitle>
           <Badge className={badgeColor}>
             {usagePercent.toFixed(0)}%
@@ -74,9 +76,9 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Capacity Usage</span>
+            <span>{t('usage')}</span>
             <span>
-              {capacity.total_booked_boxes} / {capacity.daily_limit_boxes} boxes
+              {capacity.total_booked_boxes} / {capacity.daily_limit_boxes} {t('boxes')}
             </span>
           </div>
           <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
@@ -91,7 +93,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
         <div className="grid grid-cols-4 gap-3">
           {/* Daily Limit */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Limit</div>
+            <div className="text-xs text-muted-foreground mb-1">{t('limit')}</div>
             <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {capacity.daily_limit_boxes.toLocaleString()}
             </div>
@@ -99,7 +101,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
 
           {/* Booked */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Booked</div>
+            <div className="text-xs text-muted-foreground mb-1">{t('booked')}</div>
             <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
               {capacity.total_booked_boxes.toLocaleString()}
             </div>
@@ -107,7 +109,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
 
           {/* Received */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Received</div>
+            <div className="text-xs text-muted-foreground mb-1">{t('received')}</div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
               {capacity.total_received_boxes.toLocaleString()}
             </div>
@@ -115,7 +117,7 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
 
           {/* Remaining */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">Remaining</div>
+            <div className="text-xs text-muted-foreground mb-1">{t('remaining')}</div>
             <div className={`text-lg font-bold ${
               isDanger ? "text-red-600 dark:text-red-400" :
               isWarning ? "text-amber-600 dark:text-amber-400" :
@@ -131,9 +133,9 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
           <div className="flex items-start gap-2 p-3 bg-red-950/30 border border-red-800 rounded-lg">
             <AlertTriangle className="size-4 text-red-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-red-400">Capacity Exceeded</p>
+              <p className="font-medium text-red-400">{t('exceeded')}</p>
               <p className="text-red-500 text-xs">
-                Daily limit has been exceeded. Override required for new bookings.
+                {t('exceededDescription')}
               </p>
             </div>
           </div>
@@ -143,9 +145,9 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
           <div className="flex items-start gap-2 p-3 bg-amber-950/30 border border-amber-800 rounded-lg">
             <AlertTriangle className="size-4 text-amber-400 mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium text-amber-400">Approaching Limit</p>
+              <p className="font-medium text-amber-400">{t('approaching')}</p>
               <p className="text-amber-500 text-xs">
-                {capacity.remaining_capacity_boxes} boxes remaining before limit is reached.
+                {t('approachingDescription', { count: capacity.remaining_capacity_boxes })}
               </p>
             </div>
           </div>

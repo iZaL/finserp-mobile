@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Car, Search, Filter, Plus, RefreshCw, Calendar, Package } from "lucide-react"
@@ -16,6 +17,7 @@ import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
 
 export default function VehicleBookingsPage() {
   const router = useRouter()
+  const t = useTranslations('vehicleBookings')
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<BookingFilters["status"]>("all")
   const [bookings, setBookings] = useState<VehicleBooking[]>([])
@@ -60,7 +62,7 @@ export default function VehicleBookingsPage() {
     try {
       setRefreshing(true)
       await fetchData()
-      toast.success("Bookings refreshed")
+      toast.success(t('refreshSuccess'))
     } catch (error) {
       console.error("Error refreshing:", error)
     } finally {
@@ -85,13 +87,13 @@ export default function VehicleBookingsPage() {
   }
 
   const handleUnreceive = async (booking: VehicleBooking) => {
-    if (!confirm(`Are you sure you want to revert vehicle ${booking.vehicle_number} to booked status?`)) {
+    if (!confirm(t('unreceiveConfirm', { vehicle: booking.vehicle_number }))) {
       return
     }
 
     try {
       await vehicleBookingService.unreceiveVehicle(booking.id)
-      toast.success(`Vehicle ${booking.vehicle_number} reverted to booked status`)
+      toast.success(t('unreceiveSuccess', { vehicle: booking.vehicle_number }))
       fetchData()
     } catch (error) {
       console.error("Error unreceiving vehicle:", error)
@@ -104,13 +106,13 @@ export default function VehicleBookingsPage() {
   }
 
   const handleDelete = async (booking: VehicleBooking) => {
-    if (!confirm(`Are you sure you want to delete vehicle ${booking.vehicle_number}? This action cannot be undone.`)) {
+    if (!confirm(t('deleteConfirm', { vehicle: booking.vehicle_number }))) {
       return
     }
 
     try {
       await vehicleBookingService.deleteBooking(booking.id)
-      toast.success(`Vehicle ${booking.vehicle_number} deleted successfully`)
+      toast.success(t('deleteSuccess', { vehicle: booking.vehicle_number }))
       fetchData()
     } catch (error) {
       console.error("Error deleting vehicle:", error)
@@ -132,8 +134,8 @@ export default function VehicleBookingsPage() {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Vehicle Bookings</h2>
-          <p className="text-muted-foreground mt-1">Manage your vehicle reservations</p>
+          <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -149,7 +151,7 @@ export default function VehicleBookingsPage() {
             className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
           >
             <Plus className="size-4 mr-2" />
-            New Booking
+            {t('newBooking')}
           </Button>
         </div>
       </div>
@@ -159,7 +161,7 @@ export default function VehicleBookingsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search by vehicle, customer, or location..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -192,7 +194,7 @@ export default function VehicleBookingsPage() {
             >
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Car className="size-4" />
-                <span className="text-xs font-medium">Booked</span>
+                <span className="text-xs font-medium">{t('stats.booked')}</span>
               </div>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {stats?.booked_vehicles || 0}
@@ -205,7 +207,7 @@ export default function VehicleBookingsPage() {
             >
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Package className="size-4" />
-                <span className="text-xs font-medium">Received</span>
+                <span className="text-xs font-medium">{t('stats.received')}</span>
               </div>
               <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 {stats?.received_vehicles || 0}
@@ -218,7 +220,7 @@ export default function VehicleBookingsPage() {
             >
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Calendar className="size-4" />
-                <span className="text-xs font-medium">Exited</span>
+                <span className="text-xs font-medium">{t('stats.exited')}</span>
               </div>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {stats?.exited_vehicles || 0}
@@ -231,7 +233,7 @@ export default function VehicleBookingsPage() {
             >
               <div className="flex items-center gap-2 text-muted-foreground mb-1">
                 <Car className="size-4" />
-                <span className="text-xs font-medium">Total</span>
+                <span className="text-xs font-medium">{t('stats.total')}</span>
               </div>
               <p className="text-2xl font-bold">
                 {stats?.total_vehicles || 0}
@@ -267,11 +269,9 @@ export default function VehicleBookingsPage() {
         ) : filteredBookings.length === 0 ? (
           <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-12 text-center">
             <Car className="size-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No bookings found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('noBookingsFound')}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {searchQuery
-                ? "Try adjusting your search query"
-                : "Get started by creating your first booking"}
+              {t('noBookingsDescription')}
             </p>
             {!searchQuery && (
               <Button
@@ -279,7 +279,7 @@ export default function VehicleBookingsPage() {
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Plus className="size-4 mr-2" />
-                Create Booking
+                {t('createBooking')}
               </Button>
             )}
           </div>

@@ -334,12 +334,12 @@ export default function NewBookingPage() {
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 w-full bg-popover border rounded-md shadow-md max-h-60 overflow-auto">
+                  <div className="absolute z-20 mt-1 w-full bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-60 overflow-auto">
                     {suggestions.map((suggestion, idx) => (
                       <button
                         key={`${suggestion.vehicle_number}-${idx}`}
                         type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-accent text-sm"
+                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm"
                         onClick={() => applySuggestion(suggestion)}
                       >
                         <div className="flex items-center justify-between">
@@ -424,7 +424,7 @@ export default function NewBookingPage() {
                       checked={allowOverride}
                       onCheckedChange={(checked) => setAllowOverride(checked as boolean)}
                     />
-                    <Label htmlFor="allow_override" className="text-sm text-amber-700 dark:text-amber-500">
+                    <Label htmlFor="allow_override" className="text-sm text-amber-700 dark:text-amber-500 cursor-pointer">
                       Allow override
                     </Label>
                   </div>
