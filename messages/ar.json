@@ -177,5 +177,10 @@
   "language": {
     "en": "English",
     "ar": "العربية"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "bookings": "الحجوزات",
+    "more": "المزيد"
   }
 }

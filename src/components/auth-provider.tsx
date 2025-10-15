@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname } from "@/i18n/navigation"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { useLanguageStore } from "@/lib/i18n/language-store"
 

@@ -6,7 +6,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Shadcn UI Variables */
+  /* Shadcn UI Variables - Light Theme */
   --color-background: 0 0% 100%;
   --color-foreground: 0 0% 3.9%;
   --color-card: 0 0% 100%;
@@ -28,7 +28,7 @@
   --color-ring: 0 0% 3.9%;
   --radius: 0.5rem;
 
-  /* Sidebar Variables */
+  /* Sidebar Variables - Light Theme */
   --color-sidebar-background: 0 0% 98%;
   --color-sidebar-foreground: 0 0% 3.9%;
   --color-sidebar-primary: 0 0% 9%;
@@ -40,33 +40,34 @@
   --color-sidebar: var(--sidebar);
 }
 
-@media (prefers-color-scheme: dark) {
+/* Dark theme when .dark class is present */
+.dark {
   @theme inline {
-    --color-background: 0 0% 0%;
+    --color-background: 0 0% 3.9%;
     --color-foreground: 0 0% 98%;
-    --color-card: 0 0% 0%;
+    --color-card: 0 0% 3.9%;
     --color-card-foreground: 0 0% 98%;
-    --color-popover: 0 0% 0%;
+    --color-popover: 0 0% 3.9%;
     --color-popover-foreground: 0 0% 98%;
     --color-primary: 0 0% 98%;
     --color-primary-foreground: 0 0% 9%;
-    --color-secondary: 0 0% 10%;
+    --color-secondary: 0 0% 14.9%;
     --color-secondary-foreground: 0 0% 98%;
-    --color-muted: 0 0% 10%;
+    --color-muted: 0 0% 14.9%;
     --color-muted-foreground: 0 0% 63.9%;
-    --color-accent: 0 0% 10%;
+    --color-accent: 0 0% 14.9%;
     --color-accent-foreground: 0 0% 98%;
     --color-destructive: 0 62.8% 30.6%;
     --color-destructive-foreground: 0 0% 98%;
     --color-border: 0 0% 14.9%;
-    --color-input: 0 0% 10%;
+    --color-input: 0 0% 14.9%;
     --color-ring: 0 0% 83.1%;
 
-    --color-sidebar-background: 0 0% 0%;
+    --color-sidebar-background: 0 0% 3.9%;
     --color-sidebar-foreground: 0 0% 98%;
     --color-sidebar-primary: 0 0% 98%;
     --color-sidebar-primary-foreground: 0 0% 9%;
-    --color-sidebar-accent: 0 0% 10%;
+    --color-sidebar-accent: 0 0% 14.9%;
     --color-sidebar-accent-foreground: 0 0% 98%;
     --color-sidebar-border: 0 0% 14.9%;
     --color-sidebar-ring: 0 0% 83.1%;

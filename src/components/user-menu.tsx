@@ -1,7 +1,7 @@
 "use client"
 
 import { LogOut, User } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import {
   DropdownMenu,

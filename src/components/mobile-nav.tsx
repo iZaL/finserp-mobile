@@ -1,40 +1,28 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import {
   Home,
-  Package,
-  Users,
+  Calendar,
   Settings,
-  ShoppingCart,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
   {
-    title: "Home",
+    key: "home",
     href: "/",
     icon: Home,
   },
   {
-    title: "Sales",
-    href: "/sales",
-    icon: ShoppingCart,
+    key: "bookings",
+    href: "/vehicle-bookings",
+    icon: Calendar,
   },
   {
-    title: "Inventory",
-    href: "/inventory",
-    icon: Package,
-  },
-  {
-    title: "Customers",
-    href: "/customers",
-    icon: Users,
-  },
-  {
-    title: "More",
+    key: "more",
     href: "/settings",
     icon: Settings,
   },
@@ -42,6 +30,7 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname()
+  const t = useTranslations('navigation')
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 shadow-[0_-2px_10px_rgba(0,0,0,0.1)] dark:shadow-[0_-2px_10px_rgba(0,0,0,0.3)]">
@@ -75,7 +64,7 @@ export function MobileNav() {
                   isActive && "font-bold"
                 )}
               >
-                {item.title}
+                {t(item.key)}
               </span>
               {isActive && (
                 <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-b-full shadow-[0_2px_8px_rgba(var(--primary),0.5)]" />
