@@ -216,5 +216,9 @@
     "loginButton": "Sign in",
     "loggingIn": "Signing in...",
     "demoCredentials": "Demo: admin@example.com / password"
+  },
+  "notifications": {
+    "enable": "Enable Notifications",
+    "disable": "Disable Notifications"
   }
 }

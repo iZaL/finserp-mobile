@@ -5,6 +5,7 @@ import { getMessages } from 'next-intl/server';
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { Toaster } from "@/components/ui/sonner";
 import { isRTL } from "@/lib/utils";
 import "../globals.css";
@@ -78,6 +79,7 @@ export default async function LocaleLayout({
             disableTransitionOnChange
           >
             <AuthProvider>
+              <ServiceWorkerRegister />
               <LayoutWrapper>
                 {children}
               </LayoutWrapper>

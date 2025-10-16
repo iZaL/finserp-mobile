@@ -6,23 +6,35 @@ This document describes the push notification system implemented in the ERP Mobi
 
 The mobile app now supports push notifications for vehicle booking events. When a new vehicle is booked, all subscribed users will receive a push notification on their devices.
 
+**Note**: This implementation uses a custom service worker compatible with Next.js 15, without relying on deprecated packages like next-pwa.
+
 ## Frontend Implementation
 
-### Files Created
+### Files Created/Updated
 
 1. **`src/lib/services/push-notification.ts`** - Core push notification service functions
 2. **`src/hooks/use-push-notification.ts`** - React hook for managing push notifications
 3. **`src/components/notification-settings.tsx`** - UI component for enabling/disabling notifications
-4. **`public/sw.js`** - Custom service worker with push notification handlers
+4. **`src/components/service-worker-register.tsx`** - Custom service worker registration (Next.js 15 compatible)
+5. **`public/sw.js`** - Standalone service worker with push notification handlers and offline support
+6. **`src/app/[locale]/layout.tsx`** - Main layout with service worker registration
 
 ### How It Works
 
-1. User clicks "Enable Notifications" button on the vehicle bookings page
-2. Browser requests notification permission
-3. User grants permission
-4. App subscribes to push notifications using the browser's PushManager
-5. Subscription details are sent to the backend API
-6. Backend stores the subscription and can now send push notifications to this device
+1. Service worker is automatically registered when the app loads (works in both dev and production)
+2. User clicks "Enable Notifications" button on the vehicle bookings page
+3. Browser requests notification permission
+4. User grants permission
+5. App subscribes to push notifications using the browser's PushManager
+6. Subscription details are sent to the backend API
+7. Backend stores the subscription and can now send push notifications to this device
+
+### Key Changes from Previous Implementation
+
+- **Removed next-pwa**: The deprecated next-pwa package has been removed due to incompatibility with Next.js 15 and Turbopack
+- **Custom Registration**: Service worker is now registered using a custom React component
+- **Works in Development**: Service worker now works in development mode (not disabled)
+- **Standalone SW**: Service worker doesn't depend on any external libraries (workbox, etc.)
 
 ## Backend Requirements
 
