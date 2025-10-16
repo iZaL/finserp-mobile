@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 
 function generateSVGIcon(size) {
   return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
