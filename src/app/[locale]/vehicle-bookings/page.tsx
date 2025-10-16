@@ -124,7 +124,7 @@ export default function VehicleBookingsPage() {
           <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
           <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <NotificationSettings />
           <Button
             onClick={handleRefresh}
@@ -136,10 +136,12 @@ export default function VehicleBookingsPage() {
           </Button>
           <Button
             onClick={() => router.push("/vehicle-bookings/new")}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-8 px-0 md:w-auto md:px-3"
+            size="sm"
+            title={t('newBooking')}
           >
-            <Plus className="size-4 mr-2" />
-            {t('newBooking')}
+            <Plus className="size-4 md:mr-0" />
+            <span className="hidden md:inline">{t('newBooking')}</span>
           </Button>
         </div>
       </div>

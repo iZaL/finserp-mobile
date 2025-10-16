@@ -21,10 +21,13 @@ export function NotificationSettings() {
           size="sm"
           onClick={unsubscribe}
           disabled={isLoading}
-          className="gap-2"
+          title={t("notifications.disable", { defaultMessage: "Disable Notifications" })}
+          className="w-8 px-0 md:w-auto md:px-3"
         >
-          <BellOff className="h-4 w-4" />
-          {t("notifications.disable", { defaultMessage: "Disable Notifications" })}
+          <BellOff className="h-4 w-4 md:mr-0" />
+          <span className="hidden md:inline">
+            {t("notifications.disable", { defaultMessage: "Disable" })}
+          </span>
         </Button>
       ) : (
         <Button
@@ -32,10 +35,13 @@ export function NotificationSettings() {
           size="sm"
           onClick={subscribe}
           disabled={isLoading}
-          className="gap-2"
+          title={t("notifications.enable", { defaultMessage: "Enable Notifications" })}
+          className="w-8 px-0 md:w-auto md:px-3"
         >
-          <Bell className="h-4 w-4" />
-          {t("notifications.enable", { defaultMessage: "Enable Notifications" })}
+          <Bell className="h-4 w-4 md:mr-0" />
+          <span className="hidden md:inline">
+            {t("notifications.enable", { defaultMessage: "Enable" })}
+          </span>
         </Button>
       )}
     </div>
