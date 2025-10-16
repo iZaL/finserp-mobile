@@ -76,7 +76,7 @@ export function usePushNotification() {
       }
 
       // Send subscription to backend
-      await sendSubscriptionToBackend(subscription);
+      await sendSubscriptionToBackend(subscription, VAPID_PUBLIC_KEY);
 
       setIsSubscribed(true);
       toast.success("Push notifications enabled!");

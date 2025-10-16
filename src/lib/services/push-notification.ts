@@ -6,6 +6,7 @@ export interface PushSubscriptionData {
     p256dh: string;
     auth: string;
   };
+  vapidPublicKey: string;
 }
 
 /**
@@ -78,13 +79,17 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
 /**
  * Send subscription to backend
  */
-export async function sendSubscriptionToBackend(subscription: PushSubscription): Promise<void> {
+export async function sendSubscriptionToBackend(
+  subscription: PushSubscription,
+  vapidPublicKey: string
+): Promise<void> {
   const subscriptionData: PushSubscriptionData = {
     endpoint: subscription.endpoint,
     keys: {
       p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("p256dh")!))),
       auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("auth")!))),
     },
+    vapidPublicKey,
   };
 
   await api.post("/push-subscriptions", subscriptionData);
