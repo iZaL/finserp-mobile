@@ -111,11 +111,12 @@ export function EditDialog({
       toast.success(t('success', { vehicle: formData.vehicle_number }))
       onOpenChange(false)
       onSuccess()
-    } catch (error: any) {
-      if (error.errors) {
-        setErrors(error.errors)
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'errors' in error) {
+        setErrors(error.errors as Record<string, string>)
       } else {
-        toast.error(error.message || t('error'))
+        const errorMessage = error instanceof Error ? error.message : t('error')
+        toast.error(errorMessage)
       }
     } finally {
       setIsSubmitting(false)

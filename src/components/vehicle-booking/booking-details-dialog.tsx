@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl"
 import {
   Truck,
-  Calendar,
   User,
   Users,
   Package,
