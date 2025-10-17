@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import {
   Home,
   Calendar,
+  Users,
   Settings,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -20,6 +21,11 @@ const navItems = [
     key: "bookings",
     href: "/vehicle-bookings",
     icon: Calendar,
+  },
+  {
+    key: "suppliers",
+    href: "/suppliers",
+    icon: Users,
   },
   {
     key: "more",

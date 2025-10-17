@@ -204,7 +204,52 @@
   "navigation": {
     "home": "Home",
     "bookings": "Bookings",
-    "more": "More"
+    "suppliers": "Suppliers",
+    "more": "Settings"
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "subtitle": "{count} suppliers available",
+    "searchPlaceholder": "Search by name or phone...",
+    "suppliers": "suppliers",
+    "lastBooking": "Last booking",
+    "unknownLocation": "Unknown Location",
+    "noSuppliersFound": "No Suppliers Found",
+    "noSearchResults": "No suppliers match your search",
+    "noSuppliersDescription": "No suppliers have been added yet",
+    "errors": {
+      "fetchFailed": "Failed to fetch suppliers"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure your application preferences",
+    "dailyLimit": {
+      "title": "Daily Capacity Limit",
+      "description": "Set the maximum number of boxes and tons allowed per day",
+      "date": "Date",
+      "boxLimit": "Box Limit",
+      "boxLimitPlaceholder": "Enter box limit",
+      "tonLimit": "Ton Limit",
+      "tonLimitPlaceholder": "Enter ton limit",
+      "equivalence": "Conversion",
+      "basedOn": "Based on {weight}kg per box",
+      "updateButton": "Update Limit",
+      "updating": "Updating...",
+      "updateSuccess": "Daily limit updated successfully!",
+      "saved": "Saved"
+    },
+    "moreSettings": {
+      "title": "More Settings Coming Soon",
+      "description": "Additional configuration options will be available here in future updates"
+    },
+    "validation": {
+      "boxLimitMin": "Box limit must be at least 1"
+    },
+    "errors": {
+      "fetchFailed": "Failed to fetch settings",
+      "updateFailed": "Failed to update settings"
+    }
   },
   "login": {
     "title": "Login",

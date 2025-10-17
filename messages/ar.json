@@ -206,7 +206,52 @@
   "navigation": {
     "home": "الرئيسية",
     "bookings": "الحجوزات",
-    "more": "المزيد"
+    "suppliers": "الموردين",
+    "more": "الإعدادات"
+  },
+  "suppliers": {
+    "title": "الموردين",
+    "subtitle": "{count} مورد متاح",
+    "searchPlaceholder": "البحث بالاسم أو رقم الهاتف...",
+    "suppliers": "الموردين",
+    "lastBooking": "آخر حجز",
+    "unknownLocation": "موقع غير معروف",
+    "noSuppliersFound": "لم يتم العثور على موردين",
+    "noSearchResults": "لا يوجد موردين يطابقون بحثك",
+    "noSuppliersDescription": "لم يتم إضافة أي موردين بعد",
+    "errors": {
+      "fetchFailed": "فشل في جلب الموردين"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "تكوين تفضيلات التطبيق الخاص بك",
+    "dailyLimit": {
+      "title": "حد السعة اليومية",
+      "description": "تعيين الحد الأقصى لعدد البانات والأطنان المسموح بها يوميا",
+      "date": "التاريخ",
+      "boxLimit": "حد البانات",
+      "boxLimitPlaceholder": "أدخل حد البانات",
+      "tonLimit": "حد الأطنان",
+      "tonLimitPlaceholder": "أدخل حد الأطنان",
+      "equivalence": "التحويل",
+      "basedOn": "بناءً على {weight} كجم لكل بانة",
+      "updateButton": "تحديث الحد",
+      "updating": "جاري التحديث...",
+      "updateSuccess": "تم تحديث الحد اليومي بنجاح!",
+      "saved": "محفوظ"
+    },
+    "moreSettings": {
+      "title": "المزيد من الإعدادات قريبا",
+      "description": "ستتوفر خيارات التكوين الإضافية هنا في التحديثات المستقبلية"
+    },
+    "validation": {
+      "boxLimitMin": "يجب أن يكون حد البانات على الأقل 1"
+    },
+    "errors": {
+      "fetchFailed": "فشل في جلب الإعدادات",
+      "updateFailed": "فشل في تحديث الإعدادات"
+    }
   },
   "login": {
     "title": "تسجيل الدخول",
