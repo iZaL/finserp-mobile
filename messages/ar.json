@@ -15,7 +15,8 @@
     "submit": "إرسال",
     "close": "إغلاق",
     "optional": "اختياري",
-    "required": "مطلوب"
+    "required": "مطلوب",
+    "characters": "حرف"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -39,7 +40,8 @@
       "received": "مستلم",
       "exited": "خارج",
       "rejected": "مرفوض",
-      "total": "الإجمالي"
+      "total": "الإجمالي",
+      "pendingApproval": "في انتظار الموافقة"
     },
     "capacity": {
       "title": "السعة اليومية",
@@ -52,7 +54,9 @@
       "exceeded": "تم تجاوز السعة",
       "exceededDescription": "تم تجاوز الحد اليومي. مطلوب تجاوز للحجوزات الجديدة.",
       "approaching": "الاقتراب من الحد",
-      "approachingDescription": "{count} صندوق متبقي قبل الوصول إلى الحد."
+      "approachingDescription": "{count} صندوق متبقي قبل الوصول إلى الحد.",
+      "overrideEnabled": "التجاوز مفعّل",
+      "overrideDisabled": "التجاوز معطّل"
     },
     "newBookingForm": {
       "title": "حجز جديد",
@@ -84,8 +88,13 @@
       "vehicleAdded": "تمت إضافة المركبة {number} بنجاح!",
       "boxes": "بانات",
       "tons": "طن",
+      "systemDisabled": "النظام معطّل",
+      "systemDisabledMessage": "نظام حجز المركبات معطّل حاليًا. يرجى الاتصال بالمسؤول.",
+      "returnToDashboard": "العودة إلى لوحة التحكم",
+      "approvalRequired": "مطلوب موافقة",
+      "approvalRequiredMessage": "حجوزات المركبات الجديدة تتطلب موافقة قبل استلامها.",
       "placeholders": {
-        "vehicleNumber": "مثال: ABC123، 123XYZ",
+        "vehicleNumber": "e.g. 709 MA",
         "boxCount": "0",
         "boxWeight": "20.0"
       }
@@ -99,6 +108,11 @@
       "received": "مستلم",
       "exited": "خارج",
       "rejected": "مرفوض",
+      "pending": "قيد الانتظار",
+      "pendingApproval": "في انتظار الموافقة",
+      "approvalRejected": "تم رفض الموافقة",
+      "waitingForApproval": "في انتظار الموافقة قبل الاستلام",
+      "approvalRejectedMessage": "تم رفض الموافقة على هذا الحجز",
       "createdBy": "أنشأ بواسطة",
       "waitTime": "وقت الانتظار",
       "factoryTime": "وقت المصنع",
@@ -112,7 +126,9 @@
         "exit": "خروج",
         "unreceive": "إلغاء الاستلام",
         "edit": "تعديل",
-        "delete": "حذف"
+        "delete": "حذف",
+        "approve": "موافقة",
+        "rejectApproval": "رفض الموافقة"
       }
     },
     "receiveDialog": {
@@ -168,6 +184,35 @@
       "exit": "خروج المركبة",
       "success": "خرجت المركبة {vehicle} بنجاح!"
     },
+    "approveDialog": {
+      "title": "الموافقة على حجز المركبة",
+      "description": "الموافقة على الحجز لـ {vehicle}",
+      "vehicleNumber": "رقم المركبة",
+      "boxes": "البانات",
+      "driver": "السائق",
+      "supplier": "المورد",
+      "notes": "ملاحظات الموافقة",
+      "notesPlaceholder": "ملاحظات اختيارية حول الموافقة...",
+      "approving": "جاري الموافقة...",
+      "approve": "الموافقة على الحجز",
+      "success": "تمت الموافقة على المركبة {vehicle} بنجاح!",
+      "error": "فشل في الموافقة على حجز المركبة"
+    },
+    "rejectApprovalDialog": {
+      "title": "رفض موافقة الحجز",
+      "description": "رفض الموافقة على {vehicle}",
+      "vehicleNumber": "رقم المركبة",
+      "boxes": "البانات",
+      "driver": "السائق",
+      "supplier": "المورد",
+      "rejectionNotes": "ملاحظات الرفض",
+      "notesPlaceholder": "اشرح سبب رفض هذا الحجز...",
+      "warning": "سيتم وضع علامة على هذا الحجز كمرفوض وسيتطلب تقديمًا جديدًا.",
+      "rejecting": "جاري الرفض...",
+      "rejectApproval": "رفض الموافقة",
+      "success": "تم رفض الموافقة على المركبة {vehicle}",
+      "error": "فشل في رفض الموافقة"
+    },
     "unreceiveConfirm": "هل أنت متأكد من أنك تريد إعادة المركبة {vehicle} إلى حالة المحجوز؟",
     "unreceiveSuccess": "تم إرجاع المركبة {vehicle} إلى حالة المحجوز",
     "deleteConfirm": "هل أنت متأكد من أنك تريد حذف المركبة {vehicle}؟ لا يمكن التراجع عن هذا الإجراء.",
@@ -196,7 +241,68 @@
       "boxWeightMin": "لا يمكن أن يقل وزن الصندوق عن 1 كجم",
       "boxWeightMax": "لا يمكن أن يتجاوز وزن الصندوق 1000 كجم",
       "actualBoxCountRequired": "العدد الفعلي للبانات مطلوب",
-      "rejectionReasonRequired": "سبب الرفض مطلوب"
+      "rejectionReasonRequired": "سبب الرفض مطلوب",
+      "rejectionNotesRequired": "ملاحظات الرفض مطلوبة"
+    },
+    "bookingDetails": {
+      "vehicleBookingDetails": "تفاصيل حجز المركبة",
+      "createdBy": "أنشأ بواسطة",
+      "cargoInformation": "معلومات الشحنة",
+      "boxCount": "عدد البانات",
+      "totalWeight": "الوزن الإجمالي",
+      "boxWeight": "وزن البانة",
+      "receivedInformation": "معلومات الاستلام",
+      "actualBoxCount": "العدد الفعلي للبانات",
+      "discrepancy": "الفرق",
+      "moreThanExpected": "أكثر من المتوقع",
+      "lessThanExpected": "أقل من المتوقع",
+      "rejectionInformation": "معلومات الرفض",
+      "additionalNotes": "ملاحظات إضافية",
+      "approvalInformation": "معلومات الموافقة",
+      "approvalRejectedTitle": "تم رفض الموافقة",
+      "notes": "ملاحظات",
+      "contactInformation": "معلومات الاتصال",
+      "timeline": "الجدول الزمني",
+      "receivedBy": "تم الاستلام بواسطة",
+      "exitedBy": "تم الخروج بواسطة",
+      "rejectedBy": "تم الرفض بواسطة",
+      "systemInformation": "معلومات النظام",
+      "bookingId": "رقم الحجز",
+      "entryDate": "تاريخ الدخول",
+      "createdAt": "تاريخ الإنشاء",
+      "lastUpdated": "آخر تحديث"
+    },
+    "editDialog": {
+      "title": "تعديل حجز المركبة",
+      "description": "تحديث تفاصيل الحجز لـ {vehicle}",
+      "vehicleNumber": "رقم المركبة",
+      "boxCount": "عدد البانات",
+      "boxWeight": "وزن البانة (كجم)",
+      "totalWeight": "الوزن الإجمالي",
+      "driverInformation": "معلومات السائق",
+      "driverName": "اسم السائق",
+      "driverPhone": "هاتف السائق",
+      "supplierInformation": "معلومات المورد",
+      "supplierName": "اسم المورد",
+      "supplierPhone": "هاتف المورد",
+      "notes": "ملاحظات",
+      "update": "تحديث الحجز",
+      "updating": "جاري التحديث...",
+      "success": "تم تحديث المركبة {vehicle} بنجاح!",
+      "error": "فشل في تحديث حجز المركبة",
+      "validation": {
+        "vehicleNumberRequired": "رقم المركبة مطلوب",
+        "boxCountRequired": "يجب أن يكون عدد البانات أكبر من 0",
+        "boxWeightRequired": "يجب أن يكون وزن البانة أكبر من 0"
+      },
+      "placeholders": {
+        "vehicleNumber": "مثال: 709 MA",
+        "driverName": "أدخل اسم السائق",
+        "driverPhone": "أدخل رقم الهاتف",
+        "supplierName": "أدخل اسم المورد",
+        "supplierPhone": "أدخل رقم الهاتف",
+        "notes": "ملاحظات اختيارية..."
+      }
     }
   },
   "language": {
@@ -240,6 +346,39 @@
       "updating": "جاري التحديث...",
       "updateSuccess": "تم تحديث الحد اليومي بنجاح!",
       "saved": "محفوظ"
+    },
+    "vehicleBooking": {
+      "systemToggle": "تفعيل نظام حجز المركبات",
+      "systemToggleDescription": "السماح أو تعطيل نظام حجز المركبات بالكامل (مثل إغلاق المصنع أو الصيانة)",
+      "approvalToggle": "طلب سير عمل الموافقة",
+      "approvalToggleDescription": "الحجوزات الجديدة يجب الموافقة عليها قبل استلامها",
+      "overrideToggle": "السماح بتجاوز السعة",
+      "overrideToggleDescription": "السماح للمستخدمين المصرح لهم بتجاوز حدود السعة اليومية",
+      "systemEnabledSuccess": "تم تفعيل نظام حجز المركبات بنجاح!",
+      "systemDisabledSuccess": "تم تعطيل نظام حجز المركبات بنجاح!",
+      "approvalEnabledSuccess": "تم تفعيل سير عمل الموافقة بنجاح!",
+      "approvalDisabledSuccess": "تم تعطيل سير عمل الموافقة بنجاح!",
+      "overrideEnabledSuccess": "تم تفعيل تجاوز السعة بنجاح!",
+      "overrideDisabledSuccess": "تم تعطيل تجاوز السعة بنجاح!",
+      "updateError": "فشل في تحديث الإعداد"
+    },
+    "vehicleBookingControls": {
+      "title": "ضوابط حجز المركبات",
+      "description": "التحكم في سلوك نظام حجز المركبات",
+      "vehicleBookingEnabled": {
+        "title": "تفعيل نظام حجز المركبات",
+        "description": "السماح أو تعطيل نظام حجز المركبات بالكامل (مثل إغلاق المصنع أو الصيانة)"
+      },
+      "requireApproval": {
+        "title": "طلب سير عمل الموافقة",
+        "description": "الحجوزات الجديدة يجب الموافقة عليها قبل استلامها"
+      },
+      "allowOverride": {
+        "title": "السماح بتجاوز السعة",
+        "description": "السماح للمستخدمين المصرح لهم بتجاوز حدود السعة اليومية"
+      },
+      "updateSuccess": "تم تحديث الإعدادات بنجاح!",
+      "noPermission": "ليس لديك إذن لتغيير هذا الإعداد"
     },
     "moreSettings": {
       "title": "المزيد من الإعدادات قريبا",

@@ -15,7 +15,8 @@
     "submit": "Submit",
     "close": "Close",
     "optional": "Optional",
-    "required": "Required"
+    "required": "Required",
+    "characters": "characters"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -37,7 +38,8 @@
       "received": "Received",
       "exited": "Exited",
       "rejected": "Rejected",
-      "total": "Total"
+      "total": "Total",
+      "pendingApproval": "Pending Approval"
     },
     "capacity": {
       "title": "Daily Capacity",
@@ -50,7 +52,9 @@
       "exceeded": "Capacity Exceeded",
       "exceededDescription": "Daily limit has been exceeded. Override required for new bookings.",
       "approaching": "Approaching Limit",
-      "approachingDescription": "{count} boxes remaining before limit is reached."
+      "approachingDescription": "{count} boxes remaining before limit is reached.",
+      "overrideEnabled": "Override Enabled",
+      "overrideDisabled": "Override Disabled"
     },
     "newBookingForm": {
       "title": "New Booking",
@@ -82,8 +86,13 @@
       "vehicleAdded": "Vehicle {number} added successfully!",
       "boxes": "Boxes",
       "tons": "Tons",
+      "systemDisabled": "System Disabled",
+      "systemDisabledMessage": "The vehicle booking system is currently disabled. Please contact your administrator.",
+      "returnToDashboard": "Return to Dashboard",
+      "approvalRequired": "Approval Required",
+      "approvalRequiredMessage": "New vehicle bookings require approval before they can be received.",
       "placeholders": {
-        "vehicleNumber": "e.g. ABC123, 123XYZ",
+        "vehicleNumber": "e.g. 709 MA",
         "boxCount": "0",
         "boxWeight": "20.0"
       }
@@ -97,6 +106,11 @@
       "received": "Received",
       "exited": "Exited",
       "rejected": "Rejected",
+      "pending": "Pending",
+      "pendingApproval": "Pending Approval",
+      "approvalRejected": "Approval Rejected",
+      "waitingForApproval": "Waiting for approval before receiving",
+      "approvalRejectedMessage": "Approval has been rejected for this booking",
       "createdBy": "Created by",
       "waitTime": "Wait time",
       "factoryTime": "Factory time",
@@ -110,7 +124,9 @@
         "exit": "Exit",
         "unreceive": "Unreceive",
         "edit": "Edit",
-        "delete": "Delete"
+        "delete": "Delete",
+        "approve": "Approve",
+        "rejectApproval": "Reject Approval"
       }
     },
     "receiveDialog": {
@@ -166,6 +182,35 @@
       "exit": "Exit Vehicle",
       "success": "Vehicle {vehicle} exited successfully!"
     },
+    "approveDialog": {
+      "title": "Approve Vehicle Booking",
+      "description": "Approve booking for {vehicle}",
+      "vehicleNumber": "Vehicle Number",
+      "boxes": "Boxes",
+      "driver": "Driver",
+      "supplier": "Supplier",
+      "notes": "Approval Notes",
+      "notesPlaceholder": "Optional notes about the approval...",
+      "approving": "Approving...",
+      "approve": "Approve Booking",
+      "success": "Vehicle {vehicle} approved successfully!",
+      "error": "Failed to approve vehicle booking"
+    },
+    "rejectApprovalDialog": {
+      "title": "Reject Booking Approval",
+      "description": "Reject approval for {vehicle}",
+      "vehicleNumber": "Vehicle Number",
+      "boxes": "Boxes",
+      "driver": "Driver",
+      "supplier": "Supplier",
+      "rejectionNotes": "Rejection Notes",
+      "notesPlaceholder": "Explain why this booking is being rejected...",
+      "warning": "This booking will be marked as rejected and will require a new submission.",
+      "rejecting": "Rejecting...",
+      "rejectApproval": "Reject Approval",
+      "success": "Approval rejected for vehicle {vehicle}",
+      "error": "Failed to reject approval"
+    },
     "unreceiveConfirm": "Are you sure you want to revert vehicle {vehicle} to booked status?",
     "unreceiveSuccess": "Vehicle {vehicle} reverted to booked status",
     "deleteConfirm": "Are you sure you want to delete vehicle {vehicle}? This action cannot be undone.",
@@ -194,7 +239,68 @@
       "boxWeightMin": "Box weight cannot be less than 1 kg",
       "boxWeightMax": "Box weight cannot exceed 1000 kg",
       "actualBoxCountRequired": "Actual box count is required",
-      "rejectionReasonRequired": "Rejection reason is required"
+      "rejectionReasonRequired": "Rejection reason is required",
+      "rejectionNotesRequired": "Rejection notes are required"
+    },
+    "bookingDetails": {
+      "vehicleBookingDetails": "Vehicle Booking Details",
+      "createdBy": "Created by",
+      "cargoInformation": "Cargo Information",
+      "boxCount": "Box Count",
+      "totalWeight": "Total Weight",
+      "boxWeight": "Weight per Box",
+      "receivedInformation": "Received Information",
+      "actualBoxCount": "Actual Box Count",
+      "discrepancy": "Discrepancy",
+      "moreThanExpected": "More than expected",
+      "lessThanExpected": "Less than expected",
+      "rejectionInformation": "Rejection Information",
+      "additionalNotes": "Additional Notes",
+      "approvalInformation": "Approval Information",
+      "approvalRejectedTitle": "Approval Rejected",
+      "notes": "Notes",
+      "contactInformation": "Contact Information",
+      "timeline": "Timeline",
+      "receivedBy": "Received by",
+      "exitedBy": "Exited by",
+      "rejectedBy": "Rejected by",
+      "systemInformation": "System Information",
+      "bookingId": "Booking ID",
+      "entryDate": "Entry Date",
+      "createdAt": "Created At",
+      "lastUpdated": "Last Updated"
+    },
+    "editDialog": {
+      "title": "Edit Vehicle Booking",
+      "description": "Update booking details for {vehicle}",
+      "vehicleNumber": "Vehicle Number",
+      "boxCount": "Box Count",
+      "boxWeight": "Weight per Box (kg)",
+      "totalWeight": "Total Weight",
+      "driverInformation": "Driver Information",
+      "driverName": "Driver Name",
+      "driverPhone": "Driver Phone",
+      "supplierInformation": "Supplier Information",
+      "supplierName": "Supplier Name",
+      "supplierPhone": "Supplier Phone",
+      "notes": "Notes",
+      "update": "Update Booking",
+      "updating": "Updating...",
+      "success": "Vehicle {vehicle} updated successfully!",
+      "error": "Failed to update vehicle booking",
+      "validation": {
+        "vehicleNumberRequired": "Vehicle number is required",
+        "boxCountRequired": "Box count must be greater than 0",
+        "boxWeightRequired": "Box weight must be greater than 0"
+      },
+      "placeholders": {
+        "vehicleNumber": "e.g. 709 MA",
+        "driverName": "Enter driver name",
+        "driverPhone": "Enter phone number",
+        "supplierName": "Enter supplier name",
+        "supplierPhone": "Enter phone number",
+        "notes": "Optional notes..."
+      }
     }
   },
   "language": {
@@ -238,6 +344,39 @@
       "updating": "Updating...",
       "updateSuccess": "Daily limit updated successfully!",
       "saved": "Saved"
+    },
+    "vehicleBooking": {
+      "systemToggle": "Enable Vehicle Booking System",
+      "systemToggleDescription": "Allow or disable the entire vehicle booking system (e.g., for factory shutdown or maintenance)",
+      "approvalToggle": "Require Approval Workflow",
+      "approvalToggleDescription": "New bookings must be approved before they can be received",
+      "overrideToggle": "Allow Capacity Override",
+      "overrideToggleDescription": "Allow authorized users to exceed daily capacity limits",
+      "systemEnabledSuccess": "Vehicle booking system enabled successfully!",
+      "systemDisabledSuccess": "Vehicle booking system disabled successfully!",
+      "approvalEnabledSuccess": "Approval workflow enabled successfully!",
+      "approvalDisabledSuccess": "Approval workflow disabled successfully!",
+      "overrideEnabledSuccess": "Capacity override enabled successfully!",
+      "overrideDisabledSuccess": "Capacity override disabled successfully!",
+      "updateError": "Failed to update setting"
+    },
+    "vehicleBookingControls": {
+      "title": "Vehicle Booking Controls",
+      "description": "Control vehicle booking system behavior",
+      "vehicleBookingEnabled": {
+        "title": "Enable Vehicle Booking System",
+        "description": "Allow or disable the entire vehicle booking system (e.g., for factory shutdown or maintenance)"
+      },
+      "requireApproval": {
+        "title": "Require Approval Workflow",
+        "description": "New bookings must be approved before they can be received"
+      },
+      "allowOverride": {
+        "title": "Allow Capacity Override",
+        "description": "Allow authorized users to exceed daily capacity limits"
+      },
+      "updateSuccess": "Settings updated successfully!",
+      "noPermission": "You don't have permission to change this setting"
     },
     "moreSettings": {
       "title": "More Settings Coming Soon",

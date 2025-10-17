@@ -14,6 +14,8 @@ interface BookingCardProps {
   onUnreceive?: (booking: VehicleBooking) => void
   onEdit?: (booking: VehicleBooking) => void
   onDelete?: (booking: VehicleBooking) => void
+  onApprove?: (booking: VehicleBooking) => void
+  onRejectApproval?: (booking: VehicleBooking) => void
   onClick?: (booking: VehicleBooking) => void
 }
 
@@ -25,6 +27,8 @@ export function BookingCard({
   onUnreceive,
   onEdit,
   onDelete,
+  onApprove,
+  onRejectApproval,
   onClick,
 }: BookingCardProps) {
   const t = useTranslations('vehicleBookings.bookingCard')
@@ -67,13 +71,25 @@ export function BookingCard({
             </p>
           </div>
         </div>
-        <span
-          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-            booking.status
-          )}`}
-        >
-          {t(booking.status)}
-        </span>
+        <div className="flex flex-col gap-1 items-end">
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+              booking.status
+            )}`}
+          >
+            {t(booking.status)}
+          </span>
+          {booking.is_pending_approval && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+              {t('pendingApproval')}
+            </span>
+          )}
+          {booking.approval_status === 'rejected' && (
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              {t('approvalRejected')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Details */}
@@ -131,10 +147,57 @@ export function BookingCard({
         </div>
       )}
 
+      {/* Approval Pending Info */}
+      {booking.is_pending_approval && (
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-amber-50 dark:bg-amber-900/10 rounded border border-amber-200 dark:border-amber-800">
+          <p className="font-medium text-amber-600 dark:text-amber-400">
+            {t('waitingForApproval')}
+          </p>
+          {booking.approval_notes && (
+            <p className="mt-1">{booking.approval_notes}</p>
+          )}
+        </div>
+      )}
+
+      {/* Approval Rejected Info */}
+      {booking.approval_status === 'rejected' && (
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800">
+          <p className="font-medium text-red-600 dark:text-red-400">
+            {t('approvalRejectedMessage')}
+          </p>
+          {booking.approval_notes && (
+            <p className="mt-1">{booking.approval_notes}</p>
+          )}
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
+        {/* Approval Actions - Show when user can approve */}
+        {booking.can_approve && onApprove && onRejectApproval && (
+          <>
+            <Button
+              size="sm"
+              onClick={(e) => handleAction(e, () => onApprove(booking))}
+              className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+            >
+              <CheckCircle className="size-4 me-1" />
+              {t('actions.approve')}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={(e) => handleAction(e, () => onRejectApproval(booking))}
+              className="flex-1"
+            >
+              <XCircle className="size-4 me-1" />
+              {t('actions.rejectApproval')}
+            </Button>
+          </>
+        )}
+
         {/* Booked Status Actions */}
-        {booking.status === "booked" && (
+        {booking.status === "booked" && !booking.can_approve && (
           <>
             {booking.can_receive && onReceive && (
               <Button

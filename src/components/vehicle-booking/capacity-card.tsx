@@ -3,15 +3,16 @@
 import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, Gauge } from "lucide-react"
+import { AlertTriangle, Gauge, Shield } from "lucide-react"
 import type { DailyCapacity } from "@/types/vehicle-booking"
 
 interface CapacityCardProps {
   capacity: DailyCapacity | null
   loading?: boolean
+  allowOverride?: boolean
 }
 
-export function CapacityCard({ capacity, loading }: CapacityCardProps) {
+export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardProps) {
   const t = useTranslations('vehicleBookings.capacity')
   if (loading) {
     return (
@@ -64,9 +65,24 @@ export function CapacityCard({ capacity, loading }: CapacityCardProps) {
             <Gauge className="size-4 text-blue-600 dark:text-blue-400" />
             {t('title')}
           </CardTitle>
-          <Badge className={badgeColor}>
-            {usagePercent.toFixed(0)}%
-          </Badge>
+          <div className="flex items-center gap-2">
+            {allowOverride !== undefined && (
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  allowOverride
+                    ? "border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400"
+                    : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                <Shield className="size-3 mr-1" />
+                {allowOverride ? t('overrideEnabled') : t('overrideDisabled')}
+              </Badge>
+            )}
+            <Badge className={badgeColor}>
+              {usagePercent.toFixed(0)}%
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 

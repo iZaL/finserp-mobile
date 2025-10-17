@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -13,9 +14,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Settings2, Package, ChevronRight, Loader2, TrendingUp } from "lucide-react"
+import { Settings2, Package, ChevronRight, Loader2, TrendingUp, Power, CheckCircle, Shield } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 
 export default function SettingsPage() {
   const t = useTranslations()
@@ -25,15 +27,27 @@ export default function SettingsPage() {
   const [defaultBoxWeight, setDefaultBoxWeight] = useState<number>(20)
   const [showLimitDialog, setShowLimitDialog] = useState(false)
 
+  // Control settings state
+  const [vehicleBookingEnabled, setVehicleBookingEnabled] = useState<boolean>(true)
+  const [requireApproval, setRequireApproval] = useState<boolean>(false)
+  const [allowOverride, setAllowOverride] = useState<boolean>(true)
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState<string | null>(null)
+
   // Fetch current settings
   const fetchSettings = useCallback(async () => {
     try {
       setIsFetching(true)
 
-      // Get general settings for default box weight
+      // Get general settings for default box weight and control settings
       const settingsResponse = await api.get("/fish-purchase-vehicles/settings")
-      if (settingsResponse.data?.data?.default_box_weight_kg) {
-        setDefaultBoxWeight(settingsResponse.data.data.default_box_weight_kg)
+      if (settingsResponse.data?.data) {
+        const settings = settingsResponse.data.data
+        if (settings.default_box_weight_kg) {
+          setDefaultBoxWeight(settings.default_box_weight_kg)
+        }
+        setVehicleBookingEnabled(settings.vehicle_booking_enabled ?? true)
+        setRequireApproval(settings.require_vehicle_booking_approval ?? false)
+        setAllowOverride(settings.allow_vehicle_booking_override ?? true)
       }
 
       // Get daily capacity for today
@@ -87,6 +101,50 @@ export default function SettingsPage() {
     }
   }
 
+  const handleToggleSetting = async (
+    settingName: "vehicle_booking_enabled" | "require_vehicle_booking_approval" | "allow_vehicle_booking_override",
+    newValue: boolean
+  ) => {
+    try {
+      setIsUpdatingSettings(settingName)
+
+      const updateData = {
+        [settingName]: newValue
+      }
+
+      await vehicleBookingService.updateControlSettings(updateData)
+
+      // Update local state
+      if (settingName === "vehicle_booking_enabled") {
+        setVehicleBookingEnabled(newValue)
+        toast.success(
+          newValue
+            ? t("settings.vehicleBooking.systemEnabledSuccess")
+            : t("settings.vehicleBooking.systemDisabledSuccess")
+        )
+      } else if (settingName === "require_vehicle_booking_approval") {
+        setRequireApproval(newValue)
+        toast.success(
+          newValue
+            ? t("settings.vehicleBooking.approvalEnabledSuccess")
+            : t("settings.vehicleBooking.approvalDisabledSuccess")
+        )
+      } else if (settingName === "allow_vehicle_booking_override") {
+        setAllowOverride(newValue)
+        toast.success(
+          newValue
+            ? t("settings.vehicleBooking.overrideEnabledSuccess")
+            : t("settings.vehicleBooking.overrideDisabledSuccess")
+        )
+      }
+    } catch (error) {
+      console.error(`Failed to update ${settingName}:`, error)
+      toast.error(t("settings.vehicleBooking.updateError"))
+    } finally {
+      setIsUpdatingSettings(null)
+    }
+  }
+
   return (
     <>
       <div className="flex flex-col gap-6">
@@ -129,18 +187,70 @@ export default function SettingsPage() {
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
           </button>
 
-          {/* Future settings items can go here */}
-          {/* Example placeholder */}
-          <div className="px-4 py-4 flex items-center justify-between opacity-50">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                <Settings2 className="h-5 w-5 text-muted-foreground" />
+          {/* Vehicle Booking System Toggle */}
+          <div className="px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
+                <Power className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <div className="text-start">
-                <div className="font-medium">{t("settings.moreSettings.title")}</div>
-                <div className="text-sm text-muted-foreground">{t("settings.moreSettings.description")}</div>
+              <div className="text-start flex-1">
+                <div className="font-medium">{t("settings.vehicleBooking.systemToggle")}</div>
+                <div className="text-sm text-muted-foreground">
+                  {t("settings.vehicleBooking.systemToggleDescription")}
+                </div>
               </div>
             </div>
+            <Switch
+              checked={vehicleBookingEnabled}
+              onCheckedChange={(checked: boolean) =>
+                handleToggleSetting("vehicle_booking_enabled", checked)
+              }
+              disabled={isUpdatingSettings === "vehicle_booking_enabled" || isFetching}
+            />
+          </div>
+
+          {/* Approval Requirement Toggle */}
+          <div className="px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
+                <CheckCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="text-start flex-1">
+                <div className="font-medium">{t("settings.vehicleBooking.approvalToggle")}</div>
+                <div className="text-sm text-muted-foreground">
+                  {t("settings.vehicleBooking.approvalToggleDescription")}
+                </div>
+              </div>
+            </div>
+            <Switch
+              checked={requireApproval}
+              onCheckedChange={(checked: boolean) =>
+                handleToggleSetting("require_vehicle_booking_approval", checked)
+              }
+              disabled={isUpdatingSettings === "require_vehicle_booking_approval" || isFetching}
+            />
+          </div>
+
+          {/* Override Capability Toggle */}
+          <div className="px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
+                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="text-start flex-1">
+                <div className="font-medium">{t("settings.vehicleBooking.overrideToggle")}</div>
+                <div className="text-sm text-muted-foreground">
+                  {t("settings.vehicleBooking.overrideToggleDescription")}
+                </div>
+              </div>
+            </div>
+            <Switch
+              checked={allowOverride}
+              onCheckedChange={(checked: boolean) =>
+                handleToggleSetting("allow_vehicle_booking_override", checked)
+              }
+              disabled={isUpdatingSettings === "allow_vehicle_booking_override" || isFetching}
+            />
           </div>
         </div>
       </div>

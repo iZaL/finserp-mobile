@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Truck, Search, Filter, Plus, RefreshCw, Package } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import type { VehicleBooking, BookingStats, BookingFilters, DailyCapacity } from "@/types/vehicle-booking"
+import type { VehicleBooking, BookingStats, BookingFilters, DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
@@ -15,8 +15,12 @@ import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
 import { UnreceiveDialog } from "@/components/vehicle-booking/unreceive-dialog"
 import { DeleteDialog } from "@/components/vehicle-booking/delete-dialog"
+import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
+import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
 import { NotificationSettings } from "@/components/notification-settings"
+import { BookingDetailsDialog } from "@/components/vehicle-booking/booking-details-dialog"
+import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 
 export default function VehicleBookingsPage() {
   const router = useRouter()
@@ -26,6 +30,7 @@ export default function VehicleBookingsPage() {
   const [bookings, setBookings] = useState<VehicleBooking[]>([])
   const [stats, setStats] = useState<BookingStats | null>(null)
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
+  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -35,23 +40,29 @@ export default function VehicleBookingsPage() {
   const [exitDialogOpen, setExitDialogOpen] = useState(false)
   const [unreceiveDialogOpen, setUnreceiveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [approveDialogOpen, setApproveDialogOpen] = useState(false)
+  const [rejectApprovalDialogOpen, setRejectApprovalDialogOpen] = useState(false)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
   // Fetch bookings and stats
   const fetchData = useCallback(async () => {
     try {
       setLoading(true)
-      const [bookingsData, statsData, capacityData] = await Promise.all([
+      const [bookingsData, statsData, capacityData, settingsData] = await Promise.all([
         vehicleBookingService.getBookings({
           status: statusFilter,
           per_page: 50
         }),
         vehicleBookingService.getStats(),
         vehicleBookingService.getDailyCapacity(),
+        vehicleBookingService.getSettings(),
       ])
       setBookings(bookingsData.data)
       setStats(statsData)
       setCapacityInfo(capacityData)
+      setSettings(settingsData)
     } catch (error) {
       console.error("Error fetching bookings:", error)
     } finally {
@@ -97,13 +108,28 @@ export default function VehicleBookingsPage() {
   }
 
   const handleEdit = (booking: VehicleBooking) => {
-    // Navigate to edit page (to be implemented)
-    router.push(`/vehicle-bookings/${booking.id}/edit`)
+    setSelectedBooking(booking)
+    setEditDialogOpen(true)
   }
 
   const handleDelete = (booking: VehicleBooking) => {
     setSelectedBooking(booking)
     setDeleteDialogOpen(true)
+  }
+
+  const handleApprove = (booking: VehicleBooking) => {
+    setSelectedBooking(booking)
+    setApproveDialogOpen(true)
+  }
+
+  const handleRejectApproval = (booking: VehicleBooking) => {
+    setSelectedBooking(booking)
+    setRejectApprovalDialogOpen(true)
+  }
+
+  const handleViewDetails = (booking: VehicleBooking) => {
+    setSelectedBooking(booking)
+    setDetailsDialogOpen(true)
   }
 
   const handleDialogSuccess = () => {
@@ -116,6 +142,9 @@ export default function VehicleBookingsPage() {
       (booking.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
       (booking.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   )
+
+  // Count pending approvals
+  const pendingApprovalCount = bookings.filter(b => b.is_pending_approval).length
 
   return (
     <>
@@ -163,13 +192,17 @@ export default function VehicleBookingsPage() {
       </div>
 
       {/* Capacity Card */}
-      <CapacityCard capacity={capacityInfo} loading={loading} />
+      <CapacityCard
+        capacity={capacityInfo}
+        loading={loading}
+        allowOverride={settings?.allow_vehicle_booking_override}
+      />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2">
+      <div className="grid gap-4 grid-cols-3">
         {loading ? (
           <>
-            {[1, 2].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="rounded-xl border bg-card text-card-foreground shadow-sm p-4">
                 <div className="h-4 w-20 bg-muted animate-pulse rounded mb-2" />
                 <div className="h-8 w-16 bg-muted animate-pulse rounded" />
@@ -203,6 +236,20 @@ export default function VehicleBookingsPage() {
                 {stats?.received_vehicles || 0}
               </p>
             </div>
+
+            {pendingApprovalCount > 0 && (
+              <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 shadow-sm p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-1">
+                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-xs font-medium">{t('stats.pendingApproval')}</span>
+                </div>
+                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                  {pendingApprovalCount}
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -258,7 +305,9 @@ export default function VehicleBookingsPage() {
               onUnreceive={handleUnreceive}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onClick={(booking) => router.push(`/vehicle-bookings/${booking.id}`)}
+              onApprove={handleApprove}
+              onRejectApproval={handleRejectApproval}
+              onClick={handleViewDetails}
             />
           ))
         )}
@@ -297,6 +346,33 @@ export default function VehicleBookingsPage() {
         booking={selectedBooking}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <ApproveDialog
+        booking={selectedBooking}
+        open={approveDialogOpen}
+        onOpenChange={setApproveDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <RejectApprovalDialog
+        booking={selectedBooking}
+        open={rejectApprovalDialogOpen}
+        onOpenChange={setRejectApprovalDialogOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <BookingDetailsDialog
+        booking={selectedBooking}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+      />
+
+      <EditDialog
+        booking={selectedBooking}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
         onSuccess={handleDialogSuccess}
       />
     </>

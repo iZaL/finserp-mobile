@@ -48,9 +48,10 @@ export default function NewBookingPage() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [quickPicks, setQuickPicks] = useState<VehicleTemplate[]>([])
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
-  const [, setSettings] = useState<VehicleBookingSettings | null>(null)
+  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showCapacityDialog, setShowCapacityDialog] = useState(false)
+  const [isSystemEnabled, setIsSystemEnabled] = useState(true)
 
   // Fetch quick picks and capacity info on mount
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function NewBookingPage() {
       setQuickPicks(picksData)
       setCapacityInfo(capacityData)
       setSettings(settingsData)
+      setIsSystemEnabled(settingsData.vehicle_booking_enabled ?? true)
 
       // Set initial box weight from settings
       setBoxWeightKg(settingsData.default_box_weight_kg.toString())
@@ -271,6 +273,50 @@ export default function NewBookingPage() {
           </div>
         </div>
       </div>
+
+      {/* System Disabled Warning */}
+      {!isSystemEnabled && (
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="size-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-800 dark:text-red-400 mb-1">
+                {t('systemDisabled')}
+              </h3>
+              <p className="text-sm text-red-700 dark:text-red-500">
+                {t('systemDisabledMessage')}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => router.push('/vehicle-bookings')}
+              >
+                {t('returnToDashboard')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approval Required Info */}
+      {isSystemEnabled && settings?.require_vehicle_booking_approval && (
+        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <svg className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-800 dark:text-amber-400 mb-1">
+                {t('approvalRequired')}
+              </h3>
+              <p className="text-sm text-amber-700 dark:text-amber-500">
+                {t('approvalRequiredMessage')}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -483,7 +529,7 @@ export default function NewBookingPage() {
             {/* Submit Button */}
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !isSystemEnabled}
               className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               {submitting ? (

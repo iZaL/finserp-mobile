@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -27,9 +27,26 @@ export default function SuppliersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const response = await api.get("/suppliers")
+
+      if (response.data?.data) {
+        setSuppliers(response.data.data)
+        setFilteredSuppliers(response.data.data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch suppliers:", error)
+      toast.error(t("suppliers.errors.fetchFailed"))
+    } finally {
+      setIsLoading(false)
+    }
+  }, [t])
+
   useEffect(() => {
     fetchSuppliers()
-  }, [])
+  }, [fetchSuppliers])
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -49,23 +66,6 @@ export default function SuppliersPage() {
       setFilteredSuppliers(filtered)
     }
   }, [searchQuery, suppliers])
-
-  const fetchSuppliers = async () => {
-    try {
-      setIsLoading(true)
-      const response = await api.get("/suppliers")
-
-      if (response.data?.data) {
-        setSuppliers(response.data.data)
-        setFilteredSuppliers(response.data.data)
-      }
-    } catch (error) {
-      console.error("Failed to fetch suppliers:", error)
-      toast.error(t("suppliers.errors.fetchFailed"))
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`

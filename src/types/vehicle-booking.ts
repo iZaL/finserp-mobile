@@ -29,6 +29,12 @@ export interface VehicleBooking {
   rejected_by_name?: string
   exited_by_name?: string
 
+  // Approval fields
+  approval_status?: "pending" | "approved" | "rejected" | null
+  approved_by?: number
+  approved_at?: string
+  approval_notes?: string
+
   // Permissions
   can_edit: boolean
   can_delete: boolean
@@ -36,6 +42,8 @@ export interface VehicleBooking {
   can_reject: boolean
   can_exit: boolean
   can_unreceive: boolean
+  can_approve: boolean
+  is_pending_approval: boolean
 }
 
 export interface BookingStats {
@@ -81,6 +89,9 @@ export interface DailyCapacity {
 export interface VehicleBookingSettings {
   default_box_weight_kg: number
   vehicle_display_time_limit_hours: number
+  vehicle_booking_enabled: boolean
+  require_vehicle_booking_approval: boolean
+  allow_vehicle_booking_override: boolean
 }
 
 export interface VehicleTemplate {
@@ -132,6 +143,20 @@ export interface ReceiveBookingRequest {
 export interface RejectBookingRequest {
   rejection_reason: string
   rejection_notes?: string
+}
+
+export interface ApproveBookingRequest {
+  notes?: string
+}
+
+export interface RejectApprovalRequest {
+  notes: string
+}
+
+export interface UpdateControlSettingsRequest {
+  vehicle_booking_enabled?: boolean
+  require_vehicle_booking_approval?: boolean
+  allow_vehicle_booking_override?: boolean
 }
 
 export interface BulkActionRequest {

@@ -10,6 +10,9 @@ import type {
   UpdateBookingRequest,
   ReceiveBookingRequest,
   RejectBookingRequest,
+  ApproveBookingRequest,
+  RejectApprovalRequest,
+  UpdateControlSettingsRequest,
   BulkActionRequest,
   PaginatedResponse,
   ApiResponse,
@@ -151,6 +154,30 @@ export const vehicleBookingService = {
     return response.data.data!
   },
 
+  // Approve vehicle booking
+  approveVehicle: async (
+    id: number,
+    data?: ApproveBookingRequest
+  ): Promise<VehicleBooking> => {
+    const response = await api.post<ApiResponse<VehicleBooking>>(
+      `/fish-purchase-vehicles/${id}/approve`,
+      data || {}
+    )
+    return response.data.data!
+  },
+
+  // Reject vehicle booking approval
+  rejectApproval: async (
+    id: number,
+    data: RejectApprovalRequest
+  ): Promise<VehicleBooking> => {
+    const response = await api.post<ApiResponse<VehicleBooking>>(
+      `/fish-purchase-vehicles/${id}/reject-approval`,
+      data
+    )
+    return response.data.data!
+  },
+
   // Bulk actions
   bulkAction: async (data: BulkActionRequest): Promise<void> => {
     await api.post(`/fish-purchase-vehicles/bulk-action`, data)
@@ -161,6 +188,17 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<DailyCapacity>>(
       `/fish-purchase-vehicles/daily-limit`,
       { date, limit }
+    )
+    return response.data.data!
+  },
+
+  // Update control settings
+  updateControlSettings: async (
+    data: UpdateControlSettingsRequest
+  ): Promise<VehicleBookingSettings> => {
+    const response = await api.put<ApiResponse<VehicleBookingSettings>>(
+      `/fish-purchase-vehicles/control-settings`,
+      data
     )
     return response.data.data!
   },
