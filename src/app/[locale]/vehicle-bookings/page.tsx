@@ -12,7 +12,6 @@ Truck,
   Plus,
   RefreshCw,
   Package,
-  Target,
 } from "lucide-react";
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
 import type {
@@ -39,6 +38,11 @@ import { EditDialog } from "@/components/vehicle-booking/edit-dialog";
 export default function VehicleBookingsPage() {
   const router = useRouter();
   const t = useTranslations("vehicleBookings");
+  const tCard = useTranslations("vehicleBookings.bookingCard");
+
+  // Temporary flag to hide bulk selection features
+  const ENABLE_BULK_SELECTION = false;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<BookingFilters["status"]>("all");
@@ -75,7 +79,7 @@ export default function VehicleBookingsPage() {
       const [bookingsData, statsData, capacityData, settingsData] =
         await Promise.all([
           vehicleBookingService.getBookings({
-            status: statusFilter,
+            status: "all", // Always fetch all bookings
             date_filter: timeRangeFilter,
             per_page: 50,
           }),
@@ -92,7 +96,7 @@ export default function VehicleBookingsPage() {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, timeRangeFilter]);
+  }, [timeRangeFilter]);
 
   useEffect(() => {
     fetchData();
@@ -225,22 +229,39 @@ export default function VehicleBookingsPage() {
   };
 
   const filteredBookings = bookings.filter(
-    (booking) =>
-      booking.vehicle_number
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      (booking.driver_name?.toLowerCase() || "").includes(
-        searchQuery.toLowerCase()
-      ) ||
-      (booking.supplier_name?.toLowerCase() || "").includes(
-        searchQuery.toLowerCase()
-      )
+    (booking) => {
+      // Apply status filter
+      if (statusFilter !== "all") {
+        if (statusFilter === "pending" && !booking.is_pending_approval) return false;
+        if (statusFilter !== "pending" && booking.status !== statusFilter) return false;
+      }
+
+      // Exclude received vehicles (they're shown in "Currently Offloading" section)
+      if (booking.status === "received") return false;
+
+      // Apply search filter
+      return (
+        booking.vehicle_number
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (booking.driver_name?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        ) ||
+        (booking.supplier_name?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        )
+      );
+    }
   );
 
-  // Count pending approvals
-  const pendingApprovalCount = bookings.filter(
-    (b) => b.is_pending_approval
-  ).length;
+  // Count vehicles by status from actual bookings data
+  const statusCounts = {
+    pending: bookings.filter((b) => b.is_pending_approval).length,
+    booked: bookings.filter((b) => b.status === "booked").length,
+    received: bookings.filter((b) => b.status === "received").length,
+    exited: bookings.filter((b) => b.status === "exited").length,
+    rejected: bookings.filter((b) => b.status === "rejected").length,
+  };
 
   return (
     <>
@@ -273,27 +294,6 @@ export default function VehicleBookingsPage() {
         </div>
       </div>
 
-      {/* Time Range Filter Tabs */}
-      <Tabs value={timeRangeFilter || "current"} onValueChange={(value: string) => setTimeRangeFilter(value as BookingFilters["date_filter"])}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="current" className="text-xs">
-            Default ({settings?.vehicle_display_time_limit_hours || 48}h)
-          </TabsTrigger>
-          <TabsTrigger value="last_24h" className="text-xs">
-            Last 24h
-          </TabsTrigger>
-          <TabsTrigger value="last_48h" className="text-xs">
-            Last 48h
-          </TabsTrigger>
-          <TabsTrigger value="last_week" className="text-xs">
-            Last Week
-          </TabsTrigger>
-          <TabsTrigger value="custom" className="text-xs">
-            Custom
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -309,232 +309,175 @@ export default function VehicleBookingsPage() {
       <Tabs value={statusFilter || "all"} onValueChange={(value: string) => setStatusFilter(value as BookingFilters["status"])}>
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all" className="text-xs">
-            All
+            All {bookings.length > 0 && `(${bookings.length})`}
           </TabsTrigger>
           <TabsTrigger value="pending" className="text-xs">
-            Pending
+            Pending {statusCounts.pending > 0 && `(${statusCounts.pending})`}
           </TabsTrigger>
           <TabsTrigger value="booked" className="text-xs">
-            Booked
+            Booked {statusCounts.booked > 0 && `(${statusCounts.booked})`}
           </TabsTrigger>
           <TabsTrigger value="received" className="text-xs">
-            Received
+            Received {statusCounts.received > 0 && `(${statusCounts.received})`}
           </TabsTrigger>
           <TabsTrigger value="exited" className="text-xs">
-            Exited
+            Exited {statusCounts.exited > 0 && `(${statusCounts.exited})`}
           </TabsTrigger>
           <TabsTrigger value="rejected" className="text-xs">
-            Rejected
+            Rejected {statusCounts.rejected > 0 && `(${statusCounts.rejected})`}
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {/* Bulk Selection and Actions */}
-      <div className="space-y-3">
-        {/* Selection Count and Clear */}
-        {selectedBookings.size > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">
-              {selectedBookings.size} vehicle(s) selected
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedBookings(new Set())}
-            >
-              Clear Selection
-            </Button>
-          </div>
-        )}
+      {ENABLE_BULK_SELECTION && (
+        <div className="space-y-3">
+          {/* Selection Count and Clear */}
+          {selectedBookings.size > 0 && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {selectedBookings.size} vehicle(s) selected
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedBookings(new Set())}
+              >
+                Clear Selection
+              </Button>
+            </div>
+          )}
 
-        {/* Selection Buttons */}
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const booked = filteredBookings.filter(b => b.status === "booked");
-              setSelectedBookings(new Set(booked.map(b => b.id)));
-            }}
-          >
-            Select All Booked ({filteredBookings.filter(b => b.status === "booked").length})
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const received = filteredBookings.filter(b => b.status === "received");
-              setSelectedBookings(new Set(received.map(b => b.id)));
-            }}
-          >
-            Select All Received ({filteredBookings.filter(b => b.status === "received").length})
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedBookings(new Set(filteredBookings.map(b => b.id)));
-            }}
-          >
-            Select All Visible ({filteredBookings.length})
-          </Button>
-        </div>
-
-        {/* Bulk Action Buttons */}
-        {selectedBookings.size > 0 && (
+          {/* Selection Buttons */}
           <div className="flex gap-2 flex-wrap">
             <Button
-              variant="default"
+              variant="outline"
               size="sm"
-              onClick={handleBulkReceive}
-              disabled={bulkLoading}
+              onClick={() => {
+                const booked = filteredBookings.filter(b => b.status === "booked");
+                setSelectedBookings(new Set(booked.map(b => b.id)));
+              }}
             >
-              {bulkLoading ? (
-                <>
-                  <RefreshCw className="size-3 mr-1 animate-spin" />
-                  Receiving...
-                </>
-              ) : (
-                `Bulk Receive (${selectedBookings.size})`
-              )}
+              Select All Booked ({filteredBookings.filter(b => b.status === "booked").length})
             </Button>
             <Button
-              variant="destructive"
+              variant="outline"
               size="sm"
-              onClick={handleBulkReject}
-              disabled={bulkLoading}
+              onClick={() => {
+                const received = filteredBookings.filter(b => b.status === "received");
+                setSelectedBookings(new Set(received.map(b => b.id)));
+              }}
             >
-              {bulkLoading ? (
-                <>
-                  <RefreshCw className="size-3 mr-1 animate-spin" />
-                  Rejecting...
-                </>
-              ) : (
-                `Bulk Reject (${selectedBookings.size})`
-              )}
+              Select All Received ({filteredBookings.filter(b => b.status === "received").length})
             </Button>
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
-              onClick={handleBulkExit}
-              disabled={bulkLoading}
+              onClick={() => {
+                setSelectedBookings(new Set(filteredBookings.map(b => b.id)));
+              }}
             >
-              {bulkLoading ? (
-                <>
-                  <RefreshCw className="size-3 mr-1 animate-spin" />
-                  Exiting...
-                </>
-              ) : (
-                `Bulk Exit (${selectedBookings.size})`
-              )}
+              Select All Visible ({filteredBookings.length})
             </Button>
           </div>
-        )}
-      </div>
+
+          {/* Bulk Action Buttons */}
+          {selectedBookings.size > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleBulkReceive}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? (
+                  <>
+                    <RefreshCw className="size-3 mr-1 animate-spin" />
+                    Receiving...
+                  </>
+                ) : (
+                  `Bulk Receive (${selectedBookings.size})`
+                )}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkReject}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? (
+                  <>
+                    <RefreshCw className="size-3 mr-1 animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  `Bulk Reject (${selectedBookings.size})`
+                )}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBulkExit}
+                disabled={bulkLoading}
+              >
+                {bulkLoading ? (
+                  <>
+                    <RefreshCw className="size-3 mr-1 animate-spin" />
+                    Exiting...
+                  </>
+                ) : (
+                  `Bulk Exit (${selectedBookings.size})`
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Capacity Card */}
       <CapacityCard
         capacity={capacityInfo}
         loading={loading}
         allowOverride={settings?.allow_vehicle_booking_override}
+        bookings={bookings}
+        defaultBoxWeightKg={settings?.default_box_weight_kg}
       />
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        {loading ? (
-          <>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="rounded-xl border bg-card text-card-foreground shadow-sm p-4"
-              >
-                <div className="h-4 w-20 bg-muted animate-pulse rounded mb-2" />
-                <div className="h-8 w-16 bg-muted animate-pulse rounded" />
-              </div>
-            ))}
-          </>
-        ) : (
-          <>
-            <div
-              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setStatusFilter("booked")}
-            >
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Truck className="size-4" />
-                <span className="text-xs font-medium">{t("stats.booked")}</span>
-              </div>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {stats?.booked_vehicles || 0}
-              </p>
-            </div>
-
-            <div
-              className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => setStatusFilter("received")}
-            >
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Package className="size-4" />
-                <span className="text-xs font-medium">
-                  {t("stats.received")}
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                {stats?.received_vehicles || 0}
-              </p>
-            </div>
-
-            {/* Enhanced Tons Capacity Card */}
-            <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Target className="size-4" />
-                <span className="text-xs font-medium">
-                  {t("stats.tonsCapacity")}
-                </span>
-              </div>
-
-              {/* Primary Value - Daily Limit */}
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {capacityInfo?.tons_limit && Number(capacityInfo.tons_limit) > 0
-                  ? `${Number(capacityInfo.tons_limit).toFixed(1)} MT`
-                  : "No Limit"}
-              </p>
-
-              {/* Secondary Info - Remaining Capacity */}
-              {stats?.remaining_tons_capacity !== null && stats?.remaining_tons_capacity !== undefined && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  remaining {stats.remaining_tons_capacity.toFixed(1)} MT
-                </p>
-              )}
-            </div>
-
-            {pendingApprovalCount > 0 && (
-              <div className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 shadow-sm p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-1">
-                  <svg
-                    className="size-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <span className="text-xs font-medium">
-                    {t("stats.pendingApproval")}
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-                  {pendingApprovalCount}
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+      {/* Currently Offloading Section */}
+      {!loading && bookings.filter(b => b.status === "received").length > 0 && (
+        <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+              <Package className="size-5 text-emerald-600 dark:text-emerald-400" />
+              {t("currentlyOffloading")}
+            </h3>
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+              {bookings.filter(b => b.status === "received").length} {bookings.filter(b => b.status === "received").length === 1 ? "vehicle" : "vehicles"}
+            </span>
+          </div>
+          <div className="space-y-3">
+            {bookings
+              .filter(b => b.status === "received")
+              .map(booking => (
+                <BookingCard
+                  key={booking.id}
+                  booking={booking}
+                  onReceive={handleReceive}
+                  onReject={handleReject}
+                  onExit={handleExit}
+                  onUnreceive={handleUnreceive}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onApprove={handleApprove}
+                  onRejectApproval={handleRejectApproval}
+                  onClick={handleViewDetails}
+                  isSelected={selectedBookings.has(booking.id)}
+                  onSelectionChange={ENABLE_BULK_SELECTION ? handleSelectionChange : undefined}
+                />
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Bookings List */}
       <div className="space-y-3">
@@ -596,7 +539,7 @@ export default function VehicleBookingsPage() {
               onRejectApproval={handleRejectApproval}
               onClick={handleViewDetails}
               isSelected={selectedBookings.has(booking.id)}
-              onSelectionChange={handleSelectionChange}
+              onSelectionChange={ENABLE_BULK_SELECTION ? handleSelectionChange : undefined}
             />
           ))
         )}

@@ -85,6 +85,10 @@ export interface DailyCapacity {
   remaining_capacity_boxes: number
   capacity_used_percent: number
   can_override: boolean
+  // Optional fields for future backend support
+  total_booked_tons?: number
+  total_received_tons?: number
+  remaining_capacity_tons?: number
 }
 
 export interface VehicleBookingSettings {

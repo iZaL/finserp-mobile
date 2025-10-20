@@ -35,6 +35,11 @@
     "noBookingsDescription": "Get started by creating your first booking",
     "searchPlaceholder": "Search by vehicle, driver, or supplier...",
     "createBooking": "Create Booking",
+    "currentlyOffloading": "Currently Offloading",
+    "noVehiclesOffloading": "No vehicles currently offloading",
+    "offloadingBoxes": "Boxes",
+    "offloadingWeight": "Weight",
+    "offloadingSupplier": "Supplier",
     "stats": {
       "booked": "Booked",
       "received": "Received",
@@ -43,7 +48,9 @@
       "total": "Total",
       "pendingApproval": "Pending Approval",
       "receivedTons": "Received Tons",
-      "tonsCapacity": "Tons Capacity"
+      "tonsCapacity": "Tons Capacity",
+      "awaitingEntry": "Awaiting Entry",
+      "insideFactory": "Inside Factory"
     },
     "capacity": {
       "title": "Daily Capacity",

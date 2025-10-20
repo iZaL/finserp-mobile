@@ -4,16 +4,29 @@ import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Gauge, Shield } from "lucide-react"
-import type { DailyCapacity } from "@/types/vehicle-booking"
+import type { DailyCapacity, VehicleBooking } from "@/types/vehicle-booking"
 
 interface CapacityCardProps {
   capacity: DailyCapacity | null
   loading?: boolean
   allowOverride?: boolean
+  bookings?: VehicleBooking[]
+  defaultBoxWeightKg?: number
 }
 
-export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardProps) {
+export function CapacityCard({ capacity, loading, allowOverride, bookings = [], defaultBoxWeightKg = 50 }: CapacityCardProps) {
   const t = useTranslations('vehicleBookings.capacity')
+
+  // Calculate tonnage for each status
+  // Booked and Received use actual booking weights
+  const bookedTons = bookings
+    .filter(b => b.status === "booked")
+    .reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+
+  const receivedTons = bookings
+    .filter(b => b.status === "received")
+    .reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+
   if (loading) {
     return (
       <Card>
@@ -111,6 +124,9 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
             <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {capacity.daily_limit_boxes.toLocaleString()}
             </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {((capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000).toFixed(1)} MT
+            </div>
           </div>
 
           {/* Booked */}
@@ -119,6 +135,9 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
             <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
               {capacity.total_booked_boxes.toLocaleString()}
             </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {bookedTons.toFixed(1)} MT
+            </div>
           </div>
 
           {/* Received */}
@@ -126,6 +145,9 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
             <div className="text-xs text-muted-foreground mb-1">{t('received')}</div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
               {capacity.total_received_boxes.toLocaleString()}
+            </div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {receivedTons.toFixed(1)} MT
             </div>
           </div>
 
@@ -138,6 +160,13 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
               "text-gray-600 dark:text-gray-400"
             }`}>
               {capacity.remaining_capacity_boxes.toLocaleString()}
+            </div>
+            <div className={`text-xs mt-0.5 ${
+              isDanger ? "text-red-600/80 dark:text-red-400/80" :
+              isWarning ? "text-amber-600/80 dark:text-amber-400/80" :
+              "text-muted-foreground"
+            }`}>
+              {(((capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000) - (bookedTons + receivedTons)).toFixed(1)} MT
             </div>
           </div>
         </div>

@@ -33,6 +33,11 @@
     "noBookingsDescription": "ابدأ بإنشاء أول حجز",
     "searchPlaceholder": "البحث حسب المركبة أو السائق أو المورد...",
     "createBooking": "إنشاء حجز",
+    "currentlyOffloading": "يتم التنزيل حالياً",
+    "noVehiclesOffloading": "لا توجد مركبات يتم تنزيلها حالياً",
+    "offloadingBoxes": "البانات",
+    "offloadingWeight": "الوزن",
+    "offloadingSupplier": "المورد",
     "boxes": "بانات",
     "tons": "طن",
     "stats": {
@@ -43,7 +48,9 @@
       "total": "الإجمالي",
       "pendingApproval": "في انتظار الموافقة",
       "receivedTons": "الأطنان المستلمة",
-      "tonsCapacity": "سعة الأطنان"
+      "tonsCapacity": "سعة الأطنان",
+      "awaitingEntry": "في انتظار الدخول",
+      "insideFactory": "داخل المصنع"
     },
     "capacity": {
       "title": "السعة اليومية",

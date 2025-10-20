@@ -101,16 +101,6 @@ export function BookingCard({
           >
             {t(booking.status)}
           </span>
-          {booking.is_pending_approval && (
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-              {t('pendingApproval')}
-            </span>
-          )}
-          {booking.approval_status === 'rejected' && (
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              {t('approvalRejected')}
-            </span>
-          )}
         </div>
       </div>
 
