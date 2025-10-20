@@ -41,7 +41,9 @@
       "exited": "خارج",
       "rejected": "مرفوض",
       "total": "الإجمالي",
-      "pendingApproval": "في انتظار الموافقة"
+      "pendingApproval": "في انتظار الموافقة",
+      "receivedTons": "الأطنان المستلمة",
+      "tonsCapacity": "سعة الأطنان"
     },
     "capacity": {
       "title": "السعة اليومية",

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { RelativeTime } from "@/components/relative-time"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
@@ -17,6 +18,8 @@ interface BookingCardProps {
   onApprove?: (booking: VehicleBooking) => void
   onRejectApproval?: (booking: VehicleBooking) => void
   onClick?: (booking: VehicleBooking) => void
+  isSelected?: boolean
+  onSelectionChange?: (booking: VehicleBooking, selected: boolean) => void
 }
 
 export function BookingCard({
@@ -30,6 +33,8 @@ export function BookingCard({
   onApprove,
   onRejectApproval,
   onClick,
+  isSelected = false,
+  onSelectionChange,
 }: BookingCardProps) {
   const t = useTranslations('vehicleBookings.bookingCard')
 
@@ -53,14 +58,25 @@ export function BookingCard({
     action()
   }
 
+
   return (
     <div
-      className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-shadow"
+      className={`rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-all ${
+        isSelected ? "border-primary bg-primary/5" : ""
+      }`}
       onClick={() => onClick?.(booking)}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
+          {/* Selection Checkbox */}
+          {onSelectionChange && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={(checked) => onSelectionChange(booking, !!checked)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
           <div className="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
             <Truck className="size-5" />
           </div>

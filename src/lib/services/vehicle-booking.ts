@@ -27,6 +27,9 @@ export const vehicleBookingService = {
 
     if (filters?.search) params.append("search", filters.search)
     if (filters?.status && filters.status !== "all") params.append("status", filters.status)
+    if (filters?.date_filter) params.append("date_filter", filters.date_filter)
+    if (filters?.start_date) params.append("start_date", filters.start_date)
+    if (filters?.end_date) params.append("end_date", filters.end_date)
     if (filters?.date_from) params.append("date_from", filters.date_from)
     if (filters?.date_to) params.append("date_to", filters.date_to)
     if (filters?.page) params.append("page", filters.page.toString())
