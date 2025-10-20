@@ -22,25 +22,45 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
 import type { VehicleBooking } from "@/types/vehicle-booking"
+import { MoreVertical, RotateCcw } from "lucide-react"
 
 interface BookingDetailsDialogProps {
   booking: VehicleBooking | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onExit?: (booking: VehicleBooking) => void
+  onUnreceive?: (booking: VehicleBooking) => void
+  onReject?: (booking: VehicleBooking) => void
 }
 
 export function BookingDetailsDialog({
   booking,
   open,
   onOpenChange,
+  onExit,
+  onUnreceive,
+  onReject,
 }: BookingDetailsDialogProps) {
   const t = useTranslations('vehicleBookings.bookingCard')
   const tDetails = useTranslations('vehicleBookings.bookingDetails')
+
+  const handleAction = (action: () => void) => {
+    action()
+    onOpenChange(false)
+  }
 
   if (!booking) return null
 
@@ -456,6 +476,51 @@ export function BookingDetailsDialog({
             </div>
           </div>
         </div>
+
+        {/* Action Buttons - Show for received status */}
+        {booking.status === "received" && (
+          <DialogFooter className="flex-row gap-2 sm:gap-2">
+            {booking.can_exit && onExit && (
+              <Button
+                onClick={() => handleAction(() => onExit(booking))}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              >
+                <LogOut className="size-4 me-2" />
+                {t('actions.exit')}
+              </Button>
+            )}
+
+            {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="px-3">
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {booking.can_unreceive && onUnreceive && (
+                    <DropdownMenuItem
+                      onClick={() => handleAction(() => onUnreceive(booking))}
+                      className="cursor-pointer"
+                    >
+                      <RotateCcw className="size-4 me-2" />
+                      {t('actions.unreceive')}
+                    </DropdownMenuItem>
+                  )}
+                  {booking.can_reject && onReject && (
+                    <DropdownMenuItem
+                      onClick={() => handleAction(() => onReject(booking))}
+                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    >
+                      <XCircle className="size-4 me-2" />
+                      {t('actions.reject')}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

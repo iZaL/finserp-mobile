@@ -1,9 +1,15 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2 } from "lucide-react"
+import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
@@ -236,25 +242,39 @@ export function BookingCard({
                 {t('actions.reject')}
               </Button>
             )}
-            {booking.can_edit && onEdit && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => handleAction(e, () => onEdit(booking))}
-              >
-                <Edit className="size-4 me-1" />
-                {t('actions.edit')}
-              </Button>
-            )}
-            {booking.can_delete && onDelete && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => handleAction(e, () => onDelete(booking))}
-              >
-                <Trash2 className="size-4 me-1" />
-                {t('actions.delete')}
-              </Button>
+            {(booking.can_edit || booking.can_delete) && (onEdit || onDelete) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="px-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {booking.can_edit && onEdit && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onEdit(booking))}
+                      className="cursor-pointer"
+                    >
+                      <Edit className="size-4 me-2" />
+                      {t('actions.edit')}
+                    </DropdownMenuItem>
+                  )}
+                  {booking.can_delete && onDelete && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onDelete(booking))}
+                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    >
+                      <Trash2 className="size-4 me-2" />
+                      {t('actions.delete')}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </>
         )}
@@ -272,27 +292,39 @@ export function BookingCard({
                 {t('actions.exit')}
               </Button>
             )}
-            {booking.can_unreceive && onUnreceive && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => handleAction(e, () => onUnreceive(booking))}
-                className="flex-1"
-              >
-                <RotateCcw className="size-4 me-1" />
-                {t('actions.unreceive')}
-              </Button>
-            )}
-            {booking.can_reject && onReject && (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={(e) => handleAction(e, () => onReject(booking))}
-                className="flex-1"
-              >
-                <XCircle className="size-4 me-1" />
-                {t('actions.reject')}
-              </Button>
+            {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="px-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {booking.can_unreceive && onUnreceive && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onUnreceive(booking))}
+                      className="cursor-pointer"
+                    >
+                      <RotateCcw className="size-4 me-2" />
+                      {t('actions.unreceive')}
+                    </DropdownMenuItem>
+                  )}
+                  {booking.can_reject && onReject && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onReject(booking))}
+                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    >
+                      <XCircle className="size-4 me-2" />
+                      {t('actions.reject')}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </>
         )}

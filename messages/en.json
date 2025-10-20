@@ -28,6 +28,8 @@
   "vehicleBookings": {
     "title": "Vehicle Bookings",
     "subtitle": "Manage your vehicle reservations",
+    "calendarView": "Calendar View",
+    "viewBookingSchedule": "View your booking schedule",
     "newBooking": "New Booking",
     "noBookingsFound": "No bookings found",
     "noBookingsDescription": "Get started by creating your first booking",

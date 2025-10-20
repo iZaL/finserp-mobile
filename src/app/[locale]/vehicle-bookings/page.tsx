@@ -656,6 +656,9 @@ export default function VehicleBookingsPage() {
         booking={selectedBooking}
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}
+        onExit={handleExit}
+        onUnreceive={handleUnreceive}
+        onReject={handleReject}
       />
 
       <EditDialog
