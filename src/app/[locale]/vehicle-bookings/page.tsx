@@ -474,13 +474,13 @@ export default function VehicleBookingsPage() {
         defaultBoxWeightKg={settings?.default_box_weight_kg}
       />
 
-      {/* Currently Offloading Section */}
-      {!loading && statusFilter === "all" && bookings.filter(b => b.status === "received").length > 0 && (
+      {/* Vehicles Inside Factory Section */}
+      {!loading && (statusFilter === "all" || statusFilter === "received") && bookings.filter(b => b.status === "received").length > 0 && (
         <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
               <Package className="size-5 text-emerald-600 dark:text-emerald-400" />
-              {t("currentlyOffloading")}
+              {t("vehiclesInsideFactory")}
             </h3>
             <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
               {bookings.filter(b => b.status === "received").length} {bookings.filter(b => b.status === "received").length === 1 ? "vehicle" : "vehicles"}

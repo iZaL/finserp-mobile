@@ -36,6 +36,7 @@
     "searchPlaceholder": "Search by vehicle, driver, or supplier...",
     "createBooking": "Create Booking",
     "currentlyOffloading": "Currently Offloading",
+    "vehiclesInsideFactory": "Vehicles in Factory",
     "noVehiclesOffloading": "No vehicles currently offloading",
     "offloadingBoxes": "Boxes",
     "offloadingWeight": "Weight",
