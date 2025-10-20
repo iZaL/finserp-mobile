@@ -566,9 +566,26 @@ export default function VehicleBookingsPage() {
         ) : (
           filteredBookings
             .sort((a, b) => {
-              // Sort by entry datetime, oldest first (ascending)
-              const dateA = new Date(a.entry_datetime || a.created_at).getTime();
-              const dateB = new Date(b.entry_datetime || b.created_at).getTime();
+              // Sort by state-specific date, oldest first (ascending)
+              const getDateForStatus = (booking: typeof a) => {
+                if (booking.status === "exited" && booking.exited_at) {
+                  return booking.exited_at;
+                }
+                if (booking.status === "rejected" && booking.rejected_at) {
+                  return booking.rejected_at;
+                }
+                if (booking.approval_status === "rejected" && booking.approved_at) {
+                  return booking.approved_at; // Use approval date for approval-rejected
+                }
+                if (booking.status === "booked" && booking.approved_at) {
+                  return booking.approved_at; // Use approval date for booked
+                }
+                // Default to entry_datetime for pending and other cases
+                return booking.entry_datetime || booking.created_at;
+              };
+
+              const dateA = new Date(getDateForStatus(a)).getTime();
+              const dateB = new Date(getDateForStatus(b)).getTime();
               return dateA - dateB;
             })
             .map((booking) => (
