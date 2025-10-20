@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,7 +16,6 @@ Truck,
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
 import type {
   VehicleBooking,
-  BookingStats,
   BookingFilters,
   DailyCapacity,
   VehicleBookingSettings,
@@ -38,7 +37,9 @@ import { EditDialog } from "@/components/vehicle-booking/edit-dialog";
 export default function VehicleBookingsPage() {
   const router = useRouter();
   const t = useTranslations("vehicleBookings");
-  const tCard = useTranslations("vehicleBookings.bookingCard");
+  const locale = useLocale();
+  const isRTL = locale === "ar";
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
 
   // Temporary flag to hide bulk selection features
   const ENABLE_BULK_SELECTION = false;
@@ -46,11 +47,10 @@ export default function VehicleBookingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<BookingFilters["status"]>("all");
-  const [timeRangeFilter, setTimeRangeFilter] =
+  const [timeRangeFilter] =
     useState<BookingFilters["date_filter"]>("current");
   const [selectedBookings, setSelectedBookings] = useState<Set<number>>(new Set());
   const [bookings, setBookings] = useState<VehicleBooking[]>([]);
-  const [stats, setStats] = useState<BookingStats | null>(null);
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null);
   const [settings, setSettings] = useState<VehicleBookingSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,19 +76,17 @@ export default function VehicleBookingsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [bookingsData, statsData, capacityData, settingsData] =
+      const [bookingsData, capacityData, settingsData] =
         await Promise.all([
           vehicleBookingService.getBookings({
             status: "all", // Always fetch all bookings
             date_filter: timeRangeFilter,
             per_page: 50,
           }),
-          vehicleBookingService.getStats(),
           vehicleBookingService.getDailyCapacity(),
           vehicleBookingService.getSettings(),
         ]);
       setBookings(bookingsData.data);
-      setStats(statsData);
       setCapacityInfo(capacityData);
       setSettings(settingsData);
     } catch (error) {
@@ -101,6 +99,13 @@ export default function VehicleBookingsPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Set initial scroll position for RTL
+  useEffect(() => {
+    if (isRTL && tabsScrollRef.current) {
+      tabsScrollRef.current.scrollLeft = tabsScrollRef.current.scrollWidth;
+    }
+  }, [isRTL]);
 
   const handleRefresh = async () => {
     try {
@@ -230,10 +235,18 @@ export default function VehicleBookingsPage() {
 
   const filteredBookings = bookings.filter(
     (booking) => {
-      // Apply status filter
+      // Apply status filter - make categories mutually exclusive
       if (statusFilter !== "all") {
-        if (statusFilter === "pending" && !booking.is_pending_approval) return false;
-        if (statusFilter !== "pending" && booking.status !== statusFilter) return false;
+        if (statusFilter === "pending") {
+          if (!booking.is_pending_approval) return false;
+        } else if (statusFilter === "booked") {
+          if (booking.status !== "booked" || booking.is_pending_approval || booking.approval_status === "rejected") return false;
+        } else if (statusFilter === "rejected") {
+          if (booking.status !== "rejected" && booking.approval_status !== "rejected") return false;
+        } else {
+          // For received and exited, just check status
+          if (booking.status !== statusFilter) return false;
+        }
       }
 
       // Exclude received vehicles (they're shown in "Currently Offloading" section)
@@ -254,13 +267,29 @@ export default function VehicleBookingsPage() {
     }
   );
 
-  // Count vehicles by status from actual bookings data
+  // Count vehicles by status - mutually exclusive categories
   const statusCounts = {
+    // Bookings waiting for approval
     pending: bookings.filter((b) => b.is_pending_approval).length,
-    booked: bookings.filter((b) => b.status === "booked").length,
+
+    // Bookings that are approved and waiting to be received (exclude pending and approval-rejected)
+    booked: bookings.filter((b) =>
+      b.status === "booked" &&
+      !b.is_pending_approval &&
+      b.approval_status !== "rejected"
+    ).length,
+
+    // Bookings currently in factory being offloaded
     received: bookings.filter((b) => b.status === "received").length,
+
+    // Bookings that finished offloading and exited
     exited: bookings.filter((b) => b.status === "exited").length,
-    rejected: bookings.filter((b) => b.status === "rejected").length,
+
+    // Bookings rejected at gate OR rejected at approval stage
+    rejected: bookings.filter((b) =>
+      b.status === "rejected" ||
+      b.approval_status === "rejected"
+    ).length,
   };
 
   return (
@@ -307,26 +336,28 @@ export default function VehicleBookingsPage() {
 
       {/* Status Filter Tabs */}
       <Tabs value={statusFilter || "all"} onValueChange={(value: string) => setStatusFilter(value as BookingFilters["status"])}>
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all" className="text-xs">
-            All {bookings.length > 0 && `(${bookings.length})`}
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="text-xs">
-            Pending {statusCounts.pending > 0 && `(${statusCounts.pending})`}
-          </TabsTrigger>
-          <TabsTrigger value="booked" className="text-xs">
-            Booked {statusCounts.booked > 0 && `(${statusCounts.booked})`}
-          </TabsTrigger>
-          <TabsTrigger value="received" className="text-xs">
-            Received {statusCounts.received > 0 && `(${statusCounts.received})`}
-          </TabsTrigger>
-          <TabsTrigger value="exited" className="text-xs">
-            Exited {statusCounts.exited > 0 && `(${statusCounts.exited})`}
-          </TabsTrigger>
-          <TabsTrigger value="rejected" className="text-xs">
-            Rejected {statusCounts.rejected > 0 && `(${statusCounts.rejected})`}
-          </TabsTrigger>
-        </TabsList>
+        <div ref={tabsScrollRef} className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
+          <TabsList className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}>
+            <TabsTrigger value="all" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.all")} {bookings.length > 0 && `(${bookings.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.pending")} {statusCounts.pending > 0 && `(${statusCounts.pending})`}
+            </TabsTrigger>
+            <TabsTrigger value="booked" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.booked")} {statusCounts.booked > 0 && `(${statusCounts.booked})`}
+            </TabsTrigger>
+            <TabsTrigger value="received" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.received")} {statusCounts.received > 0 && `(${statusCounts.received})`}
+            </TabsTrigger>
+            <TabsTrigger value="exited" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.exited")} {statusCounts.exited > 0 && `(${statusCounts.exited})`}
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="text-xs px-3 py-2 whitespace-nowrap">
+              {t("filters.rejected")} {statusCounts.rejected > 0 && `(${statusCounts.rejected})`}
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
 
       {/* Bulk Selection and Actions */}
@@ -444,7 +475,7 @@ export default function VehicleBookingsPage() {
       />
 
       {/* Currently Offloading Section */}
-      {!loading && bookings.filter(b => b.status === "received").length > 0 && (
+      {!loading && statusFilter === "all" && bookings.filter(b => b.status === "received").length > 0 && (
         <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">

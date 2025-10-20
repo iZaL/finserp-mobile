@@ -1,19 +1,18 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import { useTranslations } from "next-intl"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { useTranslations, useLocale } from "next-intl"
 import {
   Calendar as CalendarIcon,
   ArrowLeft,
   CalendarCheck,
   Loader2,
-  Truck,
-  AlertCircle
+  Truck
 } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Sheet,
   SheetContent,
@@ -33,7 +32,7 @@ import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
-import { format, startOfMonth, endOfMonth, isToday, isSameMonth, isSameDay } from "date-fns"
+import { format, startOfMonth, endOfMonth, isSameMonth } from "date-fns"
 import { cn } from "@/lib/utils"
 
 interface DayCapacityInfo {
@@ -44,8 +43,10 @@ interface DayCapacityInfo {
 
 export default function CalendarViewPage() {
   const t = useTranslations('vehicleBookings')
-  const tCommon = useTranslations('common')
+  const locale = useLocale()
+  const isRTL = locale === "ar"
   const router = useRouter()
+  const tabsScrollRef = useRef<HTMLDivElement>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [bookings, setBookings] = useState<VehicleBooking[]>([])
   const [dailyCapacity, setDailyCapacity] = useState<DailyCapacity | null>(null)
@@ -93,6 +94,13 @@ export default function CalendarViewPage() {
   useEffect(() => {
     fetchData(currentMonth)
   }, [currentMonth])
+
+  // Set initial scroll position for RTL
+  useEffect(() => {
+    if (isRTL && tabsScrollRef.current) {
+      tabsScrollRef.current.scrollLeft = tabsScrollRef.current.scrollWidth
+    }
+  }, [isRTL, sheetOpen])
 
   // Group bookings by date
   const bookingsByDate = useMemo(() => {
@@ -154,6 +162,17 @@ export default function CalendarViewPage() {
     const dayBookings = bookingsByDate[dateKey] || []
 
     if (statusFilter === "all") return dayBookings
+
+    // Handle special case for rejected status (includes approval rejection)
+    if (statusFilter === "rejected") {
+      return dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected")
+    }
+
+    // Handle booked status (exclude approval-rejected)
+    if (statusFilter === "booked") {
+      return dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected")
+    }
+
     return dayBookings.filter(b => b.status === statusFilter)
   }, [selectedDate, bookingsByDate, statusFilter])
 
@@ -166,10 +185,12 @@ export default function CalendarViewPage() {
 
     return {
       all: dayBookings.length,
-      booked: dayBookings.filter(b => b.status === "booked").length,
+      // Booked includes pending and approved, but excludes approval-rejected
+      booked: dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected").length,
       received: dayBookings.filter(b => b.status === "received").length,
       exited: dayBookings.filter(b => b.status === "exited").length,
-      rejected: dayBookings.filter(b => b.status === "rejected").length,
+      // Rejected includes both gate rejection and approval rejection
+      rejected: dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected").length,
     }
   }, [selectedDate, bookingsByDate])
 
@@ -518,49 +539,51 @@ export default function CalendarViewPage() {
           </SheetHeader>
 
           {/* Status Filter Tabs */}
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)} className="mt-4">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="all" className="text-xs">
-                All
-                {statusCounts.all > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                    {statusCounts.all}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="booked" className="text-xs">
-                Booked
-                {statusCounts.booked > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                    {statusCounts.booked}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="received" className="text-xs">
-                Received
-                {statusCounts.received > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                    {statusCounts.received}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="exited" className="text-xs">
-                Exited
-                {statusCounts.exited > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                    {statusCounts.exited}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="rejected" className="text-xs">
-                Rejected
-                {statusCounts.rejected > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
-                    {statusCounts.rejected}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)} className="mt-4">
+            <div ref={tabsScrollRef} className="overflow-x-auto -mx-6 px-6 scrollbar-hide">
+              <TabsList className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}>
+                <TabsTrigger value="all" className="text-xs px-3 py-2 whitespace-nowrap">
+                  {t('filters.all')}
+                  {statusCounts.all > 0 && (
+                    <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                      {statusCounts.all}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="booked" className="text-xs px-3 py-2 whitespace-nowrap">
+                  {t('filters.booked')}
+                  {statusCounts.booked > 0 && (
+                    <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                      {statusCounts.booked}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="received" className="text-xs px-3 py-2 whitespace-nowrap">
+                  {t('filters.received')}
+                  {statusCounts.received > 0 && (
+                    <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                      {statusCounts.received}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="exited" className="text-xs px-3 py-2 whitespace-nowrap">
+                  {t('filters.exited')}
+                  {statusCounts.exited > 0 && (
+                    <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                      {statusCounts.exited}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="rejected" className="text-xs px-3 py-2 whitespace-nowrap">
+                  {t('filters.rejected')}
+                  {statusCounts.rejected > 0 && (
+                    <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
+                      {statusCounts.rejected}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </div>
           </Tabs>
 
           <div className="mt-4 space-y-3 overflow-y-auto max-h-[calc(85vh-200px)]">

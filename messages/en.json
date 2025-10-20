@@ -40,6 +40,14 @@
     "offloadingBoxes": "Boxes",
     "offloadingWeight": "Weight",
     "offloadingSupplier": "Supplier",
+    "filters": {
+      "all": "All",
+      "pending": "Pending Approval",
+      "booked": "Booked",
+      "received": "In Factory",
+      "exited": "Offloaded",
+      "rejected": "Rejected"
+    },
     "stats": {
       "booked": "Booked",
       "received": "Received",

@@ -40,6 +40,14 @@
     "offloadingSupplier": "المورد",
     "boxes": "بانات",
     "tons": "طن",
+    "filters": {
+      "all": "الكل",
+      "pending": "في انتظار الموافقة",
+      "booked": "محجوز",
+      "received": "داخل المصنع",
+      "exited": "تم التفريغ",
+      "rejected": "مرفوض"
+    },
     "stats": {
       "booked": "محجوز",
       "received": "مستلم",
