@@ -442,14 +442,14 @@ export default function CalendarViewPage() {
               modifiersStyles={modifiersStyles}
               className="rounded-md border-0"
               components={{
-                DayContent: ({ date }) => {
-                  const dateKey = format(date, "yyyy-MM-dd")
-                  const count = getDayBookingCount(date)
+                Day: ({ day, ...props }) => {
+                  const dateKey = format(day.date, "yyyy-MM-dd")
+                  const count = getDayBookingCount(day.date)
                   const info = dayCapacityInfo[dateKey]
 
                   return (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                      <span>{format(date, "d")}</span>
+                    <div {...props} className={cn("relative", props.className)}>
+                      <span>{format(day.date, "d")}</span>
                       {count > 0 && (
                         <>
                           <Badge
@@ -460,7 +460,7 @@ export default function CalendarViewPage() {
                           >
                             {count}
                           </Badge>
-                          {info && getCapacityIndicator(date)}
+                          {info && getCapacityIndicator(day.date)}
                         </>
                       )}
                     </div>
