@@ -69,6 +69,7 @@
       "received": "Received",
       "remaining": "Remaining",
       "boxes": "boxes",
+      "mt": "MT",
       "exceeded": "Capacity Exceeded",
       "exceededDescription": "Daily limit has been exceeded. Override required for new bookings.",
       "approaching": "Approaching Limit",

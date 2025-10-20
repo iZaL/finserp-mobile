@@ -466,13 +466,15 @@ export default function VehicleBookingsPage() {
       )}
 
       {/* Capacity Card */}
-      <CapacityCard
-        capacity={capacityInfo}
-        loading={loading}
-        allowOverride={settings?.allow_vehicle_booking_override}
-        bookings={bookings}
-        defaultBoxWeightKg={settings?.default_box_weight_kg}
-      />
+      {statusFilter === "all" && (
+        <CapacityCard
+          capacity={capacityInfo}
+          loading={loading}
+          allowOverride={settings?.allow_vehicle_booking_override}
+          bookings={bookings}
+          defaultBoxWeightKg={settings?.default_box_weight_kg}
+        />
+      )}
 
       {/* Vehicles Inside Factory Section */}
       {!loading && (statusFilter === "all" || statusFilter === "received") && bookings.filter(b => b.status === "received").length > 0 && (

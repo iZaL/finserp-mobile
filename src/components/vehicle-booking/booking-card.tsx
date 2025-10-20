@@ -320,11 +320,7 @@ export function BookingCard({
         )}
 
         {/* Exited/Rejected Status - No Actions */}
-        {(booking.status === "exited" || booking.status === "rejected") && (
-          <div className="text-xs text-muted-foreground text-center w-full py-1">
-            {t('noActions')}
-          </div>
-        )}
+        {(booking.status === "exited" || booking.status === "rejected") && null}
       </div>
     </div>
   )

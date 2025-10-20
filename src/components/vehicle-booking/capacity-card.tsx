@@ -141,7 +141,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {capacity.daily_limit_boxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {limitTons.toFixed(1)} MT
+              {limitTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
@@ -152,7 +152,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {bookedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {bookedTons.toFixed(1)} MT
+              {bookedTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
@@ -163,7 +163,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {receivedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {receivedTons.toFixed(1)} MT
+              {receivedTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
@@ -182,7 +182,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               isWarning ? "text-amber-600/80 dark:text-amber-400/80" :
               "text-muted-foreground"
             }`}>
-              {remainingTons.toFixed(1)} MT
+              {remainingTons.toFixed(1)} {t('mt')}
             </div>
           </div>
         </div>
