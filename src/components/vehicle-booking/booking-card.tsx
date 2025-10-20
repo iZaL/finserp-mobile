@@ -89,7 +89,7 @@ export function BookingCard({
           <div>
             <h4 className="font-semibold">{booking.vehicle_number}</h4>
             <p className="text-xs text-muted-foreground">
-              {booking.box_count} {t('boxes')} · {Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}
+              <span className="opacity-60">ID: {booking.id}</span> · {booking.box_count} {t('boxes')} · {Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}
             </p>
           </div>
         </div>
@@ -118,20 +118,22 @@ export function BookingCard({
             <span className="truncate">{booking.supplier_name}</span>
           </div>
         )}
-        <div className="flex items-center gap-2 text-muted-foreground col-span-2">
-          <Calendar className="size-4" />
-          <span className="text-xs">
-            {t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} />
-          </span>
-        </div>
-        {booking.created_by_name && (
-          <div className="flex items-center gap-2 text-muted-foreground col-span-2">
-            <User className="size-4" />
+        <div className="flex items-center justify-between gap-2 text-muted-foreground col-span-2">
+          <div className="flex items-center gap-2">
+            <Calendar className="size-4" />
             <span className="text-xs">
-              {t('createdBy')}: {booking.created_by_name}
+              {t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} />
             </span>
           </div>
-        )}
+          {booking.created_by_name && (
+            <div className="flex items-center gap-2">
+              <User className="size-4" />
+              <span className="text-xs">
+                {t('createdBy')}: {booking.created_by_name}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Received Info */}
@@ -190,17 +192,18 @@ export function BookingCard({
           <>
             <Button
               size="sm"
+              variant="outline"
               onClick={(e) => handleAction(e, () => onApprove(booking))}
-              className="flex-1 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+              className="flex-1 border-green-600 text-green-600 bg-green-50 hover:bg-green-100 dark:border-green-500 dark:text-green-500 dark:bg-green-950 dark:hover:bg-green-900"
             >
               <CheckCircle className="size-4 me-1" />
               {t('actions.approve')}
             </Button>
             <Button
               size="sm"
-              variant="destructive"
+              variant="outline"
               onClick={(e) => handleAction(e, () => onRejectApproval(booking))}
-              className="flex-1"
+              className="flex-1 border-red-600 text-red-600 bg-red-50 hover:bg-red-100 dark:border-red-500 dark:text-red-500 dark:bg-red-950 dark:hover:bg-red-900"
             >
               <XCircle className="size-4 me-1" />
               {t('actions.rejectApproval')}
@@ -214,8 +217,9 @@ export function BookingCard({
             {booking.can_receive && onReceive && (
               <Button
                 size="sm"
+                variant="outline"
                 onClick={(e) => handleAction(e, () => onReceive(booking))}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                className="flex-1 border-emerald-600 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-500 dark:text-emerald-500 dark:bg-emerald-950 dark:hover:bg-emerald-900"
               >
                 <CheckCircle className="size-4 me-1" />
                 {t('actions.receive')}
@@ -224,9 +228,9 @@ export function BookingCard({
             {booking.can_reject && onReject && (
               <Button
                 size="sm"
-                variant="destructive"
+                variant="outline"
                 onClick={(e) => handleAction(e, () => onReject(booking))}
-                className="flex-1"
+                className="flex-1 border-red-600 text-red-600 bg-red-50 hover:bg-red-100 dark:border-red-500 dark:text-red-500 dark:bg-red-950 dark:hover:bg-red-900"
               >
                 <XCircle className="size-4 me-1" />
                 {t('actions.reject')}
@@ -275,8 +279,9 @@ export function BookingCard({
             {booking.can_exit && onExit && (
               <Button
                 size="sm"
+                variant="outline"
                 onClick={(e) => handleAction(e, () => onExit(booking))}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                className="flex-1 border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-500 dark:bg-blue-950 dark:hover:bg-blue-900"
               >
                 <LogOut className="size-4 me-1" />
                 {t('actions.exit')}

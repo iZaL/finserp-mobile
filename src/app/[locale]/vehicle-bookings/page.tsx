@@ -491,6 +491,12 @@ export default function VehicleBookingsPage() {
           <div className="space-y-3">
             {bookings
               .filter(b => b.status === "received")
+              .sort((a, b) => {
+                // Sort by received_at date, oldest first (ascending)
+                const dateA = new Date(a.received_at || a.created_at).getTime();
+                const dateB = new Date(b.received_at || b.created_at).getTime();
+                return dateA - dateB;
+              })
               .map(booking => (
                 <BookingCard
                   key={booking.id}
@@ -558,23 +564,30 @@ export default function VehicleBookingsPage() {
             )}
           </div>
         ) : (
-          filteredBookings.map((booking) => (
-            <BookingCard
-              key={booking.id}
-              booking={booking}
-              onReceive={handleReceive}
-              onReject={handleReject}
-              onExit={handleExit}
-              onUnreceive={handleUnreceive}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onApprove={handleApprove}
-              onRejectApproval={handleRejectApproval}
-              onClick={handleViewDetails}
-              isSelected={selectedBookings.has(booking.id)}
-              onSelectionChange={ENABLE_BULK_SELECTION ? handleSelectionChange : undefined}
-            />
-          ))
+          filteredBookings
+            .sort((a, b) => {
+              // Sort by entry datetime, oldest first (ascending)
+              const dateA = new Date(a.entry_datetime || a.created_at).getTime();
+              const dateB = new Date(b.entry_datetime || b.created_at).getTime();
+              return dateA - dateB;
+            })
+            .map((booking) => (
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                onReceive={handleReceive}
+                onReject={handleReject}
+                onExit={handleExit}
+                onUnreceive={handleUnreceive}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onApprove={handleApprove}
+                onRejectApproval={handleRejectApproval}
+                onClick={handleViewDetails}
+                isSelected={selectedBookings.has(booking.id)}
+                onSelectionChange={ENABLE_BULK_SELECTION ? handleSelectionChange : undefined}
+              />
+            ))
         )}
       </div>
 
