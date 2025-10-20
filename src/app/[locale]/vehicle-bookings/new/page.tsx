@@ -172,7 +172,7 @@ export default function NewBookingPage() {
     const boxes = parseInt(boxCount) || 0
     const weight = parseFloat(boxWeightKg) || 0
 
-    if (boxes <= 0) {
+    if (isNaN(boxes) || boxes <= 0) {
       toast.error(tValidation('boxCountRequired'))
       return false
     }
@@ -182,7 +182,7 @@ export default function NewBookingPage() {
       return false
     }
 
-    if (weight <= 0) {
+    if (isNaN(weight) || weight <= 0) {
       toast.error(tValidation('boxWeightRequired'))
       return false
     }
@@ -222,7 +222,8 @@ export default function NewBookingPage() {
   const submitForm = async () => {
     try {
       setSubmitting(true)
-      await vehicleBookingService.createBooking({
+
+      const bookingData = {
         vehicle_number: vehicleNumber.trim().toUpperCase(),
         box_count: parseInt(boxCount),
         box_weight_kg: parseFloat(boxWeightKg),
@@ -232,7 +233,9 @@ export default function NewBookingPage() {
         supplier_phone: supplierPhone.trim() || undefined,
         notes: notes.trim() || undefined,
         allow_override: allowOverride,
-      })
+      }
+
+      await vehicleBookingService.createBooking(bookingData)
 
       toast.success(t('vehicleAdded', { number: vehicleNumber }))
 
@@ -434,6 +437,11 @@ export default function NewBookingPage() {
                   disabled
                   className="bg-muted text-muted-foreground"
                 />
+                {boxCount && boxWeightKg && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {boxCount} boxes × {boxWeightKg} kg = {totalWeightTons} tons
+                  </p>
+                )}
               </div>
             </div>
 

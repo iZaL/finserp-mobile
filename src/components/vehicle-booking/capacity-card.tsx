@@ -17,15 +17,26 @@ interface CapacityCardProps {
 export function CapacityCard({ capacity, loading, allowOverride, bookings = [], defaultBoxWeightKg = 50 }: CapacityCardProps) {
   const t = useTranslations('vehicleBookings.capacity')
 
-  // Calculate tonnage for each status
-  // Booked and Received use actual booking weights
-  const bookedTons = bookings
-    .filter(b => b.status === "booked")
-    .reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+  // Calculate box counts and tonnage from bookings array for consistency
+  // Only count vehicles that are using capacity (booked and received)
 
-  const receivedTons = bookings
-    .filter(b => b.status === "received")
-    .reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+  // Booked: Approved vehicles waiting at gate (exclude pending approval and approval-rejected)
+  const bookedBookings = bookings.filter(b =>
+    b.status === "booked" &&
+    !b.is_pending_approval &&
+    b.approval_status !== "rejected"
+  )
+  const bookedBoxes = bookedBookings.reduce((sum, b) => sum + b.box_count, 0)
+  const bookedTons = bookedBookings.reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+
+  // Received: Vehicles currently in factory being offloaded
+  const receivedBookings = bookings.filter(b => b.status === "received")
+  const receivedBoxes = receivedBookings.reduce((sum, b) => sum + (b.actual_box_count || b.box_count), 0)
+  const receivedTons = receivedBookings.reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
+
+  // Calculate totals and remaining capacity
+  const totalUsedBoxes = bookedBoxes + receivedBoxes
+  const totalUsedTons = bookedTons + receivedTons
 
   if (loading) {
     return (
@@ -54,7 +65,12 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
     return null
   }
 
-  const usagePercent = capacity.capacity_used_percent
+  // Calculate remaining capacity and usage percentage
+  const remainingBoxes = capacity.daily_limit_boxes - totalUsedBoxes
+  const limitTons = (capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000
+  const remainingTons = limitTons - totalUsedTons
+  const usagePercent = capacity.daily_limit_boxes > 0 ? (totalUsedBoxes / capacity.daily_limit_boxes) * 100 : 0
+
   const isWarning = usagePercent >= 80 && usagePercent < 100
   const isDanger = usagePercent >= 100
 
@@ -105,7 +121,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{t('usage')}</span>
             <span>
-              {capacity.total_booked_boxes} / {capacity.daily_limit_boxes} {t('boxes')}
+              {totalUsedBoxes.toLocaleString()} / {capacity.daily_limit_boxes.toLocaleString()} {t('boxes')}
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -125,7 +141,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {capacity.daily_limit_boxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {((capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000).toFixed(1)} MT
+              {limitTons.toFixed(1)} MT
             </div>
           </div>
 
@@ -133,7 +149,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           <div className="text-center">
             <div className="text-xs text-muted-foreground mb-1">{t('booked')}</div>
             <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-              {capacity.total_booked_boxes.toLocaleString()}
+              {bookedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
               {bookedTons.toFixed(1)} MT
@@ -144,7 +160,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           <div className="text-center">
             <div className="text-xs text-muted-foreground mb-1">{t('received')}</div>
             <div className="text-lg font-bold text-green-600 dark:text-green-400">
-              {capacity.total_received_boxes.toLocaleString()}
+              {receivedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
               {receivedTons.toFixed(1)} MT
@@ -159,14 +175,14 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               isWarning ? "text-amber-600 dark:text-amber-400" :
               "text-gray-600 dark:text-gray-400"
             }`}>
-              {capacity.remaining_capacity_boxes.toLocaleString()}
+              {remainingBoxes.toLocaleString()}
             </div>
             <div className={`text-xs mt-0.5 ${
               isDanger ? "text-red-600/80 dark:text-red-400/80" :
               isWarning ? "text-amber-600/80 dark:text-amber-400/80" :
               "text-muted-foreground"
             }`}>
-              {(((capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000) - (bookedTons + receivedTons)).toFixed(1)} MT
+              {remainingTons.toFixed(1)} MT
             </div>
           </div>
         </div>
@@ -190,7 +206,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
             <div className="text-sm">
               <p className="font-medium text-amber-600 dark:text-amber-400">{t('approaching')}</p>
               <p className="text-amber-600/80 dark:text-amber-400/80 text-xs">
-                {t('approachingDescription', { count: capacity.remaining_capacity_boxes })}
+                {t('approachingDescription', { count: remainingBoxes })}
               </p>
             </div>
           </div>
