@@ -39,7 +39,9 @@
       "exited": "Exited",
       "rejected": "Rejected",
       "total": "Total",
-      "pendingApproval": "Pending Approval"
+      "pendingApproval": "Pending Approval",
+      "receivedTons": "Received Tons",
+      "tonsCapacity": "Tons Capacity"
     },
     "capacity": {
       "title": "Daily Capacity",

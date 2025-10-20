@@ -79,6 +79,7 @@ export interface BookingStats {
 export interface DailyCapacity {
   date: string
   daily_limit_boxes: number
+  tons_limit: number | string | null
   total_booked_boxes: number
   total_received_boxes: number
   remaining_capacity_boxes: number
@@ -105,7 +106,10 @@ export interface VehicleTemplate {
 
 export interface BookingFilters {
   search?: string
-  status?: "all" | "booked" | "received" | "exited" | "rejected"
+  status?: "all" | "pending" | "booked" | "received" | "exited" | "rejected"
+  date_filter?: "current" | "last_24h" | "last_48h" | "last_week" | "custom"
+  start_date?: string
+  end_date?: string
   date_from?: string
   date_to?: string
   page?: number
@@ -160,10 +164,14 @@ export interface UpdateControlSettingsRequest {
 }
 
 export interface BulkActionRequest {
-  ids: number[]
-  action: "receive" | "reject" | "exit" | "delete"
+  vehicle_ids: number[]
+  action: "receive" | "unreceive" | "reject" | "exit" | "delete"
   data?: ReceiveBookingRequest | RejectBookingRequest
 }
+
+export type TimeRangeFilter = "current" | "last_24h" | "last_48h" | "last_week" | "custom"
+
+export type StatusFilter = "all" | "pending" | "booked" | "received" | "exited" | "rejected"
 
 export interface PaginatedResponse<T> {
   data: T[]
