@@ -566,7 +566,7 @@ export default function VehicleBookingsPage() {
         ) : (
           filteredBookings
             .sort((a, b) => {
-              // Sort by state-specific date, oldest first (ascending)
+              // Sort by state-specific date
               const getDateForStatus = (booking: typeof a) => {
                 if (booking.status === "exited" && booking.exited_at) {
                   return booking.exited_at;
@@ -586,6 +586,13 @@ export default function VehicleBookingsPage() {
 
               const dateA = new Date(getDateForStatus(a)).getTime();
               const dateB = new Date(getDateForStatus(b)).getTime();
+
+              // For exited status, sort by most recent first (descending)
+              if (a.status === "exited" && b.status === "exited") {
+                return dateB - dateA;
+              }
+
+              // For all other statuses, sort oldest first (ascending)
               return dateA - dateB;
             })
             .map((booking) => (

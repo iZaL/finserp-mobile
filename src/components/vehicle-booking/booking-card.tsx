@@ -122,7 +122,15 @@ export function BookingCard({
           <div className="flex items-center gap-2">
             <Calendar className="size-4" />
             <span className="text-xs">
-              {t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} />
+              {booking.status === "exited" && booking.exited_at ? (
+                <>{t('exited')}: <RelativeTime date={booking.exited_at} /></>
+              ) : booking.status === "received" && booking.received_at ? (
+                <>{t('received')}: <RelativeTime date={booking.received_at} /></>
+              ) : booking.status === "rejected" && booking.rejected_at ? (
+                <>{t('rejected')}: <RelativeTime date={booking.rejected_at} /></>
+              ) : (
+                <>{t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} /></>
+              )}
             </span>
           </div>
           {booking.created_by_name && (
