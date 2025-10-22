@@ -39,7 +39,7 @@ export function EditDialog({
   const [formData, setFormData] = useState({
     vehicle_number: "",
     box_count: 0,
-    box_weight_kg: 20,
+    box_weight_kg: 50,
     driver_name: "",
     driver_phone: "",
     supplier_name: "",
@@ -54,7 +54,7 @@ export function EditDialog({
       setFormData({
         vehicle_number: booking.vehicle_number,
         box_count: booking.box_count,
-        box_weight_kg: booking.box_weight_kg || 20,
+        box_weight_kg: booking.box_weight_kg || 50,
         driver_name: booking.driver_name || "",
         driver_phone: booking.driver_phone || "",
         supplier_name: booking.supplier_name || "",

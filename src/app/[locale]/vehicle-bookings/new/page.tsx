@@ -76,7 +76,7 @@ export default function NewBookingPage() {
     } catch (error) {
       console.error("Error fetching initial data:", error)
       // Fallback to default if fetching fails
-      setBoxWeightKg("20")
+      setBoxWeightKg("50")
     }
   }
 
