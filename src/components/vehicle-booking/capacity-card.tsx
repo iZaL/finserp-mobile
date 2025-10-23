@@ -67,7 +67,10 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
 
   // Calculate remaining capacity and usage percentage
   const remainingBoxes = capacity.daily_limit_boxes - totalUsedBoxes
-  const limitTons = (capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000
+  // Use daily_limit_tons from backend if available, otherwise calculate as fallback
+  const limitTons = capacity.daily_limit_tons != null
+    ? Number(capacity.daily_limit_tons)
+    : (capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000
   const remainingTons = limitTons - totalUsedTons
   const usagePercent = capacity.daily_limit_boxes > 0 ? (totalUsedBoxes / capacity.daily_limit_boxes) * 100 : 0
 

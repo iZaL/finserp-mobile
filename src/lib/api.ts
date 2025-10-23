@@ -37,6 +37,9 @@ api.interceptors.response.use(
 
     if (error.response?.data?.message) {
       errorMessage = error.response.data.message
+    } else if (error.response?.data?.error) {
+      // Handle Laravel API error format
+      errorMessage = error.response.data.error
     } else if (error.response?.data?.errors) {
       // Handle Laravel validation errors
       const errors = error.response.data.errors

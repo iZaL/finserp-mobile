@@ -33,6 +33,8 @@ import { CapacityCard } from "@/components/vehicle-booking/capacity-card";
 import { NotificationSettings } from "@/components/notification-settings";
 import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer";
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog";
+import { VehicleBookingGuard } from "@/components/permission-guard";
+import { usePermissions } from "@/lib/stores/permission-store";
 
 export default function VehicleBookingsPage() {
   const router = useRouter();
@@ -40,6 +42,7 @@ export default function VehicleBookingsPage() {
   const locale = useLocale();
   const isRTL = locale === "ar";
   const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const permissions = usePermissions();
 
   // Temporary flag to hide bulk selection features
   const ENABLE_BULK_SELECTION = false;
@@ -89,6 +92,7 @@ export default function VehicleBookingsPage() {
       setBookings(bookingsData.data);
       setCapacityInfo(capacityData);
       setSettings(settingsData);
+
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
@@ -260,7 +264,13 @@ export default function VehicleBookingsPage() {
         (booking.driver_name?.toLowerCase() || "").includes(
           searchQuery.toLowerCase()
         ) ||
+        (booking.driver_phone?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        ) ||
         (booking.supplier_name?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase()
+        ) ||
+        (booking.supplier_phone?.toLowerCase() || "").includes(
           searchQuery.toLowerCase()
         )
       );
@@ -293,7 +303,7 @@ export default function VehicleBookingsPage() {
   };
 
   return (
-    <>
+    <VehicleBookingGuard>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
@@ -311,17 +321,37 @@ export default function VehicleBookingsPage() {
               className={`size-4 ${refreshing ? "animate-spin" : ""}`}
             />
           </Button>
-          <Button
-            onClick={() => router.push("/vehicle-bookings/new")}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-8 px-0 md:w-auto md:px-3"
-            size="sm"
-            title={t("newBooking")}
-          >
-            <Plus className="size-4 md:mr-0" />
-            <span className="hidden md:inline">{t("newBooking")}</span>
-          </Button>
+          {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
+            <Button
+              onClick={() => router.push("/vehicle-bookings/new")}
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-8 px-0 md:w-auto md:px-3"
+              size="sm"
+              title={t("newBooking")}
+            >
+              <Plus className="size-4 md:mr-0" />
+              <span className="hidden md:inline">{t("newBooking")}</span>
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Vehicle Booking System Status Indicator */}
+      {settings && !settings.vehicle_booking_enabled && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-950 dark:border-red-800">
+          <div className="flex items-center gap-3">
+            <div className="h-3 w-3 rounded-full bg-red-500" />
+            <div className="flex-1">
+              <div className="font-medium text-red-800 dark:text-red-200">
+                Vehicle Booking System Disabled
+              </div>
+              <p className="text-sm text-red-700 dark:text-red-300">
+                Vehicle booking is currently disabled. Please contact your administrator.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      )}
 
       {/* Search Bar */}
       <div className="relative">
@@ -553,7 +583,7 @@ export default function VehicleBookingsPage() {
             <p className="text-sm text-muted-foreground mb-4">
               {t("noBookingsDescription")}
             </p>
-            {!searchQuery && (
+            {!searchQuery && permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
               <Button
                 onClick={() => router.push("/vehicle-bookings/new")}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -566,7 +596,31 @@ export default function VehicleBookingsPage() {
         ) : (
           filteredBookings
             .sort((a, b) => {
-              // Sort by state-specific date
+              // Define priority order for statuses (operational workflow)
+              const statusPriority: Record<string, number> = {
+                'booked': 1,     // Highest priority - waiting vehicles (FIFO)
+                'pending': 1,    // Same priority as booked - approval pending
+                'exited': 2,     // Lower priority - completed vehicles
+                'rejected': 3    // Lowest priority - rejected vehicles
+              };
+
+              // Handle approval-rejected as rejected priority
+              const getPriority = (booking: typeof a) => {
+                if (booking.approval_status === "rejected") {
+                  return statusPriority['rejected'];
+                }
+                return statusPriority[booking.status] || 99;
+              };
+
+              const priorityA = getPriority(a);
+              const priorityB = getPriority(b);
+
+              // First sort by status priority
+              if (priorityA !== priorityB) {
+                return priorityA - priorityB;
+              }
+
+              // Within same priority group, sort by state-specific date
               const getDateForStatus = (booking: typeof a) => {
                 if (booking.status === "exited" && booking.exited_at) {
                   return booking.exited_at;
@@ -587,12 +641,12 @@ export default function VehicleBookingsPage() {
               const dateA = new Date(getDateForStatus(a)).getTime();
               const dateB = new Date(getDateForStatus(b)).getTime();
 
-              // For exited status, sort by most recent first (descending)
+              // For exited status, sort by most recent first (descending) - recent activity visible
               if (a.status === "exited" && b.status === "exited") {
                 return dateB - dateA;
               }
 
-              // For all other statuses, sort oldest first (ascending)
+              // For booked, pending, and rejected: sort oldest first (ascending) - FIFO
               return dateA - dateB;
             })
             .map((booking) => (
@@ -680,6 +734,6 @@ export default function VehicleBookingsPage() {
         onOpenChange={setEditDialogOpen}
         onSuccess={handleDialogSuccess}
       />
-    </>
+    </VehicleBookingGuard>
   );
 }

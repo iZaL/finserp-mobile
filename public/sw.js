@@ -106,15 +106,33 @@ self.addEventListener("push", (event) => {
   if (event.data) {
     try {
       const data = event.data.json();
-      notificationData = {
-        title: data.title || notificationData.title,
-        body: data.body || data.message || notificationData.body,
-        icon: data.icon || notificationData.icon,
-        badge: data.badge || notificationData.badge,
-        tag: data.tag || notificationData.tag,
-        requireInteraction: data.requireInteraction || false,
-        data: data.data || {}, // Custom data to pass to notification click handler
-      };
+
+      // Special handling for vehicle booking status changes
+      if (data.data && data.data.type === 'vehicle_booking_status_changed') {
+        const isEnabled = data.data.is_enabled;
+        const action = data.data.action;
+
+        notificationData = {
+          title: data.title || `Vehicle Booking System ${action === 'enabled' ? 'Enabled' : 'Disabled'}`,
+          body: data.body || data.message || notificationData.body,
+          icon: isEnabled ? "/icon-192x192.png" : "/icon-warning.png",
+          badge: "/icon-144x144.png",
+          tag: "vehicle-booking-status",
+          requireInteraction: !isEnabled, // Require interaction for disabled notifications
+          data: data.data || {},
+        };
+      } else {
+        // Default notification handling
+        notificationData = {
+          title: data.title || notificationData.title,
+          body: data.body || data.message || notificationData.body,
+          icon: data.icon || notificationData.icon,
+          badge: data.badge || notificationData.badge,
+          tag: data.tag || notificationData.tag,
+          requireInteraction: data.requireInteraction || false,
+          data: data.data || {},
+        };
+      }
     } catch (error) {
       console.error("Failed to parse push notification data:", error);
     }
@@ -154,8 +172,16 @@ self.addEventListener("notificationclick", (event) => {
     return;
   }
 
-  // Default action or "view" action
-  const urlToOpen = event.notification.data?.url || "/vehicle-bookings";
+  // Determine URL based on notification type
+  let urlToOpen = "/vehicle-bookings"; // Default fallback
+
+  if (event.notification.data) {
+    if (event.notification.data.type === 'vehicle_booking_status_changed') {
+      urlToOpen = event.notification.data.url || "/vehicle-bookings";
+    } else if (event.notification.data.url) {
+      urlToOpen = event.notification.data.url;
+    }
+  }
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {

@@ -31,7 +31,6 @@ export function ServiceWorkerRegister() {
               newWorker.addEventListener("statechange", () => {
                 if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
                   console.log("New service worker available, reload to update");
-                  // You could show a toast notification here to let user know about the update
                 }
               });
             }

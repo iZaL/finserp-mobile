@@ -427,7 +427,21 @@
       "approvalDisabledSuccess": "Approval workflow disabled successfully!",
       "overrideEnabledSuccess": "Capacity override enabled successfully!",
       "overrideDisabledSuccess": "Capacity override disabled successfully!",
-      "updateError": "Failed to update setting"
+      "updateError": "Failed to update setting",
+      "confirmDialog": {
+        "systemTitle": "Vehicle Booking System",
+        "approvalTitle": "Approval Requirements",
+        "overrideTitle": "Override Permissions",
+        "enableAction": "Enable",
+        "disableAction": "Disable",
+        "systemEnableMessage": "This will activate the vehicle booking system and allow users to create bookings. All vehicle booking features will become available.",
+        "systemDisableMessage": "This will disable the entire vehicle booking system. All booking features will be unavailable and dependent features (approval workflow, override permissions) will be automatically disabled.",
+        "approvalEnableMessage": "When enabled, all vehicle bookings will require approval before processing. This adds an extra validation step to the booking workflow.",
+        "approvalDisableMessage": "When disabled, vehicle bookings will be processed immediately without requiring approval. Users can book vehicles directly.",
+        "overrideEnableMessage": "When enabled, authorized users can override daily capacity limits. This provides flexibility for exceptional circumstances.",
+        "overrideDisableMessage": "When disabled, daily capacity limits will be strictly enforced. No overrides will be allowed regardless of user permissions.",
+        "defaultMessage": "Are you sure you want to make this change?"
+      }
     },
     "vehicleBookingControls": {
       "title": "Vehicle Booking Controls",

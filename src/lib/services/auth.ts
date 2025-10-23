@@ -11,6 +11,18 @@ export interface User {
   name: string
   email: string
   email_verified_at?: string
+  role_names?: string[]
+  permission_names?: string[]
+  roles?: Array<{
+    id: number
+    name: string
+    guard_name: string
+  }>
+  permissions?: Array<{
+    id: number
+    name: string
+    guard_name: string
+  }>
 }
 
 export interface AuthResponse {

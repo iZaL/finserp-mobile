@@ -29,7 +29,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex flex-1 items-center gap-2">
             <SidebarTrigger className="-ms-1 md:flex hidden" />
             <Separator orientation="vertical" className="me-2 h-6 md:flex hidden" />
-            <h1 className="text-sm font-semibold md:hidden">ERP Mobile</h1>
+            <h1 className="text-sm font-semibold md:hidden">FinsERP</h1>
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />
@@ -37,7 +37,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 pb-20 md:pb-6 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 pb-[calc(5rem+env(safe-area-inset-bottom,0))] md:pb-6 md:gap-6 md:p-6">
           {children}
         </main>
         <MobileNav />
