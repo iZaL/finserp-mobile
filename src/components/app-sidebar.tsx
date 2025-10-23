@@ -57,11 +57,11 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/" className="group">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-hover:bg-primary/90 transition-colors">
-                  <Box className="size-4" />
+                  <img src="/icon-192x192.png" alt="FinsERP Logo" className="size-6 rounded" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">ERP Mobile</span>
-                  <span className="text-xs text-muted-foreground">Enterprise System</span>
+                  <span className="font-semibold">FinsERP</span>
+                  <span className="text-xs text-muted-foreground">Mobile App</span>
                 </div>
               </Link>
             </SidebarMenuButton>

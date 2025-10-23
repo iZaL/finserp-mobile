@@ -22,6 +22,9 @@ import { Plus, Search, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-rea
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import type { VehicleTemplate, DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
+import { PermissionGuard } from "@/components/permission-guard"
+import { VEHICLE_BOOKING_PERMISSIONS } from "@/lib/permissions"
+import { usePermissions } from "@/lib/stores/permission-store"
 
 export default function NewBookingPage() {
   const router = useRouter()
@@ -30,6 +33,7 @@ export default function NewBookingPage() {
   const tValidation = useTranslations('vehicleBookings.validation')
   const vehicleNumberRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const permissions = usePermissions()
 
   // Form state
   const [vehicleNumber, setVehicleNumber] = useState("")
@@ -260,7 +264,7 @@ export default function NewBookingPage() {
   const exceeding = boxes - remainingCapacity
 
   return (
-    <>
+    <PermissionGuard permissions={VEHICLE_BOOKING_PERMISSIONS.CREATE}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Button
@@ -458,7 +462,9 @@ export default function NewBookingPage() {
                   </div>
                 </div>
 
-                {capacityInfo?.can_override && (
+                {capacityInfo?.can_override &&
+                 permissions.canOverrideDailyLimit() &&
+                 settings?.allow_vehicle_booking_override && (
                   <div className="mt-2 flex items-center gap-2">
                     <Checkbox
                       id="allow_override"
@@ -611,6 +617,6 @@ export default function NewBookingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </PermissionGuard>
   )
 }

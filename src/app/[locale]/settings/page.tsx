@@ -33,6 +33,15 @@ export default function SettingsPage() {
   const [allowOverride, setAllowOverride] = useState<boolean>(true)
   const [isUpdatingSettings, setIsUpdatingSettings] = useState<string | null>(null)
 
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean
+    title: string
+    message: string
+    setting: "vehicle_booking_enabled" | "require_vehicle_booking_approval" | "allow_vehicle_booking_override"
+    value: boolean
+  } | null>(null)
+
   // Fetch current settings
   const fetchSettings = useCallback(async () => {
     try {
@@ -67,6 +76,68 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchSettings()
   }, [fetchSettings])
+
+  // Helper functions for confirmation dialog content
+  const getConfirmationContent = (
+    setting: "vehicle_booking_enabled" | "require_vehicle_booking_approval" | "allow_vehicle_booking_override",
+    value: boolean
+  ) => {
+    const settingNames = {
+      vehicle_booking_enabled: t("settings.vehicleBooking.confirmDialog.systemTitle"),
+      require_vehicle_booking_approval: t("settings.vehicleBooking.confirmDialog.approvalTitle"),
+      allow_vehicle_booking_override: t("settings.vehicleBooking.confirmDialog.overrideTitle")
+    }
+
+    const messages = {
+      vehicle_booking_enabled: {
+        enable: t("settings.vehicleBooking.confirmDialog.systemEnableMessage"),
+        disable: t("settings.vehicleBooking.confirmDialog.systemDisableMessage")
+      },
+      require_vehicle_booking_approval: {
+        enable: t("settings.vehicleBooking.confirmDialog.approvalEnableMessage"),
+        disable: t("settings.vehicleBooking.confirmDialog.approvalDisableMessage")
+      },
+      allow_vehicle_booking_override: {
+        enable: t("settings.vehicleBooking.confirmDialog.overrideEnableMessage"),
+        disable: t("settings.vehicleBooking.confirmDialog.overrideDisableMessage")
+      }
+    }
+
+    const action = value ? t("settings.vehicleBooking.confirmDialog.enableAction") : t("settings.vehicleBooking.confirmDialog.disableAction")
+    const title = `${action} ${settingNames[setting]}?`
+    const message = messages[setting]?.[value ? "enable" : "disable"] || t("settings.vehicleBooking.confirmDialog.defaultMessage")
+
+    return { title, message }
+  }
+
+  // Handler for showing confirmation dialog
+  const handleSwitchChangeWithConfirmation = (
+    setting: "vehicle_booking_enabled" | "require_vehicle_booking_approval" | "allow_vehicle_booking_override",
+    newValue: boolean
+  ) => {
+    const { title, message } = getConfirmationContent(setting, newValue)
+
+    setConfirmDialog({
+      open: true,
+      title,
+      message,
+      setting,
+      value: newValue
+    })
+  }
+
+  // Confirm the change
+  const confirmChange = async () => {
+    if (confirmDialog) {
+      setConfirmDialog(null)
+      await handleToggleSetting(confirmDialog.setting, confirmDialog.value)
+    }
+  }
+
+  // Cancel the change
+  const cancelChange = () => {
+    setConfirmDialog(null)
+  }
 
   const calculateTons = (boxes: number): number => {
     return parseFloat(((boxes * defaultBoxWeight) / 1000).toFixed(2))
@@ -203,7 +274,7 @@ export default function SettingsPage() {
             <Switch
               checked={vehicleBookingEnabled}
               onCheckedChange={(checked: boolean) =>
-                handleToggleSetting("vehicle_booking_enabled", checked)
+                handleSwitchChangeWithConfirmation("vehicle_booking_enabled", checked)
               }
               disabled={isUpdatingSettings === "vehicle_booking_enabled" || isFetching}
             />
@@ -225,7 +296,7 @@ export default function SettingsPage() {
             <Switch
               checked={requireApproval}
               onCheckedChange={(checked: boolean) =>
-                handleToggleSetting("require_vehicle_booking_approval", checked)
+                handleSwitchChangeWithConfirmation("require_vehicle_booking_approval", checked)
               }
               disabled={isUpdatingSettings === "require_vehicle_booking_approval" || isFetching}
             />
@@ -247,7 +318,7 @@ export default function SettingsPage() {
             <Switch
               checked={allowOverride}
               onCheckedChange={(checked: boolean) =>
-                handleToggleSetting("allow_vehicle_booking_override", checked)
+                handleSwitchChangeWithConfirmation("allow_vehicle_booking_override", checked)
               }
               disabled={isUpdatingSettings === "allow_vehicle_booking_override" || isFetching}
             />
@@ -320,6 +391,26 @@ export default function SettingsPage() {
               ) : (
                 t("settings.dailyLimit.updateButton")
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog?.open || false} onOpenChange={() => setConfirmDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmDialog?.title}</DialogTitle>
+            <DialogDescription>
+              {confirmDialog?.message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelChange}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={confirmChange}>
+              {t("common.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
