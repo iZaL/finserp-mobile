@@ -1,6 +1,7 @@
 import { api } from "@/lib/api"
 import type {
   VehicleBooking,
+  VehicleActivity,
   BookingStats,
   DailyCapacity,
   VehicleBookingSettings,
@@ -16,6 +17,7 @@ import type {
   BulkActionRequest,
   PaginatedResponse,
   ApiResponse,
+  RangeStats,
 } from "@/types/vehicle-booking"
 
 export const vehicleBookingService = {
@@ -49,11 +51,31 @@ export const vehicleBookingService = {
     return response.data.data!
   },
 
+  // Get booking activities (edit history)
+  getBookingActivities: async (id: number): Promise<VehicleActivity[]> => {
+    const response = await api.get<ApiResponse<VehicleActivity[]>>(
+      `/fish-purchase-vehicles/${id}/activities`
+    )
+    return response.data.data || []
+  },
+
   // Get booking statistics
   getStats: async (date?: string): Promise<BookingStats> => {
     const params = date ? `?date=${date}` : ""
     const response = await api.get<ApiResponse<BookingStats>>(
       `/fish-purchase-vehicles/stats${params}`
+    )
+    return response.data.data!
+  },
+
+  // Get range statistics
+  getRangeStats: async (dateFrom: string, dateTo: string): Promise<RangeStats> => {
+    const params = new URLSearchParams()
+    params.append("date_from", dateFrom)
+    params.append("date_to", dateTo)
+
+    const response = await api.get<ApiResponse<RangeStats>>(
+      `/fish-purchase-vehicles/stats/range?${params.toString()}`
     )
     return response.data.data!
   },

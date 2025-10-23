@@ -46,6 +46,25 @@ export interface VehicleBooking {
   is_pending_approval: boolean
 }
 
+export interface VehicleActivity {
+  id: number
+  vehicle_id: number
+  action: "created" | "updated" | "edited" | "received" | "unreceived" | "exited" | "rejected" | "deleted" | "approved" | "approval_rejected"
+  old_values?: Record<string, any>
+  new_values?: Record<string, any>
+  user_id?: number
+  user?: {
+    id: number
+    name: string
+    email: string
+  }
+  ip_address?: string
+  user_agent?: string
+  formatted_changes: string
+  created_at: string
+  updated_at: string
+}
+
 export interface BookingStats {
   total_vehicles: number
   booked_vehicles: number
@@ -205,3 +224,52 @@ export const REJECTION_REASONS = [
 ] as const
 
 export type RejectionReason = typeof REJECTION_REASONS[number]
+
+// Range Stats Types
+export interface DailyStats {
+  date: string
+  booking_count: number
+  capacity_percent: number
+  avg_wait_hours: number | null
+  status_breakdown: {
+    booked: number
+    received: number
+    exited: number
+    rejected: number
+  }
+}
+
+export interface RangeStatsComparison {
+  wait_time_change_percent: number
+  capacity_change_percent: number
+}
+
+export interface RangeStats {
+  // Aggregate stats for the range
+  total_vehicles: number
+  total_boxes: number
+  total_tons: number
+  completed_vehicles: number
+  rejected_vehicles: number
+
+  // Capacity metrics
+  avg_capacity_percent: number
+  peak_capacity_date: string | null
+  peak_capacity_percent: number | null
+  low_capacity_date: string | null
+  low_capacity_percent: number | null
+  over_capacity_days: number
+
+  // Performance metrics
+  avg_wait_time_hours: number | null
+  avg_processing_time_hours: number | null
+  avg_total_cycle_hours: number | null
+  completion_rate_percent: number
+  rejection_rate_percent: number
+
+  // Daily breakdown (for list/chart)
+  daily_stats: DailyStats[]
+
+  // Comparison (optional)
+  vs_previous_period?: RangeStatsComparison
+}

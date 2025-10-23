@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
 import {
   Truck,
   User,
@@ -16,14 +17,18 @@ import {
   Info,
   TrendingUp,
   TrendingDown,
+  History,
+  Edit,
+  Trash,
+  LogIn,
 } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerFooter,
+} from "@/components/ui/drawer"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -34,10 +39,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
-import type { VehicleBooking } from "@/types/vehicle-booking"
+import type { VehicleBooking, VehicleActivity } from "@/types/vehicle-booking"
+import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import { MoreVertical, RotateCcw } from "lucide-react"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
-interface BookingDetailsDialogProps {
+interface BookingDetailsDrawerProps {
   booking: VehicleBooking | null
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -46,16 +53,38 @@ interface BookingDetailsDialogProps {
   onReject?: (booking: VehicleBooking) => void
 }
 
-export function BookingDetailsDialog({
+export function BookingDetailsDrawer({
   booking,
   open,
   onOpenChange,
   onExit,
   onUnreceive,
   onReject,
-}: BookingDetailsDialogProps) {
+}: BookingDetailsDrawerProps) {
   const t = useTranslations('vehicleBookings.bookingCard')
   const tDetails = useTranslations('vehicleBookings.bookingDetails')
+  const [activities, setActivities] = useState<VehicleActivity[]>([])
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false)
+  const [showActivities, setShowActivities] = useState(false)
+
+  // Fetch activities when dialog opens and booking changes
+  useEffect(() => {
+    if (open && booking) {
+      setIsLoadingActivities(true)
+      vehicleBookingService
+        .getBookingActivities(booking.id)
+        .then((data) => {
+          setActivities(data)
+        })
+        .catch((error) => {
+          console.error("Failed to fetch activities:", error)
+          setActivities([])
+        })
+        .finally(() => {
+          setIsLoadingActivities(false)
+        })
+    }
+  }, [open, booking])
 
   const handleAction = (action: () => void) => {
     action()
@@ -94,6 +123,88 @@ export function BookingDetailsDialog({
     }
   }
 
+  const getActivityIcon = (action: string) => {
+    switch (action) {
+      case "created":
+      case "booked":
+        return LogIn
+      case "received":
+        return CheckCircle
+      case "unreceived":
+        return RotateCcw
+      case "exited":
+        return LogOut
+      case "rejected":
+        return XCircle
+      case "updated":
+      case "edited":
+        return Edit
+      case "deleted":
+        return Trash
+      case "approved":
+        return CheckCircle
+      case "approval_rejected":
+        return XCircle
+      default:
+        return Clock
+    }
+  }
+
+  const getActivityColor = (action: string) => {
+    switch (action) {
+      case "created":
+      case "booked":
+        return "text-blue-600 dark:text-blue-400"
+      case "received":
+      case "approved":
+        return "text-emerald-600 dark:text-emerald-400"
+      case "unreceived":
+        return "text-orange-600 dark:text-orange-400"
+      case "exited":
+        return "text-purple-600 dark:text-purple-400"
+      case "rejected":
+      case "approval_rejected":
+      case "deleted":
+        return "text-red-600 dark:text-red-400"
+      case "updated":
+      case "edited":
+        return "text-amber-600 dark:text-amber-400"
+      default:
+        return "text-gray-600 dark:text-gray-400"
+    }
+  }
+
+  const formatChangeValue = (key: string, oldValue: any, newValue: any): string | null => {
+    // Skip system fields and relationships
+    if (key.includes("_at") || key.includes("_date") || key.includes("_by") || key === "id" || key === "created_at" || key === "updated_at" || key === "creator" || key === "created_by") {
+      return null
+    }
+
+    if (key === "box_count" || key === "actual_box_count") {
+      return `${oldValue} → ${newValue} boxes`
+    }
+    if (key === "vehicle_number") {
+      return `${oldValue} → ${newValue}`
+    }
+    if (key === "weight_tons") {
+      return `${oldValue} → ${newValue} tons`
+    }
+    if (key === "driver_name" || key === "driver_phone" || key === "supplier_name" || key === "supplier_phone") {
+      return `${oldValue || 'N/A'} → ${newValue || 'N/A'}`
+    }
+    if (key === "status") {
+      return `${oldValue} → ${newValue}`
+    }
+    if (key === "rejection_reason") {
+      return newValue
+    }
+    if (key === "notes") {
+      return "Notes updated"
+    }
+
+    return `${oldValue ?? 'N/A'} → ${newValue ?? 'N/A'}`
+  }
+
   const StatusIcon = getStatusIcon(booking.status)
 
   const boxDiscrepancy = booking.actual_box_count
@@ -101,23 +212,25 @@ export function BookingDetailsDialog({
     : 0
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="flex items-center justify-center size-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <Truck className="size-6" />
-            </div>
-            <div>
-              <div className="text-xl font-bold">{booking.vehicle_number}</div>
-              <div className="text-sm font-normal text-muted-foreground">
-                {tDetails('vehicleBookingDetails')}
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="max-h-[96vh]">
+        <div className="mx-auto w-full max-w-2xl">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                <Truck className="size-6" />
               </div>
-            </div>
-          </DialogTitle>
-        </DialogHeader>
+              <div>
+                <div className="text-xl font-bold">{booking.vehicle_number}</div>
+                <div className="text-sm font-normal text-muted-foreground">
+                  {tDetails('vehicleBookingDetails')}
+                </div>
+              </div>
+            </DrawerTitle>
+          </DrawerHeader>
 
-        <div className="space-y-6 py-4">
+          <div className="overflow-y-auto px-4 pb-4" style={{ maxHeight: 'calc(96vh - 120px)' }}>
+            <div className="space-y-6">
           {/* Status Section */}
           <div className="flex items-center gap-3">
             <Badge className={`px-3 py-1.5 text-sm font-medium ${getStatusColor(booking.status)}`}>
@@ -443,6 +556,98 @@ export function BookingDetailsDialog({
             </>
           )}
 
+          {/* Activity History */}
+          {activities.length > 0 && (
+            <>
+              <Separator />
+              <Collapsible open={showActivities} onOpenChange={setShowActivities}>
+                <div>
+                  <CollapsibleTrigger className="w-full">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                      <History className="size-4" />
+                      {tDetails('activityHistory')}
+                      <Badge variant="secondary" className="ml-2">
+                        {activities.length}
+                      </Badge>
+                    </h3>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                      {activities.map((activity) => {
+                        const ActivityIcon = getActivityIcon(activity.action)
+                        const activityColor = getActivityColor(activity.action)
+
+                        return (
+                          <div
+                            key={activity.id}
+                            className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                          >
+                            <div className={`flex items-center justify-center size-8 rounded-full bg-background border-2 ${activityColor.replace('text-', 'border-')}`}>
+                              <ActivityIcon className={`size-4 ${activityColor}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <Badge variant="outline" className={`text-xs capitalize ${activityColor}`}>
+                                  {activity.action}
+                                </Badge>
+                                <div className="text-xs text-muted-foreground">
+                                  <RelativeTime date={activity.created_at} />
+                                </div>
+                              </div>
+                              {activity.old_values && activity.new_values ? (
+                                <div className="text-xs text-muted-foreground space-y-0.5 mt-2 p-2 rounded bg-background/50 font-mono">
+                                  {Object.keys(activity.new_values).map((key) => {
+                                    if (activity.old_values![key] !== activity.new_values![key]) {
+                                      const changeText = formatChangeValue(
+                                        key,
+                                        activity.old_values![key],
+                                        activity.new_values![key]
+                                      )
+                                      if (!changeText) return null
+                                      return (
+                                        <div key={key} className="truncate">
+                                          <span className="font-semibold capitalize">
+                                            {key.replace(/_/g, ' ')}:
+                                          </span>{' '}
+                                          {changeText}
+                                        </div>
+                                      )
+                                    }
+                                    return null
+                                  })}
+                                </div>
+                              ) : (
+                                <div className="text-sm font-medium mt-1">
+                                  {activity.formatted_changes}
+                                </div>
+                              )}
+                              {activity.user && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                                  <User className="size-3" />
+                                  <span>{activity.user.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </>
+          )}
+
+          {isLoadingActivities && (
+            <>
+              <Separator />
+              <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 dark:border-gray-100"></div>
+                <span className="text-sm">{tDetails('loadingActivities')}</span>
+              </div>
+            </>
+          )}
+
           {/* System Information */}
           <Separator />
           <div>
@@ -475,53 +680,57 @@ export function BookingDetailsDialog({
               </div>
             </div>
           </div>
-        </div>
+            </div>
+          </div>
 
-        {/* Action Buttons - Show for received status */}
-        {booking.status === "received" && (
-          <DialogFooter className="flex-row gap-2 sm:gap-2">
-            {booking.can_exit && onExit && (
-              <Button
-                onClick={() => handleAction(() => onExit(booking))}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-              >
-                <LogOut className="size-4 me-2" />
-                {t('actions.exit')}
-              </Button>
-            )}
-
-            {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="px-3">
-                    <MoreVertical className="size-4" />
+          {/* Action Buttons - Show for received status */}
+          {booking.status === "received" && (
+            <DrawerFooter className="px-4 pt-4 pb-6 border-t">
+              <div className="flex gap-2">
+                {booking.can_exit && onExit && (
+                  <Button
+                    onClick={() => handleAction(() => onExit(booking))}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    <LogOut className="size-4 me-2" />
+                    {t('actions.exit')}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {booking.can_unreceive && onUnreceive && (
-                    <DropdownMenuItem
-                      onClick={() => handleAction(() => onUnreceive(booking))}
-                      className="cursor-pointer"
-                    >
-                      <RotateCcw className="size-4 me-2" />
-                      {t('actions.unreceive')}
-                    </DropdownMenuItem>
-                  )}
-                  {booking.can_reject && onReject && (
-                    <DropdownMenuItem
-                      onClick={() => handleAction(() => onReject(booking))}
-                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    >
-                      <XCircle className="size-4 me-2" />
-                      {t('actions.reject')}
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </DialogFooter>
-        )}
-      </DialogContent>
-    </Dialog>
+                )}
+
+                {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="px-3">
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {booking.can_unreceive && onUnreceive && (
+                        <DropdownMenuItem
+                          onClick={() => handleAction(() => onUnreceive(booking))}
+                          className="cursor-pointer"
+                        >
+                          <RotateCcw className="size-4 me-2" />
+                          {t('actions.unreceive')}
+                        </DropdownMenuItem>
+                      )}
+                      {booking.can_reject && onReject && (
+                        <DropdownMenuItem
+                          onClick={() => handleAction(() => onReject(booking))}
+                          className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                        >
+                          <XCircle className="size-4 me-2" />
+                          {t('actions.reject')}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </DrawerFooter>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
   )
 }

@@ -31,7 +31,7 @@ import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog";
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog";
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card";
 import { NotificationSettings } from "@/components/notification-settings";
-import { BookingDetailsDialog } from "@/components/vehicle-booking/booking-details-dialog";
+import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer";
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog";
 
 export default function VehicleBookingsPage() {
@@ -665,7 +665,7 @@ export default function VehicleBookingsPage() {
         onSuccess={handleDialogSuccess}
       />
 
-      <BookingDetailsDialog
+      <BookingDetailsDrawer
         booking={selectedBooking}
         open={detailsDialogOpen}
         onOpenChange={setDetailsDialogOpen}

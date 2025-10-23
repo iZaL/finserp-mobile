@@ -3,13 +3,9 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import {
-  Calendar as CalendarIcon,
   ArrowLeft,
-  CalendarCheck,
-  Loader2,
-  Truck
+  Loader2
 } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -21,8 +17,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import type { VehicleBooking, DailyCapacity } from "@/types/vehicle-booking"
+import type { VehicleBooking, DailyCapacity, RangeStats } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
+import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
+import { CapacityStatsCards } from "@/components/vehicle-booking/capacity-stats-cards"
+import { PerformanceStatsCards } from "@/components/vehicle-booking/performance-stats-cards"
+import { DailyStatsList } from "@/components/vehicle-booking/daily-stats-list"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
@@ -43,6 +43,7 @@ interface DayCapacityInfo {
 
 export default function CalendarViewPage() {
   const t = useTranslations('vehicleBookings')
+  const tStats = useTranslations('vehicleBookings.rangeStats')
   const locale = useLocale()
   const isRTL = locale === "ar"
   const router = useRouter()
@@ -54,6 +55,12 @@ export default function CalendarViewPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<"all" | "booked" | "received" | "exited" | "rejected">("all")
+
+  // Stats state
+  const [rangeStats, setRangeStats] = useState<RangeStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsDateFrom, setStatsDateFrom] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"))
+  const [statsDateTo, setStatsDateTo] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"))
 
   // Dialog states
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
@@ -94,6 +101,40 @@ export default function CalendarViewPage() {
   useEffect(() => {
     fetchData(currentMonth)
   }, [currentMonth])
+
+  // Fetch range stats
+  const fetchRangeStats = async (from: string, to: string) => {
+    try {
+      setStatsLoading(true)
+      const stats = await vehicleBookingService.getRangeStats(from, to)
+      setRangeStats(stats)
+    } catch (error) {
+      console.error("Error fetching range stats:", error)
+    } finally {
+      setStatsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchRangeStats(statsDateFrom, statsDateTo)
+  }, [statsDateFrom, statsDateTo])
+
+  const handleStatsDateChange = (from: string, to: string) => {
+    setStatsDateFrom(from)
+    setStatsDateTo(to)
+  }
+
+  const handleStatsDayClick = (date: string) => {
+    const clickedDate = new Date(date)
+    setSelectedDate(clickedDate)
+    setStatusFilter("all")
+    setSheetOpen(true)
+
+    // Update current month if clicked date is in a different month
+    if (!isSameMonth(clickedDate, currentMonth)) {
+      setCurrentMonth(clickedDate)
+    }
+  }
 
   // Set initial scroll position for RTL
   useEffect(() => {
@@ -314,7 +355,7 @@ export default function CalendarViewPage() {
   }
 
   // Loading skeleton
-  if (loading) {
+  if (loading || statsLoading) {
     return (
       <>
         <div className="flex items-center gap-3 mb-4">
@@ -322,37 +363,32 @@ export default function CalendarViewPage() {
             <ArrowLeft className="size-5" />
           </Button>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">{t('calendarView')}</h2>
-            <p className="text-muted-foreground mt-1">{t('viewBookingSchedule')}</p>
+            <h2 className="text-3xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
+            <p className="text-muted-foreground mt-1">{tStats('pageSubtitle')}</p>
           </div>
+        </div>
+
+        {/* Date Filter Skeleton */}
+        <div className="rounded-xl border bg-card p-4 mb-4">
+          <div className="h-20 bg-muted animate-pulse rounded" />
         </div>
 
         {/* Stats Skeleton */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Loader2 className="size-5 animate-spin text-blue-600 dark:text-blue-400" />
-            <div className="h-6 w-32 bg-muted animate-pulse rounded" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i}>
-                <div className="h-3 w-20 bg-muted animate-pulse rounded mb-2" />
-                <div className="h-8 w-16 bg-muted animate-pulse rounded" />
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+          ))}
         </div>
 
-        {/* Calendar Skeleton */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-4">
-          <div className="h-64 bg-muted animate-pulse rounded" />
+        {/* Daily List Skeleton */}
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+          ))}
         </div>
       </>
     )
   }
-
-  // Empty state
-  const hasAnyBookings = bookings.length > 0
 
   return (
     <>
@@ -365,164 +401,33 @@ export default function CalendarViewPage() {
           <ArrowLeft className="size-5" />
         </Button>
         <div className="flex-1">
-          <h2 className="text-3xl font-bold tracking-tight">{t('calendarView')}</h2>
-          <p className="text-muted-foreground mt-1">{t('viewBookingSchedule')}</p>
+          <h2 className="text-3xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
+          <p className="text-muted-foreground mt-1">{tStats('pageSubtitle')}</p>
         </div>
-        {!isSameMonth(currentMonth, new Date()) && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleJumpToToday}
-            className="gap-2"
-          >
-            <CalendarCheck className="size-4" />
-            <span className="hidden sm:inline">Today</span>
-          </Button>
-        )}
       </div>
 
-      {/* Monthly Stats Card */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-4 mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <CalendarIcon className="size-5 text-blue-600 dark:text-blue-400" />
-          <h3 className="text-lg font-semibold">
-            {format(currentMonth, "MMMM yyyy")}
-          </h3>
-        </div>
+      {/* Range Stats Section */}
+      <div className="space-y-4">
+        {/* Date Filter */}
+        <StatsDateFilter
+          dateFrom={statsDateFrom}
+          dateTo={statsDateTo}
+          onDateChange={handleStatsDateChange}
+        />
 
-        {hasAnyBookings ? (
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <div className="text-muted-foreground text-xs">Total Bookings</div>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {monthlyStats.totalBookings}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-xs">Total Boxes</div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {monthlyStats.totalBoxes}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground text-xs">Total Weight</div>
-              <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                {monthlyStats.totalTons.toFixed(2)} tons
-              </div>
-            </div>
-            {monthlyStats.busiestDay && (
-              <div>
-                <div className="text-muted-foreground text-xs">Busiest Day</div>
-                <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                  {monthlyStats.busiestDay} ({monthlyStats.maxBookings})
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-4">
-            <div className="text-muted-foreground text-sm">
-              No bookings this month
-            </div>
-          </div>
-        )}
-      </div>
+        {/* Capacity KPIs */}
+        <CapacityStatsCards stats={rangeStats} isLoading={statsLoading} />
 
-      {/* Calendar */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-4">
-        {hasAnyBookings ? (
-          <>
-            <Calendar
-              mode="single"
-              selected={selectedDate || undefined}
-              onSelect={handleDayClick}
-              month={currentMonth}
-              onMonthChange={setCurrentMonth}
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-              className="rounded-md border-0"
-              components={{
-                Day: ({ day, ...props }) => {
-                  const dateKey = format(day.date, "yyyy-MM-dd")
-                  const count = getDayBookingCount(day.date)
-                  const info = dayCapacityInfo[dateKey]
+        {/* Performance KPIs */}
+        <PerformanceStatsCards stats={rangeStats} isLoading={statsLoading} />
 
-                  return (
-                    <div {...props} className={cn("relative", props.className)}>
-                      <span>{format(day.date, "d")}</span>
-                      {count > 0 && (
-                        <>
-                          <Badge
-                            className={cn(
-                              "absolute top-0 right-0 h-5 min-w-[1.25rem] px-1 text-[10px] pointer-events-none",
-                              info ? getBadgeColor(info.capacityPercent, info.hasPendingApprovals) : "bg-blue-600 hover:bg-blue-600"
-                            )}
-                          >
-                            {count}
-                          </Badge>
-                          {info && getCapacityIndicator(day.date)}
-                        </>
-                      )}
-                    </div>
-                  )
-                },
-              }}
-            />
-
-            {/* Legend */}
-            <div className="mt-4 pt-4 border-t">
-              <div className="text-xs text-muted-foreground mb-2">Legend:</div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="size-4 rounded-full bg-accent border border-border" />
-                  <span>Today</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="h-5 min-w-[1.25rem] px-1 text-[10px] bg-emerald-600 hover:bg-emerald-600">2</Badge>
-                  <span>Under capacity</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="h-5 min-w-[1.25rem] px-1 text-[10px] bg-orange-600 hover:bg-orange-600">3</Badge>
-                  <span>Near capacity (80%+)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="h-5 min-w-[1.25rem] px-1 text-[10px] bg-red-600 hover:bg-red-600">5</Badge>
-                  <span>Over capacity</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className="h-5 min-w-[1.25rem] px-1 text-[10px] bg-amber-600 hover:bg-amber-600">1</Badge>
-                  <span>Pending approval</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-emerald-600" />
-                  <span>Capacity dot</span>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <Truck className="size-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No Bookings This Month</h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              There are no vehicle bookings for {format(currentMonth, "MMMM yyyy")}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentMonth(new Date())}
-              >
-                Go to Current Month
-              </Button>
-              <Button
-                onClick={() => router.push("/vehicle-bookings/new")}
-              >
-                Create Booking
-              </Button>
-            </div>
-          </div>
+        {/* Daily Breakdown List */}
+        {rangeStats?.daily_stats && rangeStats.daily_stats.length > 0 && (
+          <DailyStatsList
+            dailyStats={rangeStats.daily_stats}
+            locale={locale}
+            onDayClick={handleStatsDayClick}
+          />
         )}
       </div>
 
@@ -534,7 +439,7 @@ export default function CalendarViewPage() {
               {selectedDate && format(selectedDate, "MMMM d, yyyy")}
             </SheetTitle>
             <SheetDescription>
-              {statusCounts.all} booking{statusCounts.all !== 1 ? 's' : ''} on this day
+              {tStats('bookingsOnDay', { count: statusCounts.all })}
             </SheetDescription>
           </SheetHeader>
 
@@ -604,7 +509,10 @@ export default function CalendarViewPage() {
               ))
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
-                No {statusFilter !== "all" ? statusFilter : ""} bookings
+                {statusFilter !== "all"
+                  ? tStats('noBookingsWithStatus', { status: statusFilter })
+                  : tStats('noBookingsEmpty')
+                }
               </div>
             )}
           </div>
