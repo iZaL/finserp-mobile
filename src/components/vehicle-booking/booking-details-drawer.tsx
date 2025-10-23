@@ -202,7 +202,7 @@ export function BookingDetailsDrawer({
       return `${oldValue} → ${newValue}`
     }
     if (key === "rejection_reason") {
-      return newValue
+      return newValue as string | null
     }
     if (key === "notes") {
       return "Notes updated"
