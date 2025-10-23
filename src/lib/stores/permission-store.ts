@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { useAuthStore } from './auth-store'
-import { VEHICLE_BOOKING_PERMISSIONS, type VehicleBookingPermission } from '../permissions'
+import { VEHICLE_BOOKING_PERMISSIONS } from '../permissions'
 
 interface PermissionStore {
   // Check if user has a specific permission

@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import {
   Home,
   Calendar,
   Settings,
-  Box,
 } from "lucide-react"
 import { Link, usePathname } from "@/i18n/navigation"
 import { useTranslations, useLocale } from "next-intl"
@@ -57,7 +57,7 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/" className="group">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-hover:bg-primary/90 transition-colors">
-                  <img src="/icon-192x192.png" alt="FinsERP Logo" className="size-6 rounded" />
+                  <Image src="/icon-192x192.png" alt="FinsERP Logo" width={24} height={24} className="size-6 rounded" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">FinsERP</span>

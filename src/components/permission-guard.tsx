@@ -22,7 +22,7 @@ export function PermissionGuard({
   showAccessDenied = true,
   children,
 }: PermissionGuardProps) {
-  const { hasPermission, hasAnyPermission, hasAllPermissions } = usePermissions()
+  const { hasAnyPermission, hasAllPermissions } = usePermissions()
   const router = useRouter()
 
   const permissionArray = Array.isArray(permissions) ? permissions : [permissions]
@@ -60,7 +60,7 @@ export function PermissionGuard({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            You don't have permission to access this feature. Please contact your administrator if you believe this is an error.
+            You don&apos;t have permission to access this feature. Please contact your administrator if you believe this is an error.
           </p>
           <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-500">
             <AlertTriangle className="h-3 w-3" />
