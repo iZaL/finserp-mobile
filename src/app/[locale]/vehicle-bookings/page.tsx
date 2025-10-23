@@ -32,7 +32,7 @@ import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approv
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card";
 import { NotificationSettings } from "@/components/notification-settings";
 import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer";
-import { EditDialog } from "@/components/vehicle-booking/edit-dialog";
+import { EditDrawer } from "@/components/vehicle-booking/edit-drawer";
 import { VehicleBookingGuard } from "@/components/permission-guard";
 import { usePermissions } from "@/lib/stores/permission-store";
 
@@ -574,23 +574,83 @@ export default function VehicleBookingsPage() {
               </div>
             ))}
           </>
-        ) : filteredBookings.length === 0 ? (
-          <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-12 text-center">
-            <Truck className="size-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">
-              {t("noBookingsFound")}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {t("noBookingsDescription")}
-            </p>
-            {!searchQuery && permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
-              <Button
-                onClick={() => router.push("/vehicle-bookings/new")}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="size-4 mr-2" />
-                {t("createBooking")}
-              </Button>
+        ) : filteredBookings.length === 0 && !(statusFilter === "received" && bookings.filter(b => b.status === "received").length > 0) ? (
+          <div className="rounded-xl border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 shadow-sm p-12 text-center">
+            <div className="rounded-full bg-slate-200/50 dark:bg-slate-700/50 size-16 mx-auto mb-4 flex items-center justify-center">
+              <Truck className="size-8 text-slate-400 dark:text-slate-500" />
+            </div>
+            {searchQuery ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No results found
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Try adjusting your search or filter to find what you're looking for
+                </p>
+              </>
+            ) : statusFilter === "pending" ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No pending approvals
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  All bookings have been approved or there are no bookings awaiting approval
+                </p>
+              </>
+            ) : statusFilter === "booked" ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No booked vehicles
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  No vehicles are currently waiting to be received
+                </p>
+              </>
+            ) : statusFilter === "received" ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No vehicles in factory
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  No vehicles are currently being offloaded
+                </p>
+              </>
+            ) : statusFilter === "exited" ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No exited vehicles
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  No vehicles have completed offloading and exited yet
+                </p>
+              </>
+            ) : statusFilter === "rejected" ? (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  No rejected bookings
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  No bookings have been rejected
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                  {t("noBookingsFound")}
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                  {t("noBookingsDescription")}
+                </p>
+                {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
+                  <Button
+                    onClick={() => router.push("/vehicle-bookings/new")}
+                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    <Plus className="size-4 mr-2" />
+                    {t("createBooking")}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         ) : (
@@ -728,7 +788,7 @@ export default function VehicleBookingsPage() {
         onReject={handleReject}
       />
 
-      <EditDialog
+      <EditDrawer
         booking={selectedBooking}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}

@@ -486,6 +486,11 @@
   },
   "notifications": {
     "enable": "Enable Notifications",
-    "disable": "Disable Notifications"
+    "disable": "Disable Notifications",
+    "disableConfirm": {
+      "title": "Disable Notifications?",
+      "description": "You will no longer receive notifications for vehicle booking updates.",
+      "confirm": "Disable"
+    }
   }
 }

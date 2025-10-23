@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -18,9 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Plus, Search, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
+import { Plus, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import type { VehicleTemplate, DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
+import type { DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 import { PermissionGuard } from "@/components/permission-guard"
 import { VEHICLE_BOOKING_PERMISSIONS } from "@/lib/permissions"
@@ -32,7 +31,6 @@ export default function NewBookingPage() {
   const tCommon = useTranslations('common')
   const tValidation = useTranslations('vehicleBookings.validation')
   const vehicleNumberRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
   const permissions = usePermissions()
 
   // Form state
@@ -48,16 +46,13 @@ export default function NewBookingPage() {
   const [allowOverride, setAllowOverride] = useState(false)
 
   // UI state
-  const [suggestions, setSuggestions] = useState<VehicleTemplate[]>([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [quickPicks, setQuickPicks] = useState<VehicleTemplate[]>([])
   const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
   const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showCapacityDialog, setShowCapacityDialog] = useState(false)
   const [isSystemEnabled, setIsSystemEnabled] = useState(true)
 
-  // Fetch quick picks and capacity info on mount
+  // Fetch capacity info and settings on mount
   useEffect(() => {
     fetchInitialData()
     vehicleNumberRef.current?.focus()
@@ -65,12 +60,10 @@ export default function NewBookingPage() {
 
   const fetchInitialData = async () => {
     try {
-      const [picksData, capacityData, settingsData] = await Promise.all([
-        vehicleBookingService.getQuickPicks(),
+      const [capacityData, settingsData] = await Promise.all([
         vehicleBookingService.getDailyCapacity(),
         vehicleBookingService.getSettings(),
       ])
-      setQuickPicks(picksData)
       setCapacityInfo(capacityData)
       setSettings(settingsData)
       setIsSystemEnabled(settingsData.vehicle_booking_enabled ?? true)
@@ -105,65 +98,6 @@ export default function NewBookingPage() {
     const boxes = parseInt(boxCount) || 0
     const weight = parseFloat(value) || 0
     setTotalWeightTons(calculateTotalWeight(boxes, weight))
-  }
-
-  // Autocomplete with debounce
-  useEffect(() => {
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
-
-    const query = vehicleNumber.trim()
-    if (query.length < 2) {
-      setSuggestions([])
-      setShowSuggestions(false)
-      return
-    }
-
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const results = await vehicleBookingService.getSuggestions(query)
-        setSuggestions(results)
-        setShowSuggestions(results.length > 0)
-      } catch (error) {
-        console.error("Error fetching suggestions:", error)
-        setSuggestions([])
-        setShowSuggestions(false)
-      }
-    }, 200)
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current)
-      }
-    }
-  }, [vehicleNumber])
-
-  // Close suggestions on outside click
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (!vehicleNumberRef.current) return
-      const container = vehicleNumberRef.current.closest(".vehicle-number-container")
-      if (container && e.target instanceof Node && !container.contains(e.target)) {
-        setShowSuggestions(false)
-      }
-    }
-    document.addEventListener("click", handleClick)
-    return () => document.removeEventListener("click", handleClick)
-  }, [])
-
-  // Apply suggestion
-  const applySuggestion = (suggestion: VehicleTemplate) => {
-    setVehicleNumber(suggestion.vehicle_number)
-    setBoxCount(suggestion.box_count.toString())
-    setBoxWeightKg(suggestion.box_weight_kg.toString())
-    setTotalWeightTons(suggestion.weight_tons.toFixed(3))
-    setShowSuggestions(false)
-
-    // Focus box count after a brief delay
-    setTimeout(() => {
-      document.querySelector<HTMLInputElement>('[name="box_count"]')?.focus()
-    }, 100)
   }
 
   // Form validation
@@ -334,65 +268,21 @@ export default function NewBookingPage() {
         </CardHeader>
 
         <CardContent>
-          {/* Quick Picks */}
-          {quickPicks.length > 0 && (
-            <div className="mb-4">
-              <div className="text-xs text-muted-foreground mb-2">{t('quickPicks')}</div>
-              <div className="flex flex-wrap gap-2">
-                {quickPicks.slice(0, 8).map((pick, idx) => (
-                  <Badge
-                    key={`${pick.vehicle_number}-${idx}`}
-                    variant="outline"
-                    className="cursor-pointer hover:bg-accent"
-                    onClick={() => applySuggestion(pick)}
-                  >
-                    {pick.vehicle_number}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Vehicle Number with Autocomplete */}
-            <div className="vehicle-number-container">
+            {/* Vehicle Number */}
+            <div>
               <Label htmlFor="vehicle_number">
                 {t('vehicleNumber')} <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
-                <Input
-                  ref={vehicleNumberRef}
-                  id="vehicle_number"
-                  name="vehicle_number"
-                  value={vehicleNumber}
-                  onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
-                  placeholder={t('placeholders.vehicleNumber')}
-                  className="pr-10"
-                  autoComplete="off"
-                  onFocus={() => setShowSuggestions(suggestions.length > 0)}
-                />
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-
-                {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute z-20 mt-1 w-full bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-60 overflow-auto">
-                    {suggestions.map((suggestion, idx) => (
-                      <button
-                        key={`${suggestion.vehicle_number}-${idx}`}
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground text-sm"
-                        onClick={() => applySuggestion(suggestion)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{suggestion.vehicle_number}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {suggestion.box_count} {t('boxes', { ns: 'vehicleBookings.capacity' })}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Input
+                ref={vehicleNumberRef}
+                id="vehicle_number"
+                name="vehicle_number"
+                value={vehicleNumber}
+                onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                placeholder={t('placeholders.vehicleNumber')}
+                autoComplete="off"
+              />
             </div>
 
             {/* Box Count, Weight, Total Weight */}
