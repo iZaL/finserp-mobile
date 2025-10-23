@@ -44,36 +44,36 @@ export function StatsKPICard({
   }
 
   return (
-    <Card className={cn("p-4 space-y-2", className)}>
+    <Card className={cn("p-3 space-y-1.5", className)}>
       {/* Header with icon and badge */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex items-center gap-1.5">
           {icon && <div className="text-muted-foreground">{icon}</div>}
-          <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
+          <h3 className="text-[10px] font-medium text-muted-foreground line-clamp-1">{title}</h3>
         </div>
         {badge && (
-          <Badge variant={badge.variant || "default"} className="text-xs">
+          <Badge variant={badge.variant || "default"} className="text-[9px] h-4 px-1.5 shrink-0">
             {badge.label}
           </Badge>
         )}
       </div>
 
       {/* Main Value */}
-      <div className="space-y-1">
-        <p className="text-2xl font-bold">{value}</p>
+      <div className="space-y-0.5">
+        <p className="text-xl font-bold leading-none">{value}</p>
         {subtitle && (
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-[10px] text-muted-foreground line-clamp-1">{subtitle}</p>
         )}
       </div>
 
       {/* Trend Indicator */}
       {trend && (
-        <div className={cn("flex items-center gap-1 text-xs", getTrendColor(trend.value))}>
+        <div className={cn("flex items-center gap-1 text-[10px]", getTrendColor(trend.value))}>
           {getTrendIcon(trend.value)}
           <span className="font-medium">
             {trend.value > 0 ? "+" : ""}{trend.value}%
           </span>
-          <span className="text-muted-foreground">{trend.label}</span>
+          <span className="text-muted-foreground truncate">{trend.label}</span>
         </div>
       )}
     </Card>

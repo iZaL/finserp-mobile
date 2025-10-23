@@ -17,7 +17,6 @@ import {
   Info,
   TrendingUp,
   TrendingDown,
-  History,
   Edit,
   Trash,
   LogIn,
@@ -85,6 +84,13 @@ export function BookingDetailsDrawer({
         })
     }
   }, [open, booking])
+
+  // Filter activities to show only edits (not status changes shown in Timeline)
+  const editActivities = activities.filter((activity) =>
+    activity.action === "updated" ||
+    activity.action === "edited" ||
+    activity.action === "approval_rejected"
+  )
 
   const handleAction = (action: () => void) => {
     action()
@@ -174,7 +180,7 @@ export function BookingDetailsDrawer({
     }
   }
 
-  const formatChangeValue = (key: string, oldValue: any, newValue: any): string | null => {
+  const formatChangeValue = (key: string, oldValue: string | number | boolean | null | undefined, newValue: string | number | boolean | null | undefined): string | null => {
     // Skip system fields and relationships
     if (key.includes("_at") || key.includes("_date") || key.includes("_by") || key === "id" || key === "created_at" || key === "updated_at" || key === "creator" || key === "created_by") {
       return null
@@ -556,24 +562,24 @@ export function BookingDetailsDrawer({
             </>
           )}
 
-          {/* Activity History */}
-          {activities.length > 0 && (
+          {/* Activity History - Only show edits, not status changes */}
+          {editActivities.length > 0 && (
             <>
               <Separator />
               <Collapsible open={showActivities} onOpenChange={setShowActivities}>
                 <div>
                   <CollapsibleTrigger className="w-full">
                     <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                      <History className="size-4" />
-                      {tDetails('activityHistory')}
+                      <Edit className="size-4" />
+                      {tDetails('editHistory')}
                       <Badge variant="secondary" className="ml-2">
-                        {activities.length}
+                        {editActivities.length}
                       </Badge>
                     </h3>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="space-y-3 max-h-80 overflow-y-auto">
-                      {activities.map((activity) => {
+                      {editActivities.map((activity) => {
                         const ActivityIcon = getActivityIcon(activity.action)
                         const activityColor = getActivityColor(activity.action)
 

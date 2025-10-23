@@ -50,8 +50,8 @@ export interface VehicleActivity {
   id: number
   vehicle_id: number
   action: "created" | "updated" | "edited" | "received" | "unreceived" | "exited" | "rejected" | "deleted" | "approved" | "approval_rejected"
-  old_values?: Record<string, any>
-  new_values?: Record<string, any>
+  old_values?: Record<string, string | number | boolean | null>
+  new_values?: Record<string, string | number | boolean | null>
   user_id?: number
   user?: {
     id: number

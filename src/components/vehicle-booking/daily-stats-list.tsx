@@ -40,12 +40,6 @@ export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyS
     return `${hours.toFixed(1)} ${t("hrs")}`
   }
 
-  const getCapacityColor = (percent: number) => {
-    if (percent >= 100) return "text-red-600"
-    if (percent >= 80) return "text-orange-600"
-    return "text-green-600"
-  }
-
   const getCapacityVariant = (percent: number): "default" | "secondary" | "destructive" | "outline" => {
     if (percent >= 100) return "destructive"
     if (percent >= 80) return "secondary"
@@ -53,30 +47,30 @@ export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyS
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-medium px-1">{t("dailyBreakdown")}</h3>
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
+    <div className="space-y-2">
+      <h3 className="text-xs font-semibold px-1">{t("dailyBreakdown")}</h3>
+      <div className="space-y-2 max-h-[500px] overflow-y-auto">
         {dailyStats.map((day) => (
           <Card
             key={day.date}
-            className="p-4 cursor-pointer hover:bg-accent transition-colors"
+            className="p-2.5 cursor-pointer hover:bg-accent transition-colors"
             onClick={() => onDayClick?.(day.date)}
           >
             {/* Date Header */}
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <h4 className="font-medium text-sm">{formatDate(day.date)}</h4>
-                <p className="text-xs text-muted-foreground">
+            <div className="flex items-start justify-between mb-1.5">
+              <div className="min-w-0 flex-1">
+                <h4 className="font-medium text-xs leading-tight">{formatDate(day.date)}</h4>
+                <p className="text-[10px] text-muted-foreground">
                   {day.booking_count} {t("bookings")}
                 </p>
               </div>
-              <Badge variant={getCapacityVariant(day.capacity_percent)}>
+              <Badge variant={getCapacityVariant(day.capacity_percent)} className="text-[10px] h-5 px-1.5 shrink-0">
                 {Math.round(day.capacity_percent)}%
               </Badge>
             </div>
 
             {/* Stats Row */}
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-3 text-[10px]">
               {/* Wait Time */}
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">{t("wait")}:</span>

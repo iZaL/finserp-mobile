@@ -6,20 +6,20 @@ import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useTranslations } from "next-intl"
-import { format, subDays, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns"
+import { format, subDays, startOfMonth, startOfDay, endOfDay, differenceInDays } from "date-fns"
 
 export type DatePreset = "today" | "last7" | "last30" | "thisMonth"
 
 interface StatsDateFilterProps {
-  dateFrom: string
-  dateTo: string
-  onDateChange: (dateFrom: string, dateTo: string) => void
+  datetimeFrom: string // Format: "2025-01-10T09:00"
+  datetimeTo: string   // Format: "2025-01-10T18:00"
+  onDatetimeChange: (datetimeFrom: string, datetimeTo: string) => void
 }
 
 export function StatsDateFilter({
-  dateFrom,
-  dateTo,
-  onDateChange,
+  datetimeFrom,
+  datetimeTo,
+  onDatetimeChange,
 }: StatsDateFilterProps) {
   const t = useTranslations("vehicleBookings.rangeStats")
 
@@ -43,61 +43,63 @@ export function StatsDateFilter({
         break
       case "thisMonth":
         from = startOfMonth(today)
-        to = endOfMonth(today)
+        to = endOfDay(today)
         break
     }
 
-    onDateChange(
-      format(from, "yyyy-MM-dd"),
-      format(to, "yyyy-MM-dd")
+    onDatetimeChange(
+      format(from, "yyyy-MM-dd'T'HH:mm"),
+      format(to, "yyyy-MM-dd'T'HH:mm")
     )
   }
 
   const getDayCount = () => {
-    const from = new Date(dateFrom)
-    const to = new Date(dateTo)
-    const diffTime = Math.abs(to.getTime() - from.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-    return diffDays
+    try {
+      const from = new Date(datetimeFrom)
+      const to = new Date(datetimeTo)
+      return differenceInDays(to, from) + 1
+    } catch {
+      return 0
+    }
   }
 
   return (
-    <Card className="p-4 space-y-4">
-      {/* Date Inputs */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="date-from" className="text-xs">
+    <Card className="p-3 space-y-2">
+      {/* Datetime Inputs - Combined Date + Time */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="datetime-from" className="text-[10px] font-medium text-muted-foreground">
             {t("from")}
           </Label>
           <Input
-            id="date-from"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => onDateChange(e.target.value, dateTo)}
-            className="h-9"
+            id="datetime-from"
+            type="datetime-local"
+            value={datetimeFrom}
+            onChange={(e) => onDatetimeChange(e.target.value, datetimeTo)}
+            className="h-8 text-xs"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="date-to" className="text-xs">
+        <div className="space-y-1">
+          <Label htmlFor="datetime-to" className="text-[10px] font-medium text-muted-foreground">
             {t("to")}
           </Label>
           <Input
-            id="date-to"
-            type="date"
-            value={dateTo}
-            onChange={(e) => onDateChange(dateFrom, e.target.value)}
-            className="h-9"
+            id="datetime-to"
+            type="datetime-local"
+            value={datetimeTo}
+            onChange={(e) => onDatetimeChange(datetimeFrom, e.target.value)}
+            className="h-8 text-xs"
           />
         </div>
       </div>
 
       {/* Quick Presets */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onClick={() => handlePreset("today")}
-          className="text-xs"
+          className="text-xs h-7 px-2"
         >
           {t("today")}
         </Button>
@@ -105,32 +107,34 @@ export function StatsDateFilter({
           variant="outline"
           size="sm"
           onClick={() => handlePreset("last7")}
-          className="text-xs"
+          className="text-xs h-7 px-2"
         >
-          {t("last7Days")}
+          7D
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => handlePreset("last30")}
-          className="text-xs"
+          className="text-xs h-7 px-2"
         >
-          {t("last30Days")}
+          30D
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => handlePreset("thisMonth")}
-          className="text-xs"
+          className="text-xs h-7 px-2"
         >
           {t("thisMonth")}
         </Button>
       </div>
 
-      {/* Info Text */}
-      <div className="text-center text-xs text-muted-foreground">
-        {t("showingStatsForDays", { days: getDayCount() })}
-      </div>
+      {/* Info Text - Compact */}
+      {getDayCount() > 0 && (
+        <div className="text-center text-[10px] text-muted-foreground">
+          {t("showingStatsForDays", { days: getDayCount() })}
+        </div>
+      )}
     </Card>
   )
 }

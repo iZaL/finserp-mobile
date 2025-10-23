@@ -23,7 +23,11 @@
     "welcome": "Welcome back!",
     "vehicleBookings": "Vehicle Bookings",
     "manageVehicles": "Manage vehicle reservations and bookings",
-    "viewBookings": "View Bookings"
+    "viewBookings": "View Bookings",
+    "newBooking": "New Booking",
+    "addNewBooking": "Add a new vehicle booking",
+    "statistics": "Statistics",
+    "viewStatistics": "View booking analytics"
   },
   "vehicleBookings": {
     "title": "Vehicle Bookings",
@@ -286,6 +290,7 @@
       "exitedBy": "Exited by",
       "rejectedBy": "Rejected by",
       "activityHistory": "Activity History",
+      "editHistory": "Edit History",
       "loadingActivities": "Loading activity history...",
       "systemInformation": "System Information",
       "bookingId": "Booking ID",
@@ -328,6 +333,8 @@
     "rangeStats": {
       "from": "From",
       "to": "To",
+      "timeFrom": "Time From",
+      "timeTo": "Time To",
       "today": "Today",
       "last7Days": "7D",
       "last30Days": "30D",
@@ -350,6 +357,10 @@
       "hrs": "hrs",
       "throughput": "Throughput",
       "vehiclesCompleted": "vehicles completed",
+      "vehiclesOffloaded": "Vehicles Offloaded",
+      "tonsProcessed": "Tons Processed",
+      "outOf": "out of",
+      "totalVehicles": "total",
       "noDailyStats": "No daily statistics available",
       "dailyBreakdown": "Daily Breakdown",
       "bookings": "bookings",

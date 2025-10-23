@@ -3,7 +3,7 @@
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
-import { Car, Plus, Calendar, ClipboardList } from "lucide-react"
+import { Car, Plus, BarChart3, ClipboardList } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
@@ -43,8 +43,8 @@ export default function Home() {
           >
             <Plus className="size-5" />
             <div className="text-start">
-              <div className="font-semibold">{t('vehicleBookings')}</div>
-              <div className="text-xs opacity-90 font-normal">{t('manageVehicles')}</div>
+              <div className="font-semibold">{t('newBooking')}</div>
+              <div className="text-xs opacity-90 font-normal">{t('addNewBooking')}</div>
             </div>
           </Button>
 
@@ -52,10 +52,10 @@ export default function Home() {
             onClick={() => router.push("/vehicle-bookings/calendar")}
             className="h-auto flex-col items-start gap-2 p-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
           >
-            <Calendar className="size-5" />
+            <BarChart3 className="size-5" />
             <div className="text-start">
-              <div className="font-semibold">Calendar View</div>
-              <div className="text-xs opacity-90 font-normal">View booking schedule</div>
+              <div className="font-semibold">{t('statistics')}</div>
+              <div className="text-xs opacity-90 font-normal">{t('viewStatistics')}</div>
             </div>
           </Button>
         </div>

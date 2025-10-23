@@ -23,7 +23,11 @@
     "welcome": "مرحبا بعودتك!",
     "vehicleBookings": "حجوزات المركبات",
     "manageVehicles": "إدارة حجوزات وتوجيهات المركبات",
-    "viewBookings": "عرض الحجوزات"
+    "viewBookings": "عرض الحجوزات",
+    "newBooking": "حجز جديد",
+    "addNewBooking": "إضافة حجز مركبة جديد",
+    "statistics": "الإحصائيات",
+    "viewStatistics": "عرض تحليلات الحجوزات"
   },
   "vehicleBookings": {
     "title": "حجوزات المركبات",
@@ -286,6 +290,7 @@
       "exitedBy": "تم الخروج بواسطة",
       "rejectedBy": "تم الرفض بواسطة",
       "activityHistory": "سجل النشاطات",
+      "editHistory": "سجل التعديلات",
       "loadingActivities": "جاري تحميل سجل النشاطات...",
       "systemInformation": "معلومات النظام",
       "bookingId": "رقم الحجز",
@@ -328,6 +333,8 @@
     "rangeStats": {
       "from": "من",
       "to": "إلى",
+      "timeFrom": "الوقت من",
+      "timeTo": "الوقت إلى",
       "today": "اليوم",
       "last7Days": "7 أيام",
       "last30Days": "30 يوم",
@@ -350,6 +357,10 @@
       "hrs": "ساعة",
       "throughput": "الإنتاجية",
       "vehiclesCompleted": "مركبة مكتملة",
+      "vehiclesOffloaded": "المركبات المفرغة",
+      "tonsProcessed": "الأطنان المعالجة",
+      "outOf": "من أصل",
+      "totalVehicles": "إجمالي",
       "noDailyStats": "لا توجد إحصائيات يومية متاحة",
       "dailyBreakdown": "التفصيل اليومي",
       "bookings": "حجوزات",
