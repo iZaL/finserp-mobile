@@ -585,7 +585,7 @@ export default function VehicleBookingsPage() {
                   No results found
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Try adjusting your search or filter to find what you're looking for
+                  Try adjusting your search or filter to find what you&apos;re looking for
                 </p>
               </>
             ) : statusFilter === "pending" ? (
