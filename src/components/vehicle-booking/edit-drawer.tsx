@@ -127,8 +127,8 @@ export function EditDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader className="text-left">
+      <DrawerContent className="max-h-[85vh] flex flex-col">
+        <DrawerHeader className="text-left flex-shrink-0">
           <DrawerTitle className="flex items-center gap-2">
             <Truck className="size-5 text-blue-600 dark:text-blue-400" />
             {t('title')}
@@ -138,7 +138,7 @@ export function EditDrawer({
           </DrawerDescription>
         </DrawerHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
           <div className="flex-1 overflow-y-auto px-4 space-y-4">
             {/* Vehicle Number */}
             <div>
@@ -327,7 +327,7 @@ export function EditDrawer({
             </div>
           </div>
 
-          <DrawerFooter className="flex-row gap-2 pt-4">
+          <DrawerFooter className="flex-row gap-2 pt-4 flex-shrink-0 pb-8 supports-[padding:max(0px)]:pb-[max(2rem,env(safe-area-inset-bottom))]">
             <Button
               type="button"
               variant="outline"

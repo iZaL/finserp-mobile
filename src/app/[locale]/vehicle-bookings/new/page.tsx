@@ -267,7 +267,7 @@ export default function NewBookingPage() {
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="pb-8 supports-[padding:max(0px)]:pb-[max(2rem,env(safe-area-inset-bottom))]">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Vehicle Number */}
             <div>

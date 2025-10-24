@@ -315,20 +315,21 @@ export default function VehicleBookingsPage() {
             onClick={handleRefresh}
             disabled={refreshing}
             variant="outline"
-            size="icon"
+            size="default"
+            className="w-11 h-11"
           >
             <RefreshCw
-              className={`size-4 ${refreshing ? "animate-spin" : ""}`}
+              className={`size-5 ${refreshing ? "animate-spin" : ""}`}
             />
           </Button>
           {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
             <Button
               onClick={() => router.push("/vehicle-bookings/new")}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-8 px-0 md:w-auto md:px-3"
-              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-11 h-11 px-0 md:w-auto md:px-3 md:h-10"
+              size="default"
               title={t("newBooking")}
             >
-              <Plus className="size-4 md:mr-0" />
+              <Plus className="size-5 md:mr-2" />
               <span className="hidden md:inline">{t("newBooking")}</span>
             </Button>
           )}

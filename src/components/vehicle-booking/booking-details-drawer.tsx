@@ -244,17 +244,47 @@ export function BookingDetailsDrawer({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="h-[100dvh] max-h-[100dvh] sm:h-[95vh] sm:max-h-[95vh]">
         <div className="mx-auto w-full max-w-2xl flex flex-col h-full">
-          <DrawerHeader className="text-left py-2 px-3 flex-shrink-0 border-b">
-            <DrawerTitle className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-7 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                <Truck className="size-3.5" />
-              </div>
-              <div>
-                <div className="text-base font-bold">
-                  {booking.vehicle_number}
+          <DrawerHeader className="text-left py-5 px-4 flex-shrink-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-blue-900/40 border-b border-blue-200 dark:border-blue-800">
+            <DrawerTitle className="flex flex-col gap-3">
+              {/* Top Row: Icon + Vehicle Number + Status */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex items-center justify-center size-14 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-lg flex-shrink-0">
+                    <Truck className="size-7" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                      {tDetails("vehicleBookingDetails")}
+                    </div>
+                    <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                      {booking.vehicle_number}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs font-normal text-muted-foreground">
-                  {tDetails("vehicleBookingDetails")}
+                <Badge
+                  className={`px-3 py-1.5 text-sm font-semibold ${getStatusColor(
+                    booking.status
+                  )} shadow-sm`}
+                >
+                  <StatusIcon className="size-4 me-1.5" />
+                  {t(booking.status)}
+                </Badge>
+              </div>
+
+              {/* Bottom Row: Key Metrics */}
+              <div className="flex items-center gap-4 text-base">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <Package className="size-5" />
+                  <span className="font-bold">{booking.box_count}</span>
+                  <span className="text-blue-600 dark:text-blue-400 text-sm">boxes</span>
+                </div>
+                <div className="h-5 w-px bg-blue-300 dark:bg-blue-700" />
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                  <Weight className="size-5" />
+                  <span className="font-bold">
+                    {((booking.box_count * (booking.box_weight_kg || 0)) / 1000).toFixed(2)}
+                  </span>
+                  <span className="text-blue-600 dark:text-blue-400 text-sm">tons</span>
                 </div>
               </div>
             </DrawerTitle>
@@ -263,45 +293,22 @@ export function BookingDetailsDrawer({
           <div className="overflow-y-auto overflow-x-hidden px-3 py-3 flex-1 min-h-0">
             {/* Added overflow-x-hidden */}
             <div className="space-y-2.5">
-              {/* Status Section */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge
-                  className={`px-2 py-0.5 text-xs font-medium ${getStatusColor(
-                    booking.status
-                  )}`}
-                >
-                  <StatusIcon className="size-3 me-1.5" />
-                  {t(booking.status)}
-                </Badge>
-                {booking.is_pending_approval && (
-                  <Badge className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                    <Clock className="size-3 me-1.5" />
-                    {t("pendingApproval")}
-                  </Badge>
-                )}
-                {booking.approval_status === "rejected" && (
-                  <Badge className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                    <AlertTriangle className="size-3 me-1.5" />
-                    {t("approvalRejected")}
-                  </Badge>
-                )}
-              </div>
 
               {/* Creator Information - Prominent */}
               {booking.created_by_name && (
-                <div className="p-2 rounded-lg border bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center size-6 rounded-full bg-background border text-muted-foreground">
-                      <User className="size-3" />
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-center size-8 rounded-full bg-background border text-muted-foreground">
+                      <User className="size-4" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         {tDetails("createdBy")}
                       </div>
-                      <div className="font-semibold text-xs">
+                      <div className="font-semibold text-sm">
                         {booking.created_by_name}
                       </div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                      <div className="text-xs text-muted-foreground mt-0.5">
                         <RelativeTime
                           date={booking.entry_datetime || booking.created_at}
                         />
@@ -315,38 +322,38 @@ export function BookingDetailsDrawer({
 
               {/* Cargo Information */}
               <div>
-                <h3 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5">
-                  <Package className="size-3" />
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Package className="size-4" />
                   {tDetails("cargoInformation")}
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-0.5 p-2 rounded-lg border bg-muted/30">
-                    <div className="text-[10px] text-muted-foreground">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
+                    <div className="text-xs text-muted-foreground">
                       {tDetails("boxCount")}
                     </div>
-                    <div className="text-lg font-bold">{booking.box_count}</div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xl font-bold">{booking.box_count}</div>
+                    <div className="text-xs text-muted-foreground">
                       {t("boxes")}
                     </div>
                   </div>
-                  <div className="space-y-0.5 p-2 rounded-lg border bg-muted/30">
-                    <div className="text-[10px] text-muted-foreground">
+                  <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
+                    <div className="text-xs text-muted-foreground">
                       {tDetails("totalWeight")}
                     </div>
-                    <div className="text-lg font-bold">
+                    <div className="text-xl font-bold">
                       {Number(booking.weight_tons || 0).toFixed(2)}
                     </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {t("tons")}
                     </div>
                   </div>
                   {booking.box_weight_kg && (
-                    <div className="space-y-0.5 p-2 rounded-lg border bg-muted/30">
-                      <div className="text-[10px] text-muted-foreground">
+                    <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
+                      <div className="text-xs text-muted-foreground">
                         {tDetails("boxWeight")}
                       </div>
-                      <div className="text-sm font-semibold flex items-center gap-1">
-                        <Weight className="size-3 text-muted-foreground" />
+                      <div className="text-base font-semibold flex items-center gap-1.5">
+                        <Weight className="size-4 text-muted-foreground" />
                         {booking.box_weight_kg} kg
                       </div>
                     </div>
@@ -359,43 +366,43 @@ export function BookingDetailsDrawer({
                 <>
                   <Separator className="my-2" />
                   <div>
-                    <h3 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5">
-                      <CheckCircle className="size-3 text-emerald-600" />
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                      <CheckCircle className="size-4 text-emerald-600" />
                       {tDetails("receivedInformation")}
                     </h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-0.5 p-2 rounded-lg border bg-muted/30">
-                        <div className="text-[10px] text-muted-foreground">
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
+                        <div className="text-xs text-muted-foreground">
                           {tDetails("actualBoxCount")}
                         </div>
-                        <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                           {booking.actual_box_count}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           {t("boxes")}
                         </div>
                       </div>
                       {boxDiscrepancy !== 0 && (
-                        <div className="space-y-0.5 p-2 rounded-lg border bg-muted/30">
-                          <div className="text-[10px] text-muted-foreground">
+                        <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
+                          <div className="text-xs text-muted-foreground">
                             {tDetails("discrepancy")}
                           </div>
                           <div
-                            className={`text-lg font-bold flex items-center gap-1.5 ${
+                            className={`text-xl font-bold flex items-center gap-1.5 ${
                               boxDiscrepancy > 0
                                 ? "text-green-600 dark:text-green-400"
                                 : "text-red-600 dark:text-red-400"
                             }`}
                           >
                             {boxDiscrepancy > 0 ? (
-                              <TrendingUp className="size-3" />
+                              <TrendingUp className="size-4" />
                             ) : (
-                              <TrendingDown className="size-3" />
+                              <TrendingDown className="size-4" />
                             )}
                             {boxDiscrepancy > 0 ? "+" : ""}
                             {boxDiscrepancy}
                           </div>
-                          <div className="text-[10px] text-muted-foreground">
+                          <div className="text-xs text-muted-foreground">
                             {boxDiscrepancy > 0
                               ? tDetails("moreThanExpected")
                               : tDetails("lessThanExpected")}
@@ -411,26 +418,26 @@ export function BookingDetailsDrawer({
               {booking.status === "rejected" && booking.rejection_reason && (
                 <>
                   <Separator className="my-2" />
-                  <div className="p-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
-                    <h3 className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-red-700 dark:text-red-400">
-                      <AlertTriangle className="size-3" />
+                  <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-red-700 dark:text-red-400">
+                      <AlertTriangle className="size-4" />
                       {tDetails("rejectionInformation")}
                     </h3>
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div>
-                        <div className="text-[10px] text-muted-foreground mb-0.5">
+                        <div className="text-xs text-muted-foreground mb-1">
                           {t("rejectionReason")}
                         </div>
-                        <div className="font-medium text-xs text-red-700 dark:text-red-400">
+                        <div className="font-medium text-sm text-red-700 dark:text-red-400">
                           {booking.rejection_reason}
                         </div>
                       </div>
                       {booking.rejection_notes && (
                         <div>
-                          <div className="text-[10px] text-muted-foreground mb-0.5">
+                          <div className="text-xs text-muted-foreground mb-1">
                             {tDetails("additionalNotes")}
                           </div>
-                          <div className="text-xs">
+                          <div className="text-sm">
                             {booking.rejection_notes}
                           </div>
                         </div>
@@ -444,20 +451,20 @@ export function BookingDetailsDrawer({
               {booking.is_pending_approval && (
                 <>
                   <Separator className="my-2" />
-                  <div className="p-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
-                    <h3 className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-                      <Clock className="size-3" />
+                  <div className="p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                      <Clock className="size-4" />
                       {tDetails("approvalInformation")}
                     </h3>
-                    <div className="text-xs text-amber-700 dark:text-amber-400">
+                    <div className="text-sm text-amber-700 dark:text-amber-400">
                       {t("waitingForApproval")}
                     </div>
                     {booking.approval_notes && (
-                      <div className="mt-1.5">
-                        <div className="text-[10px] text-muted-foreground mb-0.5">
+                      <div className="mt-2">
+                        <div className="text-xs text-muted-foreground mb-1">
                           {tDetails("notes")}
                         </div>
-                        <div className="text-xs">{booking.approval_notes}</div>
+                        <div className="text-sm">{booking.approval_notes}</div>
                       </div>
                     )}
                   </div>
@@ -468,20 +475,20 @@ export function BookingDetailsDrawer({
               {booking.approval_status === "rejected" && (
                 <>
                   <Separator className="my-2" />
-                  <div className="p-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
-                    <h3 className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-red-700 dark:text-red-400">
-                      <XCircle className="size-3" />
+                  <div className="p-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10">
+                    <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-red-700 dark:text-red-400">
+                      <XCircle className="size-4" />
                       {tDetails("approvalRejectedTitle")}
                     </h3>
-                    <div className="text-xs text-red-700 dark:text-red-400">
+                    <div className="text-sm text-red-700 dark:text-red-400">
                       {t("approvalRejectedMessage")}
                     </div>
                     {booking.approval_notes && (
-                      <div className="mt-1.5">
-                        <div className="text-[10px] text-muted-foreground mb-0.5">
+                      <div className="mt-2">
+                        <div className="text-xs text-muted-foreground mb-1">
                           {tDetails("notes")}
                         </div>
-                        <div className="text-xs">{booking.approval_notes}</div>
+                        <div className="text-sm">{booking.approval_notes}</div>
                       </div>
                     )}
                   </div>
@@ -492,23 +499,23 @@ export function BookingDetailsDrawer({
 
               {/* Contact Information */}
               <div>
-                <h3 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5">
-                  <Users className="size-3" />
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Users className="size-4" />
                   {tDetails("contactInformation")}
                 </h3>
-                <div className="grid gap-1.5">
+                <div className="grid gap-2">
                   {booking.driver_name && (
-                    <div className="flex items-start gap-2 p-2 rounded-lg border bg-muted/30">
-                      <User className="size-3 text-muted-foreground mt-0.5" />
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg border bg-muted/30">
+                      <User className="size-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <div className="text-[10px] text-muted-foreground mb-0.5">
+                        <div className="text-xs text-muted-foreground mb-1">
                           {t("driver")}
                         </div>
-                        <div className="font-medium text-xs">
+                        <div className="font-medium text-sm">
                           {booking.driver_name}
                         </div>
                         {booking.driver_phone && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                          <div className="text-xs text-muted-foreground mt-1 font-mono">
                             {booking.driver_phone}
                           </div>
                         )}
@@ -516,17 +523,17 @@ export function BookingDetailsDrawer({
                     </div>
                   )}
                   {booking.supplier_name && (
-                    <div className="flex items-start gap-2 p-2 rounded-lg border bg-muted/30">
-                      <Users className="size-3 text-muted-foreground mt-0.5" />
+                    <div className="flex items-start gap-2.5 p-3 rounded-lg border bg-muted/30">
+                      <Users className="size-4 text-muted-foreground mt-0.5" />
                       <div className="flex-1">
-                        <div className="text-[10px] text-muted-foreground mb-0.5">
+                        <div className="text-xs text-muted-foreground mb-1">
                           {t("supplier")}
                         </div>
-                        <div className="font-medium text-xs">
+                        <div className="font-medium text-sm">
                           {booking.supplier_name}
                         </div>
                         {booking.supplier_phone && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5 font-mono">
+                          <div className="text-xs text-muted-foreground mt-1 font-mono">
                             {booking.supplier_phone}
                           </div>
                         )}
@@ -540,24 +547,24 @@ export function BookingDetailsDrawer({
 
               {/* Timeline */}
               <div>
-                <h3 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5">
-                  <Clock className="size-3" />
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <Clock className="size-4" />
                   {tDetails("timeline")}
                 </h3>
-                <div className="space-y-1.5">
-                  <div className="flex items-start gap-2">
-                    <div className="flex items-center justify-center size-5 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                      <Clock className="size-2.5" />
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex items-center justify-center size-7 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex-shrink-0">
+                      <Clock className="size-3.5" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs font-medium">{t("booked")}</div>
-                      <div className="text-[10px] text-muted-foreground">
+                      <div className="text-sm font-medium">{t("booked")}</div>
+                      <div className="text-xs text-muted-foreground">
                         <RelativeTime
                           date={booking.entry_datetime || booking.created_at}
                         />
                       </div>
                       {booking.created_by_name && (
-                        <div className="text-[10px] text-muted-foreground mt-0.5">
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {t("createdBy")}: {booking.created_by_name}
                         </div>
                       )}
@@ -565,19 +572,19 @@ export function BookingDetailsDrawer({
                   </div>
 
                   {booking.received_at && (
-                    <div className="flex items-start gap-2">
-                      <div className="flex items-center justify-center size-5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                        <CheckCircle className="size-2.5" />
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex items-center justify-center size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
+                        <CheckCircle className="size-3.5" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs font-medium">
+                        <div className="text-sm font-medium">
                           {t("received")}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           <RelativeTime date={booking.received_at} />
                         </div>
                         {booking.received_by_name && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             {tDetails("receivedBy")}: {booking.received_by_name}
                           </div>
                         )}
@@ -586,17 +593,17 @@ export function BookingDetailsDrawer({
                   )}
 
                   {booking.exited_at && (
-                    <div className="flex items-start gap-2">
-                      <div className="flex items-center justify-center size-5 rounded-full bg-muted border">
-                        <LogOut className="size-2.5" />
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex items-center justify-center size-7 rounded-full bg-muted border flex-shrink-0">
+                        <LogOut className="size-3.5" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs font-medium">{t("exited")}</div>
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-sm font-medium">{t("exited")}</div>
+                        <div className="text-xs text-muted-foreground">
                           <RelativeTime date={booking.exited_at} />
                         </div>
                         {booking.exited_by_name && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             {tDetails("exitedBy")}: {booking.exited_by_name}
                           </div>
                         )}
@@ -605,19 +612,19 @@ export function BookingDetailsDrawer({
                   )}
 
                   {booking.rejected_at && (
-                    <div className="flex items-start gap-2">
-                      <div className="flex items-center justify-center size-5 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800">
-                        <XCircle className="size-2.5" />
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex items-center justify-center size-7 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 flex-shrink-0">
+                        <XCircle className="size-3.5" />
                       </div>
                       <div className="flex-1">
-                        <div className="text-xs font-medium">
+                        <div className="text-sm font-medium">
                           {t("rejected")}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           <RelativeTime date={booking.rejected_at} />
                         </div>
                         {booking.rejected_by_name && (
-                          <div className="text-[10px] text-muted-foreground mt-0.5">
+                          <div className="text-xs text-muted-foreground mt-0.5">
                             {tDetails("rejectedBy")}: {booking.rejected_by_name}
                           </div>
                         )}

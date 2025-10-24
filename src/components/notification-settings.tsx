@@ -40,13 +40,13 @@ export function NotificationSettings() {
         {isSubscribed ? (
           <Button
             variant="outline"
-            size="sm"
+            size="default"
             onClick={handleDisableClick}
             disabled={isLoading}
             title={t("notifications.disable", { defaultMessage: "Disable Notifications" })}
-            className="w-8 px-0 md:w-auto md:px-3"
+            className="w-11 h-11 px-0 md:w-auto md:px-3"
           >
-            <BellOff className="h-4 w-4 md:mr-0" />
+            <BellOff className="h-5 w-5 md:mr-0" />
             <span className="hidden md:inline">
               {t("notifications.disable", { defaultMessage: "Disable" })}
             </span>
@@ -54,13 +54,13 @@ export function NotificationSettings() {
         ) : (
           <Button
             variant="default"
-            size="sm"
+            size="default"
             onClick={subscribe}
             disabled={isLoading}
             title={t("notifications.enable", { defaultMessage: "Enable Notifications" })}
-            className="w-8 px-0 md:w-auto md:px-3"
+            className="w-11 h-11 px-0 md:w-auto md:px-3"
           >
-            <Bell className="h-4 w-4 md:mr-0" />
+            <Bell className="h-5 w-5 md:mr-0" />
             <span className="hidden md:inline">
               {t("notifications.enable", { defaultMessage: "Enable" })}
             </span>
