@@ -20,6 +20,8 @@ import {
   Edit,
   Trash,
   LogIn,
+  Paperclip,
+  Shield,
 } from "lucide-react";
 import {
   Drawer,
@@ -38,8 +40,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { RelativeTime } from "@/components/relative-time";
-import type { VehicleBooking, VehicleActivity } from "@/types/vehicle-booking";
+import type { VehicleBooking, VehicleActivity, Media } from "@/types/vehicle-booking";
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
+import { CompactBillAttachments } from "./compact-bill-attachments";
+import { FilePreviewModal } from "./FilePreviewModal";
 import { MoreVertical, RotateCcw } from "lucide-react";
 import {
   Collapsible,
@@ -54,6 +58,7 @@ interface BookingDetailsDrawerProps {
   onExit?: (booking: VehicleBooking) => void;
   onUnreceive?: (booking: VehicleBooking) => void;
   onReject?: (booking: VehicleBooking) => void;
+  onBookingUpdate?: (booking: VehicleBooking) => void;
 }
 
 export function BookingDetailsDrawer({
@@ -63,12 +68,15 @@ export function BookingDetailsDrawer({
   onExit,
   onUnreceive,
   onReject,
+  onBookingUpdate,
 }: BookingDetailsDrawerProps) {
   const t = useTranslations("vehicleBookings.bookingCard");
   const tDetails = useTranslations("vehicleBookings.bookingDetails");
   const [activities, setActivities] = useState<VehicleActivity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [showActivities, setShowActivities] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null);
 
   // Fetch activities when dialog opens and booking changes
   useEffect(() => {
@@ -100,6 +108,10 @@ export function BookingDetailsDrawer({
   const handleAction = (action: () => void) => {
     action();
     onOpenChange(false);
+  };
+
+  const handleUploadSuccess = (updatedVehicle: VehicleBooking) => {
+    onBookingUpdate?.(updatedVehicle);
   };
 
   if (!booking) return null;
@@ -244,49 +256,32 @@ export function BookingDetailsDrawer({
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="h-[100dvh] max-h-[100dvh] sm:h-[95vh] sm:max-h-[95vh]">
         <div className="mx-auto w-full max-w-2xl flex flex-col h-full">
-          <DrawerHeader className="text-left py-5 px-4 flex-shrink-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-blue-900/40 border-b border-blue-200 dark:border-blue-800">
-            <DrawerTitle className="flex flex-col gap-3">
-              {/* Top Row: Icon + Vehicle Number + Status */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex items-center justify-center size-14 rounded-xl bg-blue-600 dark:bg-blue-500 text-white shadow-lg flex-shrink-0">
-                    <Truck className="size-7" />
+          <DrawerHeader className="text-left py-4 px-4 flex-shrink-0 bg-background border-b">
+            <DrawerTitle className="flex items-center justify-between gap-4">
+              {/* Left: Icon + Primary Content */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center justify-center size-10 rounded-lg border bg-muted/30 text-muted-foreground flex-shrink-0">
+                  <Truck className="size-5" />
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                    Vehicle Booking
                   </div>
-                  <div className="flex flex-col items-start">
-                    <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                      {tDetails("vehicleBookingDetails")}
-                    </div>
-                    <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
-                      {booking.vehicle_number}
-                    </div>
+                  <div className="text-xl font-bold text-foreground truncate">
+                    {booking.vehicle_number}
                   </div>
                 </div>
-                <Badge
-                  className={`px-3 py-1.5 text-sm font-semibold ${getStatusColor(
-                    booking.status
-                  )} shadow-sm`}
-                >
-                  <StatusIcon className="size-4 me-1.5" />
-                  {t(booking.status)}
-                </Badge>
               </div>
 
-              {/* Bottom Row: Key Metrics */}
-              <div className="flex items-center gap-4 text-base">
-                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                  <Package className="size-5" />
-                  <span className="font-bold">{booking.box_count}</span>
-                  <span className="text-blue-600 dark:text-blue-400 text-sm">boxes</span>
-                </div>
-                <div className="h-5 w-px bg-blue-300 dark:bg-blue-700" />
-                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
-                  <Weight className="size-5" />
-                  <span className="font-bold">
-                    {((booking.box_count * (booking.box_weight_kg || 0)) / 1000).toFixed(2)}
-                  </span>
-                  <span className="text-blue-600 dark:text-blue-400 text-sm">tons</span>
-                </div>
-              </div>
+              {/* Right: Status Badge */}
+              <Badge
+                className={`px-3 py-2 text-sm font-medium ${getStatusColor(
+                  booking.status
+                )} flex-shrink-0`}
+              >
+                <StatusIcon className="size-4 mr-2" />
+                {t(booking.status)}
+              </Badge>
             </DrawerTitle>
           </DrawerHeader>
 
@@ -294,21 +289,18 @@ export function BookingDetailsDrawer({
             {/* Added overflow-x-hidden */}
             <div className="space-y-2.5">
 
-              {/* Creator Information - Prominent */}
+              {/* Creator Information - Compact */}
               {booking.created_by_name && (
-                <div className="p-3 rounded-lg border bg-muted/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex items-center justify-center size-8 rounded-full bg-background border text-muted-foreground">
-                      <User className="size-4" />
+                <div className="p-2 rounded-md border bg-muted/20">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center size-6 rounded-full bg-background border text-muted-foreground">
+                      <User className="size-3" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground">
-                        {tDetails("createdBy")}
-                      </div>
-                      <div className="font-semibold text-sm">
-                        {booking.created_by_name}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-muted-foreground">{tDetails("createdBy")}:</span>
+                        <span className="font-medium truncate">{booking.created_by_name}</span>
+                        <span className="text-muted-foreground">•</span>
                         <RelativeTime
                           date={booking.entry_datetime || booking.created_at}
                         />
@@ -515,9 +507,12 @@ export function BookingDetailsDrawer({
                           {booking.driver_name}
                         </div>
                         {booking.driver_phone && (
-                          <div className="text-xs text-muted-foreground mt-1 font-mono">
+                          <a
+                            href={`tel:${booking.driver_phone}`}
+                            className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono hover:underline"
+                          >
                             {booking.driver_phone}
-                          </div>
+                          </a>
                         )}
                       </div>
                     </div>
@@ -533,9 +528,12 @@ export function BookingDetailsDrawer({
                           {booking.supplier_name}
                         </div>
                         {booking.supplier_phone && (
-                          <div className="text-xs text-muted-foreground mt-1 font-mono">
+                          <a
+                            href={`tel:${booking.supplier_phone}`}
+                            className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono hover:underline"
+                          >
                             {booking.supplier_phone}
-                          </div>
+                          </a>
                         )}
                       </div>
                     </div>
@@ -565,7 +563,7 @@ export function BookingDetailsDrawer({
                       </div>
                       {booking.created_by_name && (
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {t("createdBy")}: {booking.created_by_name}
+                          {tDetails("bookedBy")}: {booking.created_by_name}
                         </div>
                       )}
                     </div>
@@ -586,6 +584,27 @@ export function BookingDetailsDrawer({
                         {booking.received_by_name && (
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {tDetails("receivedBy")}: {booking.received_by_name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {booking.approved_at && (
+                    <div className="flex items-start gap-2.5">
+                      <div className="flex items-center justify-center size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
+                        <Shield className="size-3.5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">
+                          {t("approved")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <RelativeTime date={booking.approved_at} />
+                        </div>
+                        {booking.approved_by_name && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {tDetails("approvedBy")}: {booking.approved_by_name}
                           </div>
                         )}
                       </div>
@@ -776,6 +795,37 @@ export function BookingDetailsDrawer({
                 </>
               )}
 
+              {/* Bill Attachments - Collapsible like Edit History */}
+              <Separator className="my-2" />
+              <Collapsible
+                open={showAttachments}
+                onOpenChange={setShowAttachments}
+              >
+                <div>
+                  <CollapsibleTrigger className="w-full">
+                    <h3 className="text-xs font-semibold mb-1.5 flex items-center gap-1.5 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                      <Paperclip className="size-3" />
+                      {tDetails("billAttachments")}
+                      {booking.bill_attachments && booking.bill_attachments.length > 0 && (
+                        <Badge
+                          variant="secondary"
+                          className="ml-1 text-[10px] px-1 py-0"
+                        >
+                          {booking.bill_attachments.length}
+                        </Badge>
+                      )}
+                    </h3>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CompactBillAttachments
+                      vehicle={booking}
+                      onUpdate={handleUploadSuccess}
+                      onPreview={setPreviewAttachment}
+                    />
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+
               {/* System Information */}
               <Separator className="my-2" />
               <div>
@@ -817,14 +867,14 @@ export function BookingDetailsDrawer({
                 </div>
               </div>
 
-              {/* Bottom spacer for footer clearance */}
-              {booking.status === "received" && <div className="h-2"></div>}
+              {/* Bottom spacer for safe area and footer clearance */}
+              <div className="h-4 supports-[padding:max(0px)]:h-[max(1rem,env(safe-area-inset-bottom))]"></div>
             </div>
           </div>
 
           {/* Action Buttons - Show for received status */}
           {booking.status === "received" && (
-            <DrawerFooter className="px-3 pb-8 supports-[padding:max(0px)]:pb-[max(2rem,env(safe-area-inset-bottom))] border-t flex-shrink-0 bg-background">
+            <DrawerFooter className="px-3 pb-[calc(2rem+env(safe-area-inset-bottom,0))] border-t flex-shrink-0 bg-background">
               <div className="flex gap-2">
                 {booking.can_exit && onExit && (
                   <Button
@@ -875,6 +925,13 @@ export function BookingDetailsDrawer({
           )}
         </div>
       </DrawerContent>
+
+      {/* File Preview Modal */}
+      <FilePreviewModal
+        isOpen={!!previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+        attachment={previewAttachment}
+      />
     </Drawer>
   );
 }

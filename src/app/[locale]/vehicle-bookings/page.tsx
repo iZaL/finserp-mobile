@@ -173,6 +173,14 @@ export default function VehicleBookingsPage() {
     fetchData();
   };
 
+  const handleBookingUpdate = (updatedBooking: VehicleBooking) => {
+    setSelectedBooking(updatedBooking);
+    // Also update in the bookings list
+    setBookings(prev =>
+      prev.map(b => b.id === updatedBooking.id ? updatedBooking : b)
+    );
+  };
+
   const handleSelectionChange = (booking: VehicleBooking, selected: boolean) => {
     const newSelection = new Set(selectedBookings);
     if (selected) {
@@ -659,10 +667,10 @@ export default function VehicleBookingsPage() {
             .sort((a, b) => {
               // Define priority order for statuses (operational workflow)
               const statusPriority: Record<string, number> = {
-                'booked': 1,     // Highest priority - waiting vehicles (FIFO)
-                'pending': 1,    // Same priority as booked - approval pending
-                'exited': 2,     // Lower priority - completed vehicles
-                'rejected': 3    // Lowest priority - rejected vehicles
+                'booked': 1,     // Highest priority - ready for reception (actionable)
+                'pending': 2,    // Second priority - awaiting approval (not actionable)
+                'exited': 3,     // Third priority - completed vehicles
+                'rejected': 4    // Lowest priority - rejected vehicles
               };
 
               // Handle approval-rejected as rejected priority
@@ -787,6 +795,7 @@ export default function VehicleBookingsPage() {
         onExit={handleExit}
         onUnreceive={handleUnreceive}
         onReject={handleReject}
+        onBookingUpdate={handleBookingUpdate}
       />
 
       <EditDrawer

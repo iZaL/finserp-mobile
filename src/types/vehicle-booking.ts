@@ -1,3 +1,13 @@
+export interface Media {
+  id: number
+  name: string
+  file_name: string
+  mime_type: string
+  size: number
+  url: string
+  created_at: string
+}
+
 export interface VehicleBooking {
   id: number
   vehicle_number: string
@@ -28,12 +38,16 @@ export interface VehicleBooking {
   received_by_name?: string
   rejected_by_name?: string
   exited_by_name?: string
+  approved_by_name?: string
 
   // Approval fields
   approval_status?: "pending" | "approved" | "rejected" | null
   approved_by?: number
   approved_at?: string
   approval_notes?: string
+
+  // Bill attachments
+  bill_attachments?: Media[]
 
   // Permissions
   can_edit: boolean

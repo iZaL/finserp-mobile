@@ -27,7 +27,9 @@
     "newBooking": "New Booking",
     "addNewBooking": "Add a new vehicle booking",
     "statistics": "Statistics",
-    "viewStatistics": "View booking analytics"
+    "viewStatistics": "View booking analytics",
+    "vehicleBills": "Vehicle Bills",
+    "manageBills": "Browse and manage bill attachments"
   },
   "vehicleBookings": {
     "title": "Vehicle Bookings",
@@ -129,6 +131,7 @@
       "supplier": "Supplier",
       "booked": "Booked",
       "received": "Received",
+      "approved": "Approved",
       "exited": "Exited",
       "rejected": "Rejected",
       "pending": "Pending",
@@ -289,10 +292,13 @@
       "receivedBy": "Received by",
       "exitedBy": "Exited by",
       "rejectedBy": "Rejected by",
+      "approvedBy": "Approved by",
+      "bookedBy": "Booked by",
       "activityHistory": "Activity History",
       "editHistory": "Edit History",
       "loadingActivities": "Loading activity history...",
       "systemInformation": "System Information",
+      "billAttachments": "Bill Attachments",
       "bookingId": "Booking ID",
       "entryDate": "Entry Date",
       "createdAt": "Created At",
@@ -491,6 +497,59 @@
       "title": "Disable Notifications?",
       "description": "You will no longer receive notifications for vehicle booking updates.",
       "confirm": "Disable"
+    }
+  },
+  "bills": {
+    "title": "Vehicle Bills",
+    "subtitle": "All vehicle bill attachments",
+    "searchPlaceholder": "Search by vehicle number...",
+    "noBillsFound": "No bills found",
+    "noBillsDescription": "Bill attachments will appear here once uploaded",
+    "totalBills": "Total Bills",
+    "uploadedToday": "Uploaded Today",
+    "viewDetails": "View Details",
+    "download": "Download",
+    "preview": "Preview",
+    "filters": {
+      "fileTypes": {
+        "all": "All Types",
+        "images": "Images Only",
+        "pdfs": "PDFs Only"
+      },
+      "status": {
+        "all": "All Status",
+        "booked": "Booked",
+        "received": "Received",
+        "exited": "Exited",
+        "rejected": "Rejected",
+        "pending": "Pending"
+      },
+      "dateRange": {
+        "uploadDate": "Upload Date",
+        "entryDate": "Entry Date",
+        "from": "From",
+        "to": "To",
+        "today": "Today",
+        "last7": "Last 7 Days",
+        "last30": "Last 30 Days",
+        "thisMonth": "This Month"
+      }
+    },
+    "showingResults": "Showing {count} bills",
+    "clearFilters": "Clear Filters"
+  },
+  "vehicleBooking": {
+    "billAttachments": {
+      "uploading": "Uploading {fileName}...",
+      "uploadButton": "Upload",
+      "cameraButton": "Camera",
+      "noBillAttachments": "No bill attachments",
+      "uploadSuccess": "Bill uploaded successfully",
+      "uploadError": "Failed to upload bill",
+      "deleteSuccess": "Attachment deleted",
+      "deleteError": "Failed to delete attachment",
+      "preview": "Preview",
+      "delete": "Delete"
     }
   }
 }

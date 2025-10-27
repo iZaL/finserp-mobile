@@ -3,7 +3,7 @@
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from 'next-intl'
 import { Button } from "@/components/ui/button"
-import { Car, Plus, BarChart3, ClipboardList } from "lucide-react"
+import { Car, Plus, BarChart3, ClipboardList, FileText } from "lucide-react"
 
 export default function Home() {
   const router = useRouter()
@@ -25,7 +25,7 @@ export default function Home() {
           <h3 className="text-lg font-semibold">{t('vehicleBookings')}</h3>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Button
             onClick={() => router.push("/vehicle-bookings")}
             className="h-auto flex-col items-start gap-2 p-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
@@ -56,6 +56,17 @@ export default function Home() {
             <div className="text-start">
               <div className="font-semibold">{t('statistics')}</div>
               <div className="text-xs opacity-90 font-normal">{t('viewStatistics')}</div>
+            </div>
+          </Button>
+
+          <Button
+            onClick={() => router.push("/vehicle-bookings/bills")}
+            className="h-auto flex-col items-start gap-2 p-4 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+          >
+            <FileText className="size-5" />
+            <div className="text-start">
+              <div className="font-semibold">{t('vehicleBills')}</div>
+              <div className="text-xs opacity-90 font-normal">{t('manageBills')}</div>
             </div>
           </Button>
         </div>

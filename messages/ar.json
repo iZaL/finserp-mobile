@@ -27,7 +27,9 @@
     "newBooking": "حجز جديد",
     "addNewBooking": "إضافة حجز مركبة جديد",
     "statistics": "الإحصائيات",
-    "viewStatistics": "عرض تحليلات الحجوزات"
+    "viewStatistics": "عرض تحليلات الحجوزات",
+    "vehicleBills": "فواتير المركبات",
+    "manageBills": "تصفح وإدارة مرفقات الفواتير"
   },
   "vehicleBookings": {
     "title": "حجوزات المركبات",
@@ -129,6 +131,7 @@
       "supplier": "المورد",
       "booked": "محجوز",
       "received": "مستلم",
+      "approved": "معتمد",
       "exited": "خارج",
       "rejected": "مرفوض",
       "pending": "قيد الانتظار",
@@ -289,10 +292,13 @@
       "receivedBy": "تم الاستلام بواسطة",
       "exitedBy": "تم الخروج بواسطة",
       "rejectedBy": "تم الرفض بواسطة",
+      "approvedBy": "تمت الموافقة بواسطة",
+      "bookedBy": "حُجز بواسطة",
       "activityHistory": "سجل النشاطات",
       "editHistory": "سجل التعديلات",
       "loadingActivities": "جاري تحميل سجل النشاطات...",
       "systemInformation": "معلومات النظام",
+      "billAttachments": "مرفقات الفواتير",
       "bookingId": "رقم الحجز",
       "entryDate": "تاريخ الدخول",
       "createdAt": "تاريخ الإنشاء",
@@ -491,6 +497,59 @@
       "title": "تعطيل الإشعارات؟",
       "description": "لن تتلقى بعد الآن إشعارات حول تحديثات حجوزات المركبات.",
       "confirm": "تعطيل"
+    }
+  },
+  "bills": {
+    "title": "فواتير المركبات",
+    "subtitle": "جميع مرفقات فواتير المركبات",
+    "searchPlaceholder": "البحث برقم المركبة...",
+    "noBillsFound": "لا توجد فواتير",
+    "noBillsDescription": "ستظهر مرفقات الفواتير هنا بمجرد رفعها",
+    "totalBills": "إجمالي الفواتير",
+    "uploadedToday": "تم الرفع اليوم",
+    "viewDetails": "عرض التفاصيل",
+    "download": "تحميل",
+    "preview": "معاينة",
+    "filters": {
+      "fileTypes": {
+        "all": "جميع الأنواع",
+        "images": "الصور فقط",
+        "pdfs": "ملفات PDF فقط"
+      },
+      "status": {
+        "all": "جميع الحالات",
+        "booked": "محجوز",
+        "received": "مستلم",
+        "exited": "خارج",
+        "rejected": "مرفوض",
+        "pending": "معلق"
+      },
+      "dateRange": {
+        "uploadDate": "تاريخ الرفع",
+        "entryDate": "تاريخ الدخول",
+        "from": "من",
+        "to": "إلى",
+        "today": "اليوم",
+        "last7": "آخر 7 أيام",
+        "last30": "آخر 30 يوم",
+        "thisMonth": "هذا الشهر"
+      }
+    },
+    "showingResults": "عرض {count} فاتورة",
+    "clearFilters": "مسح المرشحات"
+  },
+  "vehicleBooking": {
+    "billAttachments": {
+      "uploading": "جاري رفع {fileName}...",
+      "uploadButton": "رفع",
+      "cameraButton": "كاميرا",
+      "noBillAttachments": "لا توجد مرفقات فواتير",
+      "uploadSuccess": "تم رفع الفاتورة بنجاح",
+      "uploadError": "فشل رفع الفاتورة",
+      "deleteSuccess": "تم حذف المرفق",
+      "deleteError": "فشل حذف المرفق",
+      "preview": "معاينة",
+      "delete": "حذف"
     }
   }
 }

@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Settings2, Package, ChevronRight, Loader2, TrendingUp, Power, CheckCircle, Shield } from "lucide-react"
+import { Settings2, Package, ChevronRight, Loader2, TrendingUp, Power, CheckCircle, Shield, Bell } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [requireApproval, setRequireApproval] = useState<boolean>(false)
   const [allowOverride, setAllowOverride] = useState<boolean>(true)
   const [isUpdatingSettings, setIsUpdatingSettings] = useState<string | null>(null)
+
 
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -66,6 +67,7 @@ export default function SettingsPage() {
       if (capacityResponse.data?.data) {
         setBoxLimit(capacityResponse.data.data.daily_limit_boxes || 5000)
       }
+
     } catch (error) {
       console.error("Failed to fetch settings:", error)
     } finally {
