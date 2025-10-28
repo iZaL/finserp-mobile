@@ -87,3 +87,12 @@ export function VehicleBookingGuard({ children }: { children: ReactNode }) {
     </PermissionGuard>
   )
 }
+
+// Convenience component for bill attachments access
+export function BillAttachmentsGuard({ children }: { children: ReactNode }) {
+  return (
+    <PermissionGuard permissions={['view-vehicle-bill-attachments']}>
+      {children}
+    </PermissionGuard>
+  )
+}

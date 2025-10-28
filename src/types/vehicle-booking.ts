@@ -1,3 +1,13 @@
+export interface Media {
+  id: number
+  name: string
+  file_name: string
+  mime_type: string
+  size: number
+  url: string
+  created_at: string
+}
+
 export interface VehicleBooking {
   id: number
   vehicle_number: string
@@ -10,24 +20,29 @@ export interface VehicleBooking {
   supplier_name?: string
   supplier_phone?: string
   notes?: string
-  status: "booked" | "received" | "exited" | "rejected"
+  status: "pending" | "booked" | "received" | "offloading" | "offloaded" | "exited" | "rejected"
   rejection_reason?: string
   rejection_notes?: string
   entry_date: string
   entry_datetime: string
   received_at?: string
+  offloading_started_at?: string
+  offloading_completed_at?: string
   rejected_at?: string
   exited_at?: string
   created_at: string
   updated_at: string
   created_by?: number
   received_by?: number
+  offloaded_by?: number
   rejected_by?: number
   exited_by?: number
   created_by_name?: string
   received_by_name?: string
+  offloaded_by_name?: string
   rejected_by_name?: string
   exited_by_name?: string
+  approved_by_name?: string
 
   // Approval fields
   approval_status?: "pending" | "approved" | "rejected" | null
@@ -35,10 +50,15 @@ export interface VehicleBooking {
   approved_at?: string
   approval_notes?: string
 
+  // Bill attachments
+  bill_attachments?: Media[]
+
   // Permissions
   can_edit: boolean
   can_delete: boolean
   can_receive: boolean
+  can_start_offloading: boolean
+  can_complete_offloading: boolean
   can_reject: boolean
   can_exit: boolean
   can_unreceive: boolean
@@ -49,7 +69,7 @@ export interface VehicleBooking {
 export interface VehicleActivity {
   id: number
   vehicle_id: number
-  action: "created" | "updated" | "edited" | "received" | "unreceived" | "exited" | "rejected" | "deleted" | "approved" | "approval_rejected"
+  action: "created" | "updated" | "edited" | "received" | "unreceived" | "offloading_started" | "offloading_completed" | "exited" | "rejected" | "deleted" | "approved" | "approval_rejected"
   old_values?: Record<string, string | number | boolean | null>
   new_values?: Record<string, string | number | boolean | null>
   user_id?: number
@@ -129,7 +149,7 @@ export interface VehicleTemplate {
 
 export interface BookingFilters {
   search?: string
-  status?: "all" | "pending" | "booked" | "received" | "exited" | "rejected"
+  status?: "all" | "pending" | "booked" | "received" | "offloading" | "offloaded" | "exited" | "rejected"
   date_filter?: "current" | "last_24h" | "last_48h" | "last_week" | "custom"
   date_from?: string
   date_to?: string
@@ -161,7 +181,6 @@ export interface UpdateBookingRequest {
 }
 
 export interface ReceiveBookingRequest {
-  received_box_count: number
   notes?: string
 }
 
@@ -178,6 +197,15 @@ export interface RejectApprovalRequest {
   notes: string
 }
 
+export interface StartOffloadingRequest {
+  // No additional data needed for starting offloading
+}
+
+export interface CompleteOffloadingRequest {
+  actual_box_count: number
+  notes?: string
+}
+
 export interface UpdateControlSettingsRequest {
   vehicle_booking_enabled?: boolean
   require_vehicle_booking_approval?: boolean
@@ -190,7 +218,7 @@ export interface BulkActionRequest {
   data?: ReceiveBookingRequest | RejectBookingRequest
 }
 
-export type StatusFilter = "all" | "pending" | "booked" | "received" | "exited" | "rejected"
+export type StatusFilter = "all" | "pending" | "booked" | "received" | "offloading" | "offloaded" | "exited" | "rejected"
 
 export interface PaginatedResponse<T> {
   data: T[]

@@ -19,6 +19,7 @@ import type {
   BookingFilters,
   DailyCapacity,
   VehicleBookingSettings,
+  CompleteOffloadingRequest,
 } from "@/types/vehicle-booking";
 import { toast } from "sonner";
 import { BookingCard } from "@/components/vehicle-booking/booking-card";
@@ -29,8 +30,9 @@ import { UnreceiveDialog } from "@/components/vehicle-booking/unreceive-dialog";
 import { DeleteDialog } from "@/components/vehicle-booking/delete-dialog";
 import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog";
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog";
+import { StartOffloadingDialog } from "@/components/vehicle-booking/start-offloading-dialog";
+import { CompleteOffloadingSheet } from "@/components/vehicle-booking/complete-offloading-sheet";
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card";
-import { NotificationSettings } from "@/components/notification-settings";
 import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer";
 import { EditDrawer } from "@/components/vehicle-booking/edit-drawer";
 import { VehicleBookingGuard } from "@/components/permission-guard";
@@ -69,6 +71,8 @@ export default function VehicleBookingsPage() {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [rejectApprovalDialogOpen, setRejectApprovalDialogOpen] =
     useState(false);
+  const [startOffloadingOpen, setStartOffloadingOpen] = useState(false);
+  const [completeOffloadingOpen, setCompleteOffloadingOpen] = useState(false);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(
@@ -79,17 +83,32 @@ export default function VehicleBookingsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [bookingsData, capacityData, settingsData] =
+      const [bookingsData, statsData, dailyCapacityData, settingsData] =
         await Promise.all([
           vehicleBookingService.getBookings({
             status: "all", // Always fetch all bookings
             date_filter: timeRangeFilter,
             per_page: 50,
           }),
+          vehicleBookingService.getStats(),
           vehicleBookingService.getDailyCapacity(),
           vehicleBookingService.getSettings(),
         ]);
       setBookings(bookingsData.data);
+
+      // Convert stats data to capacity format, using daily limits from daily capacity
+      const capacityData = {
+        date: dailyCapacityData.date,
+        daily_limit_boxes: dailyCapacityData.daily_limit_boxes,
+        daily_limit_tons: dailyCapacityData.daily_limit_tons,
+        total_booked_boxes: statsData.total_boxes, // Use stats for actual factory load
+        total_received_boxes: statsData.received_boxes,
+        remaining_capacity_boxes: Math.max(0, dailyCapacityData.daily_limit_boxes - statsData.total_boxes),
+        capacity_used_percent: dailyCapacityData.daily_limit_boxes > 0 ?
+          (statsData.total_boxes / dailyCapacityData.daily_limit_boxes) * 100 : 0,
+        can_override: dailyCapacityData.can_override
+      };
+
       setCapacityInfo(capacityData);
       setSettings(settingsData);
 
@@ -164,6 +183,28 @@ export default function VehicleBookingsPage() {
     setRejectApprovalDialogOpen(true);
   };
 
+  const handleStartOffloading = (booking: VehicleBooking) => {
+    setSelectedBooking(booking);
+    setStartOffloadingOpen(true);
+  };
+
+  const handleCompleteOffloading = (booking: VehicleBooking) => {
+    setSelectedBooking(booking);
+    setCompleteOffloadingOpen(true);
+  };
+
+
+  const handleCompleteOffloadingSubmit = async (booking: VehicleBooking, data: CompleteOffloadingRequest) => {
+    try {
+      await vehicleBookingService.completeOffloading(booking.id, data);
+      toast.success(t("completeOffloadingSuccess"));
+      fetchData();
+    } catch (error) {
+      console.error("Complete offloading error:", error);
+      toast.error(t("completeOffloadingError"));
+    }
+  };
+
   const handleViewDetails = (booking: VehicleBooking) => {
     setSelectedBooking(booking);
     setDetailsDialogOpen(true);
@@ -171,6 +212,14 @@ export default function VehicleBookingsPage() {
 
   const handleDialogSuccess = () => {
     fetchData();
+  };
+
+  const handleBookingUpdate = (updatedBooking: VehicleBooking) => {
+    setSelectedBooking(updatedBooking);
+    // Also update in the bookings list
+    setBookings(prev =>
+      prev.map(b => b.id === updatedBooking.id ? updatedBooking : b)
+    );
   };
 
   const handleSelectionChange = (booking: VehicleBooking, selected: boolean) => {
@@ -253,8 +302,8 @@ export default function VehicleBookingsPage() {
         }
       }
 
-      // Exclude received vehicles (they're shown in "Currently Offloading" section)
-      if (booking.status === "received") return false;
+      // Exclude received/offloading/offloaded vehicles (they're shown in "Currently Offloading" section)
+      if (booking.status === "received" || booking.status === "offloading" || booking.status === "offloaded") return false;
 
       // Apply search filter
       return (
@@ -289,8 +338,12 @@ export default function VehicleBookingsPage() {
       b.approval_status !== "rejected"
     ).length,
 
-    // Bookings currently in factory being offloaded
-    received: bookings.filter((b) => b.status === "received").length,
+    // Bookings currently in factory being offloaded (received + offloading + offloaded)
+    received: bookings.filter((b) =>
+      b.status === "received" ||
+      b.status === "offloading" ||
+      b.status === "offloaded"
+    ).length,
 
     // Bookings that finished offloading and exited
     exited: bookings.filter((b) => b.status === "exited").length,
@@ -310,7 +363,6 @@ export default function VehicleBookingsPage() {
           <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
-          <NotificationSettings />
           <Button
             onClick={handleRefresh}
             disabled={refreshing}
@@ -508,7 +560,7 @@ export default function VehicleBookingsPage() {
       )}
 
       {/* Vehicles Inside Factory Section */}
-      {!loading && (statusFilter === "all" || statusFilter === "received") && bookings.filter(b => b.status === "received").length > 0 && (
+      {!loading && (statusFilter === "all" || statusFilter === "received" || statusFilter === "offloading" || statusFilter === "offloaded") && bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length > 0 && (
         <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
@@ -516,17 +568,42 @@ export default function VehicleBookingsPage() {
               {t("vehiclesInsideFactory")}
             </h3>
             <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-              {bookings.filter(b => b.status === "received").length} {bookings.filter(b => b.status === "received").length === 1 ? "vehicle" : "vehicles"}
+              {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length} {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length === 1 ? "vehicle" : "vehicles"}
             </span>
           </div>
           <div className="space-y-3">
             {bookings
-              .filter(b => b.status === "received")
+              .filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded")
               .sort((a, b) => {
-                // Sort by received_at date, oldest first (ascending)
-                const dateA = new Date(a.received_at || a.created_at).getTime();
-                const dateB = new Date(b.received_at || b.created_at).getTime();
-                return dateA - dateB;
+                // Define priority: offloading (1) -> received (2) -> offloaded (3)
+                const statusPriority: Record<string, number> = {
+                  'offloading': 1,  // Highest priority - actively being processed
+                  'received': 2,    // Second priority - waiting to start
+                  'offloaded': 3    // Lowest priority - ready to exit
+                };
+
+                const priorityA = statusPriority[a.status] || 99;
+                const priorityB = statusPriority[b.status] || 99;
+
+                // First sort by status priority
+                if (priorityA !== priorityB) {
+                  return priorityA - priorityB;
+                }
+
+                // Within same status, sort by relevant timestamp
+                const getTimestamp = (booking: VehicleBooking) => {
+                  if (booking.status === "offloading" && booking.offloading_started_at) {
+                    return booking.offloading_started_at;
+                  }
+                  if (booking.status === "offloaded" && booking.offloading_completed_at) {
+                    return booking.offloading_completed_at;
+                  }
+                  return booking.received_at || booking.created_at;
+                };
+
+                const dateA = new Date(getTimestamp(a)).getTime();
+                const dateB = new Date(getTimestamp(b)).getTime();
+                return dateA - dateB; // Oldest first (FIFO)
               })
               .map(booking => (
                 <BookingCard
@@ -534,6 +611,8 @@ export default function VehicleBookingsPage() {
                   booking={booking}
                   onReceive={handleReceive}
                   onReject={handleReject}
+                  onStartOffloading={handleStartOffloading}
+                  onCompleteOffloading={handleCompleteOffloading}
                   onExit={handleExit}
                   onUnreceive={handleUnreceive}
                   onEdit={handleEdit}
@@ -659,10 +738,10 @@ export default function VehicleBookingsPage() {
             .sort((a, b) => {
               // Define priority order for statuses (operational workflow)
               const statusPriority: Record<string, number> = {
-                'booked': 1,     // Highest priority - waiting vehicles (FIFO)
-                'pending': 1,    // Same priority as booked - approval pending
-                'exited': 2,     // Lower priority - completed vehicles
-                'rejected': 3    // Lowest priority - rejected vehicles
+                'booked': 1,     // Highest priority - ready for reception (actionable)
+                'pending': 2,    // Second priority - awaiting approval (not actionable)
+                'exited': 3,     // Third priority - completed vehicles
+                'rejected': 4    // Lowest priority - rejected vehicles
               };
 
               // Handle approval-rejected as rejected priority
@@ -716,6 +795,8 @@ export default function VehicleBookingsPage() {
                 booking={booking}
                 onReceive={handleReceive}
                 onReject={handleReject}
+                onStartOffloading={handleStartOffloading}
+                onCompleteOffloading={handleCompleteOffloading}
                 onExit={handleExit}
                 onUnreceive={handleUnreceive}
                 onEdit={handleEdit}
@@ -780,6 +861,21 @@ export default function VehicleBookingsPage() {
         onSuccess={handleDialogSuccess}
       />
 
+      <StartOffloadingDialog
+        booking={selectedBooking}
+        open={startOffloadingOpen}
+        onOpenChange={setStartOffloadingOpen}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <CompleteOffloadingSheet
+        booking={selectedBooking}
+        open={completeOffloadingOpen}
+        onOpenChange={setCompleteOffloadingOpen}
+        onSubmit={handleCompleteOffloadingSubmit}
+        loading={false}
+      />
+
       <BookingDetailsDrawer
         booking={selectedBooking}
         open={detailsDialogOpen}
@@ -787,6 +883,7 @@ export default function VehicleBookingsPage() {
         onExit={handleExit}
         onUnreceive={handleUnreceive}
         onReject={handleReject}
+        onBookingUpdate={handleBookingUpdate}
       />
 
       <EditDrawer
