@@ -16,20 +16,20 @@ import type { VehicleBooking } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 import { CheckCircle, Loader2, Truck } from "lucide-react"
 
-interface ReceiveDialogProps {
+interface StartOffloadingDialogProps {
   booking: VehicleBooking | null
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function ReceiveDialog({
+export function StartOffloadingDialog({
   booking,
   open,
   onOpenChange,
   onSuccess,
-}: ReceiveDialogProps) {
-  const t = useTranslations('vehicleBookings.receiveDialog')
+}: StartOffloadingDialogProps) {
+  const t = useTranslations('vehicleBookings')
   const tCommon = useTranslations('common')
   const [loading, setLoading] = useState(false)
 
@@ -44,14 +44,14 @@ export function ReceiveDialog({
 
     try {
       setLoading(true)
-      await vehicleBookingService.receiveVehicle(booking.id, {})
+      await vehicleBookingService.startOffloading(booking.id)
 
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
+      toast.success(t('startOffloadingSuccess'))
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
-      console.error("Error receiving vehicle:", error)
-      toast.error('Failed to receive vehicle')
+      console.error("Error starting offloading:", error)
+      toast.error(t('startOffloadingError'))
     } finally {
       setLoading(false)
     }
@@ -65,10 +65,10 @@ export function ReceiveDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Truck className="size-5" />
-            Receive Vehicle
+            Start Offloading
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to receive vehicle <strong>{booking.vehicle_number}</strong>?
+            Are you sure you want to start offloading for vehicle <strong>{booking.vehicle_number}</strong>?
           </DialogDescription>
         </DialogHeader>
 
@@ -107,17 +107,17 @@ export function ReceiveDialog({
           <Button
             onClick={handleConfirm}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
+            className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700"
           >
             {loading ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
-                Receiving...
+                Starting...
               </>
             ) : (
               <>
                 <CheckCircle className="size-4 mr-2" />
-                Receive Vehicle
+                Start Offloading
               </>
             )}
           </Button>

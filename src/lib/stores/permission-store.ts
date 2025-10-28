@@ -27,6 +27,11 @@ interface PermissionStore {
   canExportReports: () => boolean
   canToggleSettings: () => boolean
 
+  // Bill attachment specific permission checks
+  canViewBillAttachments: () => boolean
+  canUploadBillAttachments: () => boolean
+  canDeleteBillAttachments: () => boolean
+
   // Get user permissions
   getUserPermissions: () => string[]
   getUserRoles: () => string[]
@@ -113,6 +118,19 @@ export const usePermissionStore = create<PermissionStore>((set, get) => ({
       VEHICLE_BOOKING_PERMISSIONS.TOGGLE_VEHICLE_BOOKING_APPROVAL,
       VEHICLE_BOOKING_PERMISSIONS.TOGGLE_VEHICLE_BOOKING_OVERRIDE,
     ])
+  },
+
+  // Bill attachment specific methods
+  canViewBillAttachments: () => {
+    return get().hasPermission(VEHICLE_BOOKING_PERMISSIONS.VIEW_BILL_ATTACHMENTS)
+  },
+
+  canUploadBillAttachments: () => {
+    return get().hasPermission(VEHICLE_BOOKING_PERMISSIONS.UPLOAD_BILL_ATTACHMENTS)
+  },
+
+  canDeleteBillAttachments: () => {
+    return get().hasPermission(VEHICLE_BOOKING_PERMISSIONS.DELETE_BILL_ATTACHMENTS)
   },
 
   getUserPermissions: () => {

@@ -17,6 +17,8 @@ interface BookingCardProps {
   booking: VehicleBooking
   onReceive?: (booking: VehicleBooking) => void
   onReject?: (booking: VehicleBooking) => void
+  onStartOffloading?: (booking: VehicleBooking) => void
+  onCompleteOffloading?: (booking: VehicleBooking) => void
   onExit?: (booking: VehicleBooking) => void
   onUnreceive?: (booking: VehicleBooking) => void
   onEdit?: (booking: VehicleBooking) => void
@@ -32,6 +34,8 @@ export function BookingCard({
   booking,
   onReceive,
   onReject,
+  onStartOffloading,
+  onCompleteOffloading,
   onExit,
   onUnreceive,
   onEdit,
@@ -50,6 +54,10 @@ export function BookingCard({
         return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
       case "received":
         return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+      case "offloading":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+      case "offloaded":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
       case "exited":
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
       case "rejected":
@@ -284,15 +292,15 @@ export function BookingCard({
         {/* Received Status Actions */}
         {booking.status === "received" && (
           <>
-            {booking.can_exit && onExit && (
+            {booking.can_start_offloading && onStartOffloading && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => handleAction(e, () => onExit(booking))}
-                className="flex-1 border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-500 dark:bg-blue-950 dark:hover:bg-blue-900"
+                onClick={(e) => handleAction(e, () => onStartOffloading(booking))}
+                className="flex-1 border-amber-600 text-amber-600 bg-amber-50 hover:bg-amber-100 dark:border-amber-500 dark:text-amber-500 dark:bg-amber-950 dark:hover:bg-amber-900"
               >
-                <LogOut className="size-4 me-1" />
-                {t('actions.exit')}
+                <CheckCircle className="size-4 me-1" />
+                {t('actions.startOffloading')}
               </Button>
             )}
             {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
@@ -332,8 +340,42 @@ export function BookingCard({
           </>
         )}
 
+        {/* Offloading Status Actions */}
+        {booking.status === "offloading" && (
+          <>
+            {booking.can_complete_offloading && onCompleteOffloading && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => onCompleteOffloading(booking))}
+                className="flex-1 border-green-600 text-green-600 bg-green-50 hover:bg-green-100 dark:border-green-500 dark:text-green-500 dark:bg-green-950 dark:hover:bg-green-900"
+              >
+                <CheckCircle className="size-4 me-1" />
+                {t('actions.completeOffloading')}
+              </Button>
+            )}
+          </>
+        )}
+
+        {/* Offloaded Status Actions */}
+        {booking.status === "offloaded" && (
+          <>
+            {booking.can_exit && onExit && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => onExit(booking))}
+                className="flex-1 border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-500 dark:bg-blue-950 dark:hover:bg-blue-900"
+              >
+                <LogOut className="size-4 me-1" />
+                {t('actions.exit')}
+              </Button>
+            )}
+          </>
+        )}
+
         {/* Exited/Rejected Status - No Actions */}
-        {(booking.status === "exited" || booking.status === "rejected") && null}
+        {(booking.status === "exited" || booking.status === "rejected" || booking.status === "pending") && null}
       </div>
     </div>
   )

@@ -13,6 +13,8 @@ import type {
   RejectBookingRequest,
   ApproveBookingRequest,
   RejectApprovalRequest,
+  StartOffloadingRequest,
+  CompleteOffloadingRequest,
   UpdateControlSettingsRequest,
   BulkActionRequest,
   PaginatedResponse,
@@ -177,6 +179,30 @@ export const vehicleBookingService = {
     return response.data.data!
   },
 
+  // Start offloading
+  startOffloading: async (
+    id: number,
+    data?: StartOffloadingRequest
+  ): Promise<VehicleBooking> => {
+    const response = await api.post<ApiResponse<VehicleBooking>>(
+      `/fish-purchase-vehicles/${id}/start-offloading`,
+      data || {}
+    )
+    return response.data.data!
+  },
+
+  // Complete offloading
+  completeOffloading: async (
+    id: number,
+    data: CompleteOffloadingRequest
+  ): Promise<VehicleBooking> => {
+    const response = await api.post<ApiResponse<VehicleBooking>>(
+      `/fish-purchase-vehicles/${id}/complete-offloading`,
+      data
+    )
+    return response.data.data!
+  },
+
   // Approve vehicle booking
   approveVehicle: async (
     id: number,
@@ -224,5 +250,62 @@ export const vehicleBookingService = {
       data
     )
     return response.data.data!
+  },
+
+  // Upload media attachment
+  uploadMedia: async (vehicleId: number, file: File): Promise<VehicleBooking> => {
+    const formData = new FormData()
+    formData.append('files[]', file)
+    formData.append('model_type', 'fish_purchase_vehicle')
+    formData.append('model_id', vehicleId.toString())
+    formData.append('collection_name', 'vehicle_bills')
+
+    // Use normal API endpoint
+    const response = await api.post<ApiResponse<VehicleBooking>>(
+      '/media',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data.data!
+  },
+
+  // Delete media attachment
+  deleteMedia: async (mediaId: number): Promise<VehicleBooking> => {
+    const response = await api.delete<ApiResponse<VehicleBooking>>(
+      `/media/${mediaId}`
+    )
+    return response.data.data!
+  },
+
+  // Get bills gallery
+  getBillsGallery: async (filters?: {
+    search?: string;
+    page?: number;
+    file_type?: 'all' | 'images' | 'pdfs';
+    status?: string;
+    date_from?: string;
+    date_to?: string;
+    entry_date_from?: string;
+    entry_date_to?: string;
+  }): Promise<PaginatedResponse<VehicleBooking>> => {
+    const params = new URLSearchParams()
+
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.file_type && filters.file_type !== 'all') params.append('file_type', filters.file_type)
+    if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.entry_date_from) params.append('entry_date_from', filters.entry_date_from)
+    if (filters?.entry_date_to) params.append('entry_date_to', filters.entry_date_to)
+
+    const response = await api.get<PaginatedResponse<VehicleBooking>>(
+      `/fish-purchase-vehicles/bills?${params.toString()}`
+    )
+    return response.data
   },
 }

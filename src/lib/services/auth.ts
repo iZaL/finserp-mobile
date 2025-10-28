@@ -10,6 +10,7 @@ export interface User {
   id: number
   name: string
   email: string
+  phone?: string
   email_verified_at?: string
   role_names?: string[]
   permission_names?: string[]
@@ -23,6 +24,18 @@ export interface User {
     name: string
     guard_name: string
   }>
+  notification_preferences?: {
+    vehicle_bookings: {
+      booked: boolean
+      received: boolean
+      exited: boolean
+      rejected: boolean
+      approved: boolean
+    }
+    capacity: {
+      alerts: boolean
+    }
+  }
 }
 
 export interface AuthResponse {
