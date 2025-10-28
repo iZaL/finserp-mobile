@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import {
   FileText,
   Download,
@@ -109,7 +110,7 @@ export default function VehicleBillsPage() {
   };
 
   // Fetch vehicles with bills
-  const fetchBills = async () => {
+  const fetchBills = useCallback(async () => {
     setLoading(true);
     try {
       const response = await vehicleBookingService.getBillsGallery({
@@ -133,7 +134,7 @@ export default function VehicleBillsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, dateFrom, dateTo]);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
@@ -141,7 +142,7 @@ export default function VehicleBillsPage() {
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery, dateFrom, dateTo]);
+  }, [fetchBills]);
 
   // Get all bills flattened with vehicle info
   const allBills = vehicles.flatMap(vehicle =>
@@ -326,10 +327,11 @@ export default function VehicleBillsPage() {
                   }}
                 >
                   {isImage(bill.mime_type) ? (
-                    <img
+                    <Image
                       src={bill.url}
                       alt={bill.file_name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                       loading="lazy"
                     />
                   ) : (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Bell, BellOff, User, Info } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -69,7 +69,7 @@ export default function ProfilePage() {
       })
       setNotificationPreferences(preferences)
       toast.success("Notification preferences updated")
-    } catch (error) {
+    } catch {
       toast.error("Failed to save notification preferences")
     } finally {
       setIsSaving(false)

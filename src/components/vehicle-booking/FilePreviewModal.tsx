@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import { X, Download, Share2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -105,11 +106,12 @@ export function FilePreviewModal({ isOpen, onClose, attachment }: FilePreviewMod
               title={attachment.file_name || attachment.name}
             />
           ) : isImage ? (
-            <div className="flex items-center justify-center min-h-[50vh] h-full">
-              <img
+            <div className="flex items-center justify-center min-h-[50vh] h-full relative">
+              <Image
                 src={attachment.url}
                 alt={attachment.file_name || attachment.name}
-                className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                fill
+                className="object-contain rounded-lg shadow-sm"
               />
             </div>
           ) : (

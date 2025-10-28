@@ -50,7 +50,7 @@ export function CompactBillAttachments({
       const updatedVehicle = await vehicleBookingService.uploadMedia(vehicle.id, file)
       onUpdate(updatedVehicle)
       toast.success(t('uploadSuccess'))
-    } catch (error) {
+    } catch {
       toast.error(t('uploadError'))
     } finally {
       setIsUploading(false)
@@ -74,7 +74,7 @@ export function CompactBillAttachments({
       const updatedVehicle = await vehicleBookingService.deleteMedia(id)
       onUpdate(updatedVehicle)
       toast.success(t('deleteSuccess'))
-    } catch (error) {
+    } catch {
       toast.error(t('deleteError'))
     } finally {
       setDeletingId(null)

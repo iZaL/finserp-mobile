@@ -197,6 +197,7 @@ export interface RejectApprovalRequest {
   notes: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface StartOffloadingRequest {
   // No additional data needed for starting offloading
 }
