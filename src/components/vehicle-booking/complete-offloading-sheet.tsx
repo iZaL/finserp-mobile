@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,6 +35,19 @@ export function CompleteOffloadingSheet({
   const [actualBoxCount, setActualBoxCount] = useState("")
   const [notes, setNotes] = useState("")
   const [error, setError] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus input when dialog opens
+  useEffect(() => {
+    if (open && inputRef.current) {
+      // Delay to allow sheet animation to complete
+      const timer = setTimeout(() => {
+        inputRef.current?.focus()
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [open])
 
   const handleSubmit = () => {
     if (!booking) return
@@ -65,7 +78,9 @@ export function CompleteOffloadingSheet({
   }
 
   const handleBoxCountChange = (value: string) => {
-    setActualBoxCount(value)
+    // Only allow numeric input
+    const numericValue = value.replace(/[^0-9]/g, '')
+    setActualBoxCount(numericValue)
     if (error) setError("")
   }
 
@@ -76,7 +91,7 @@ export function CompleteOffloadingSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[80dvh] flex flex-col">
+      <SheetContent side="bottom" className="h-auto flex flex-col pb-safe">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Truck className="size-5" />
@@ -88,7 +103,7 @@ export function CompleteOffloadingSheet({
         </SheetHeader>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
+        <div className="flex-1 overflow-y-auto px-4 pb-4 overscroll-contain">
           <div className="mt-6 space-y-4">
             {/* Vehicle Info */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
@@ -123,8 +138,11 @@ export function CompleteOffloadingSheet({
                 {t('actualBoxCount.label')} *
               </Label>
               <Input
+                ref={inputRef}
                 id="actual-box-count"
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={actualBoxCount}
                 onChange={(e) => handleBoxCountChange(e.target.value)}
                 placeholder={t('actualBoxCount.placeholder')}
