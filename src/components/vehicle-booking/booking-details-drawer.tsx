@@ -164,6 +164,20 @@ export function BookingDetailsDrawer({
       icon: CheckCircle,
       color: 'emerald' as const
     }] : []),
+    ...(booking.offloading_started_at ? [{
+      type: 'offloadingStarted',
+      timestamp: booking.offloading_started_at,
+      user: booking.offloaded_by_name,
+      icon: Fish,
+      color: 'blue' as const
+    }] : []),
+    ...(booking.offloading_completed_at ? [{
+      type: 'offloadingCompleted',
+      timestamp: booking.offloading_completed_at,
+      user: booking.offloaded_by_name,
+      icon: Fish,
+      color: 'emerald' as const
+    }] : []),
     ...(booking.exited_at ? [{
       type: 'exited',
       timestamp: booking.exited_at,
@@ -481,73 +495,6 @@ export function BookingDetailsDrawer({
                 </>
               )}
 
-              {/* Offloading Information - Compact */}
-              {(booking.status === "offloading" || booking.status === "offloaded" || booking.status === "exited") &&
-               booking.offloading_started_at && (
-                <>
-                  <Separator className="my-2" />
-                  <div className={`p-2 rounded-lg border ${
-                    booking.status === "offloading"
-                      ? "border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-900/10"
-                      : "border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-900/10"
-                  }`}>
-                    <div className={`flex items-center justify-between mb-1.5 ${
-                      booking.status === "offloading"
-                        ? "text-amber-700 dark:text-amber-400"
-                        : "text-emerald-700 dark:text-emerald-400"
-                    }`}>
-                      <div className="flex items-center gap-1.5">
-                        {booking.status === "offloading" ? (
-                          <Fish
-                            className="size-3 animate-bounce"
-                            style={{
-                              animationDuration: '2s',
-                              transformOrigin: 'center'
-                            }}
-                          />
-                        ) : (
-                          <Fish className="size-3" />
-                        )}
-                        <span className="text-xs font-semibold">
-                          {booking.status === "offloading"
-                            ? tDetails("offloadingInProgress")
-                            : tDetails("offloadingCompleted")
-                          }
-                        </span>
-                      </div>
-
-                      {/* Duration Badge */}
-                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        booking.status === "offloading"
-                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                      }`}>
-                        {booking.status === "offloading" ? (
-                          (() => {
-                            const start = new Date(booking.offloading_started_at).getTime()
-                            const now = new Date().getTime()
-                            const diffMs = now - start
-                            const hours = Math.floor(diffMs / (1000 * 60 * 60))
-                            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
-                          })()
-                        ) : booking.offloading_completed_at ? (
-                          (() => {
-                            const start = new Date(booking.offloading_started_at).getTime()
-                            const end = new Date(booking.offloading_completed_at).getTime()
-                            const diffMs = end - start
-                            const hours = Math.floor(diffMs / (1000 * 60 * 60))
-                            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
-                          })()
-                        ) : null}
-                      </div>
-                    </div>
-
-                  </div>
-                </>
-              )}
-
               {/* Rejection Information */}
               {booking.status === "rejected" && booking.rejection_reason && (
                 <>
@@ -694,15 +641,57 @@ export function BookingDetailsDrawer({
                 <div className="space-y-2.5">
                   {timelineEvents.map((event, index) => {
                     const IconComponent = event.icon;
+                    const isLast = index === timelineEvents.length - 1;
+
+                    // Calculate duration to next event
+                    let duration = '';
+                    if (!isLast) {
+                      const nextEvent = timelineEvents[index + 1];
+                      const diffMs = new Date(nextEvent.timestamp).getTime() - new Date(event.timestamp).getTime();
+                      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                      if (hours > 0 && minutes > 0) {
+                        duration = `${hours}h ${minutes}m`;
+                      } else if (hours > 0) {
+                        duration = `${hours}h`;
+                      } else if (minutes > 0) {
+                        duration = `${minutes}m`;
+                      } else {
+                        duration = '1m';
+                      }
+                    }
+
                     return (
-                      <div key={index} className="flex items-start gap-2.5">
-                        <div className={`flex items-center justify-center size-7 rounded-full ${getTimelineColorClasses(event.color)} flex-shrink-0`}>
+                      <div key={index} className="flex items-start gap-2.5 relative">
+                        {/* Vertical line with duration */}
+                        {!isLast && (
+                          <>
+                            <div className="absolute left-[13px] top-7 bottom-0 w-[2px] bg-border -mb-2.5" />
+                            {duration && (
+                              <div className="absolute left-[2px] top-[calc(50%+0.5rem)] text-[9px] font-medium text-muted-foreground bg-background px-1 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
+                                {duration}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <div className={`flex items-center justify-center size-7 rounded-full ${getTimelineColorClasses(event.color)} flex-shrink-0 relative z-10`}>
                           <IconComponent className="size-3.5" />
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium">{t(event.type)}</div>
                           <div className="text-xs text-muted-foreground">
-                            <RelativeTime date={event.timestamp} />
+                            {new Date(event.timestamp).toLocaleString(undefined, {
+                              month: '2-digit',
+                              day: '2-digit',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}{" "}
+                            <span className="text-[10px]">
+                              (<RelativeTime date={event.timestamp} />)
+                            </span>
                           </div>
                           {event.user && (
                             <div className="text-xs text-muted-foreground mt-0.5">
