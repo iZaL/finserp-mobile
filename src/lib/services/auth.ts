@@ -28,6 +28,8 @@ export interface User {
     vehicle_bookings: {
       booked: boolean
       received: boolean
+      offloading: boolean
+      offloaded: boolean
       exited: boolean
       rejected: boolean
       approved: boolean

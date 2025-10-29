@@ -145,3 +145,54 @@
     display: none;  /* Chrome, Safari and Opera */
   }
 }
+
+/* Fish swimming animation for offloading vehicles */
+@keyframes fishSwim {
+  0% {
+    left: -12px;
+  }
+  100% {
+    left: calc(100% + 12px);
+  }
+}
+
+/* Fish swimming animation for status badge (confined to small area) */
+@keyframes fishSwimBadge {
+  0% {
+    left: -14px;
+  }
+  50% {
+    left: calc(50% - 7px);
+  }
+  100% {
+    left: calc(100% + 2px);
+  }
+}
+
+/* Fish swimming in circular orbit around truck icon */
+@keyframes fishOrbit {
+  0% {
+    transform: rotate(0deg) translateX(18px) rotate(0deg);
+  }
+  25% {
+    transform: rotate(90deg) translateX(18px) rotate(-90deg);
+  }
+  50% {
+    transform: rotate(180deg) translateX(18px) rotate(-180deg);
+  }
+  75% {
+    transform: rotate(270deg) translateX(18px) rotate(-270deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(18px) rotate(-360deg);
+  }
+}
+
+@keyframes fishFloat {
+  0%, 100% {
+    transform: translateY(-50%) translateY(0px);
+  }
+  50% {
+    transform: translateY(-50%) translateY(-1px);
+  }
+}

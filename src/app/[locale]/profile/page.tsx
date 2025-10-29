@@ -25,6 +25,8 @@ interface NotificationPreferences {
   vehicle_bookings: {
     booked: boolean
     received: boolean
+    offloading: boolean
+    offloaded: boolean
     exited: boolean
     rejected: boolean
     approved: boolean
@@ -42,6 +44,8 @@ export default function ProfilePage() {
     vehicle_bookings: {
       booked: true,
       received: true,
+      offloading: true,
+      offloaded: true,
       exited: true,
       rejected: true,
       approved: true,
@@ -246,6 +250,40 @@ export default function ProfilePage() {
                     id="notify_received"
                     checked={notificationPreferences.vehicle_bookings.received}
                     onCheckedChange={(checked) => handleNotificationChange('vehicle_bookings', 'received', checked)}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                  <div className="flex-1">
+                    <Label htmlFor="notify_offloading" className="cursor-pointer font-medium">
+                      Offloading Started
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Get notified when vehicle offloading process begins
+                    </p>
+                  </div>
+                  <Switch
+                    id="notify_offloading"
+                    checked={notificationPreferences.vehicle_bookings.offloading}
+                    onCheckedChange={(checked) => handleNotificationChange('vehicle_bookings', 'offloading', checked)}
+                    disabled={isSaving}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                  <div className="flex-1">
+                    <Label htmlFor="notify_offloaded" className="cursor-pointer font-medium">
+                      Offloading Completed
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Get notified when vehicle offloading process is completed
+                    </p>
+                  </div>
+                  <Switch
+                    id="notify_offloaded"
+                    checked={notificationPreferences.vehicle_bookings.offloaded}
+                    onCheckedChange={(checked) => handleNotificationChange('vehicle_bookings', 'offloaded', checked)}
                     disabled={isSaving}
                   />
                 </div>
