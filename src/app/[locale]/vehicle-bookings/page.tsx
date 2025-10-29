@@ -309,14 +309,24 @@ export default function VehicleBookingsPage() {
           if (booking.status !== "booked" || booking.is_pending_approval || booking.approval_status === "rejected") return false;
         } else if (statusFilter === "rejected") {
           if (booking.status !== "rejected" && booking.approval_status !== "rejected") return false;
+        } else if (statusFilter === "exited") {
+          // Show both offloaded and exited vehicles in the exited tab
+          if (booking.status !== "exited" && booking.status !== "offloaded") return false;
         } else {
-          // For received and exited, just check status
+          // For received and other statuses, just check status
           if (booking.status !== statusFilter) return false;
         }
       }
 
-      // Exclude received/offloading/offloaded vehicles (they're shown in "Currently Offloading" section)
-      if (booking.status === "received" || booking.status === "offloading" || booking.status === "offloaded") return false;
+      // Exclude received/offloading vehicles (they're shown in "Currently Offloading" section)
+      // But allow offloaded vehicles when exited filter is active
+      if (statusFilter === "exited") {
+        // When exited filter is active, only exclude received and offloading
+        if (booking.status === "received" || booking.status === "offloading") return false;
+      } else {
+        // For other filters, exclude received/offloading/offloaded (they're shown in "Currently Offloading" section)
+        if (booking.status === "received" || booking.status === "offloading" || booking.status === "offloaded") return false;
+      }
 
       // Apply search filter
       return (
@@ -358,8 +368,8 @@ export default function VehicleBookingsPage() {
       b.status === "offloaded"
     ).length,
 
-    // Bookings that finished offloading and exited
-    exited: bookings.filter((b) => b.status === "exited").length,
+    // Bookings that finished offloading and exited (or offloaded but not exited yet)
+    exited: bookings.filter((b) => b.status === "exited" || b.status === "offloaded").length,
 
     // Bookings rejected at gate OR rejected at approval stage
     rejected: bookings.filter((b) =>
