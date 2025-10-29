@@ -328,7 +328,11 @@ export default function VehicleBookingsPage() {
         if (booking.status === "received" || booking.status === "offloading" || booking.status === "offloaded") return false;
       }
 
-      // Apply search filter
+      // Apply search filter (if search query is empty, show all)
+      if (!searchQuery.trim()) {
+        return true;
+      }
+
       return (
         booking.vehicle_number
           .toLowerCase()
