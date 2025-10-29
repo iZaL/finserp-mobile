@@ -118,13 +118,11 @@ export default function VehicleBillsPage() {
         date_from: dateFrom,
         date_to: dateTo,
       });
-      console.log('Vehicles response:', response.data);
       setVehicles(response.data);
 
       // Calculate total bills across all vehicles
       const total = response.data.reduce((acc, vehicle) => {
         const billCount = vehicle.bill_attachments?.length || 0;
-        console.log(`Vehicle ${vehicle.vehicle_number} has ${billCount} bills:`, vehicle.bill_attachments);
         return acc + billCount;
       }, 0);
       setTotalBills(total);
@@ -153,10 +151,6 @@ export default function VehicleBillsPage() {
       uploaded_at: attachment.created_at
     }))
   );
-
-  console.log('All bills:', allBills);
-  console.log('Total vehicles:', vehicles.length);
-  console.log('Total bills:', allBills.length);
 
   const handlePreview = (attachment: Media) => {
     setPreviewAttachment(attachment);

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { vehicleBookingService } from '@/lib/services/vehicle-booking'
-import { validateFile, formatFileSize } from '@/lib/utils/file-helpers'
+import { validateFile, formatFileSize, getMimeTypeFromFileName } from '@/lib/utils/file-helpers'
 import { usePermissions } from '@/lib/stores/permission-store'
 import type { VehicleBooking, Media } from '@/types/vehicle-booking'
 
@@ -36,21 +36,42 @@ export function CompactBillAttachments({
     return null
   }
 
+  // Check if vehicle status allows bill attachments (business logic)
+  const canShowBillAttachments = vehicle.status === "offloaded" || vehicle.status === "exited"
+  const canUploadBills = canShowBillAttachments && permissions.canUploadBillAttachments()
+
+  // If status doesn't allow bill attachments, don't show anything
+  if (!canShowBillAttachments) {
+    return null
+  }
+
   const handleFileUpload = async (file: File) => {
-    const validationError = validateFile(file)
+    // Fix for camera photos: normalize MIME type if missing or incorrect
+    let processedFile = file
+    if (!file.type || file.type === 'application/octet-stream' || file.type === '') {
+      const inferredMimeType = getMimeTypeFromFileName(file.name)
+
+      // Create a new File object with corrected MIME type
+      processedFile = new File([file], file.name, {
+        type: inferredMimeType,
+        lastModified: file.lastModified
+      })
+    }
+
+    const validationError = validateFile(processedFile)
     if (validationError) {
       toast.error(validationError)
       return
     }
 
     setIsUploading(true)
-    setUploadingFile(file.name)
+    setUploadingFile(processedFile.name)
 
     try {
-      const updatedVehicle = await vehicleBookingService.uploadMedia(vehicle.id, file)
+      const updatedVehicle = await vehicleBookingService.uploadMedia(vehicle.id, processedFile)
       onUpdate(updatedVehicle)
       toast.success(t('uploadSuccess'))
-    } catch {
+    } catch (error) {
       toast.error(t('uploadError'))
     } finally {
       setIsUploading(false)
@@ -80,6 +101,7 @@ export function CompactBillAttachments({
       setDeletingId(null)
     }
   }
+
 
   const handlePreview = (attachment: Media) => {
     if (onPreview) {
@@ -163,43 +185,39 @@ export function CompactBillAttachments({
         </div>
       )}
 
-      {/* Upload Buttons */}
-      {permissions.canUploadBillAttachments() ? (
-        <div className="flex gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="flex-1 h-8 text-xs"
-          >
-            <Upload className="size-3 mr-1" />
-            {t('uploadButton')}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => cameraInputRef.current?.click()}
-            disabled={isUploading}
-            className="flex-1 h-8 text-xs"
-          >
-            <Camera className="size-3 mr-1" />
-            {t('cameraButton')}
-          </Button>
+      {/* Upload Buttons - Only show for offloaded/exited vehicles */}
+      {canUploadBills ? (
+        <div className="space-y-2 pt-1">
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex-1 h-8 text-xs"
+            >
+              <Upload className="size-3 mr-1" />
+              {t('uploadButton')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={isUploading}
+              className="flex-1 h-8 text-xs"
+            >
+              <Camera className="size-3 mr-1" />
+              {t('cameraButton')}
+            </Button>
+          </div>
+
         </div>
-      ) : (
+      ) : attachments.length === 0 ? (
         <div className="flex items-center justify-center gap-2 p-3 text-xs text-muted-foreground bg-muted/20 rounded-lg">
           <Lock className="size-3" />
-          <span>Upload permission required</span>
+          <span>Bills can be uploaded after offloading is complete</span>
         </div>
-      )}
-
-      {/* Empty State */}
-      {attachments.length === 0 && !isUploading && (
-        <div className="text-xs text-muted-foreground p-2 border rounded-lg bg-muted/20 text-center">
-          {t('noBillAttachments')}
-        </div>
-      )}
+      ) : null}
     </div>
   )
 }

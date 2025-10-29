@@ -797,8 +797,9 @@ export function BookingDetailsDrawer({
                 </>
               )}
 
-              {/* Bill Attachments - Collapsible like Edit History */}
-              {permissions.canViewBillAttachments() && (
+              {/* Bill Attachments - Only show after offloaded */}
+              {permissions.canViewBillAttachments() &&
+               (booking.status === "offloaded" || booking.status === "exited") && (
                 <>
                   <Separator className="my-2" />
                   <Collapsible
