@@ -54,7 +54,7 @@
       "pending": "في انتظار الموافقة",
       "booked": "محجوز",
       "received": "داخل المصنع",
-      "exited": "تم التفريغ",
+      "exited": "تم التنزيل",
       "rejected": "مرفوض"
     },
     "stats": {
@@ -151,8 +151,8 @@
       "actions": {
         "receive": "استلام",
         "reject": "رفض",
-        "startOffloading": "بدء التفريغ",
-        "completeOffloading": "إكمال التفريغ",
+        "startOffloading": "بدء التنزيل",
+        "completeOffloading": "إنهاء التنزيل",
         "exit": "خروج",
         "unreceive": "إلغاء الاستلام",
         "edit": "تعديل",
@@ -160,8 +160,8 @@
         "approve": "موافقة",
         "rejectApproval": "رفض الموافقة"
       },
-      "offloading": "جاري التفريغ",
-      "offloaded": "تم التفريغ"
+      "offloading": "جاري التنزيل",
+      "offloaded": "تم التنزيل"
     },
     "receiveDialog": {
       "title": "استلام المركبة",
@@ -185,29 +185,29 @@
       "success": "تم استلام المركبة {vehicle} بنجاح!"
     },
     "startOffloading": {
-      "title": "بدء التفريغ",
-      "description": "بدء عملية تفريغ هذه المركبة",
+      "title": "بدء التنزيل",
+      "description": "بدء عملية تنزيل هذه المركبة",
       "notes": {
         "label": "ملاحظات",
-        "placeholder": "ملاحظات اختيارية حول بدء التفريغ...",
+        "placeholder": "ملاحظات اختيارية حول بدء التنزيل...",
         "description": "أضف أي معلومات ذات صلة"
       },
       "actions": {
         "cancel": "إلغاء",
-        "start": "بدء التفريغ",
+        "start": "بدء التنزيل",
         "starting": "جاري البدء..."
       }
     },
     "completeOffloading": {
-      "title": "إكمال التفريغ",
-      "description": "سجل العدد الفعلي للبانات وأكمل التفريغ",
+      "title": "إنهاء التنزيل",
+      "description": "سجل العدد الفعلي للبانات وأنهِ التنزيل",
       "actualBoxCount": {
         "label": "العدد الفعلي للبانات",
         "placeholder": "أدخل البانات الفعلية المستلمة"
       },
       "notes": {
         "label": "ملاحظات",
-        "placeholder": "ملاحظات اختيارية حول إكمال التفريغ...",
+        "placeholder": "ملاحظات اختيارية حول إكمال التنزيل...",
         "description": "أضف أي معلومات ذات صلة"
       },
       "validation": {
@@ -215,8 +215,8 @@
       },
       "actions": {
         "cancel": "إلغاء",
-        "complete": "إكمال التفريغ",
-        "completing": "جاري الإكمال..."
+        "complete": "إنهاء التنزيل",
+        "completing": "جاري الإنهاء..."
       }
     },
     "rejectDialog": {
@@ -285,10 +285,10 @@
     "deleteConfirm": "هل أنت متأكد من أنك تريد حذف المركبة {vehicle}؟ لا يمكن التراجع عن هذا الإجراء.",
     "deleteSuccess": "تم حذف المركبة {vehicle} بنجاح",
     "refreshSuccess": "تم تحديث الحجوزات",
-    "startOffloadingSuccess": "تم بدء التفريغ بنجاح",
-    "startOffloadingError": "فشل في بدء التفريغ",
-    "completeOffloadingSuccess": "تم إكمال التفريغ بنجاح",
-    "completeOffloadingError": "فشل في إكمال التفريغ",
+    "startOffloadingSuccess": "تم بدء التنزيل بنجاح",
+    "startOffloadingError": "فشل في بدء التنزيل",
+    "completeOffloadingSuccess": "تم إنهاء التنزيل بنجاح",
+    "completeOffloadingError": "فشل في إنهاء التنزيل",
     "rejectionReasons": {
       "vehicleCondition": "حالة المركبة غير مرضية",
       "fishQuality": "جودة الأسماك أقل من المعايير",

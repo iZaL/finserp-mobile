@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Bell, BellOff, User, Info } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { usePushNotification } from "@/hooks/use-push-notification"
+import axios from "axios"
 
 interface NotificationPreferences {
   vehicle_bookings: {
@@ -39,6 +40,7 @@ interface NotificationPreferences {
 export default function ProfilePage() {
   const { user } = useAuthStore()
   const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotification()
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const defaultPreferences: NotificationPreferences = {
     vehicle_bookings: {
@@ -61,22 +63,44 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   // Save notification preferences
   const saveNotificationPreferences = async (preferences: NotificationPreferences) => {
     try {
+      // Cancel any pending request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+
+      // Create new controller for this request
+      abortControllerRef.current = new AbortController()
+
       setIsSaving(true)
       await api.patch("/user", {
         name: user?.name,
         email: user?.email,
         notification_preferences: preferences,
+      }, {
+        signal: abortControllerRef.current.signal
       })
       setNotificationPreferences(preferences)
       toast.success("Notification preferences updated")
-    } catch {
-      toast.error("Failed to save notification preferences")
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        toast.error("Failed to save notification preferences")
+      }
     } finally {
-      setIsSaving(false)
+      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+        setIsSaving(false)
+      }
     }
   }
 

@@ -135,11 +135,7 @@ export default function VehicleBillsPage() {
   }, [searchQuery, dateFrom, dateTo]);
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchBills();
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
+    fetchBills();
   }, [fetchBills]);
 
   // Get all bills flattened with vehicle info

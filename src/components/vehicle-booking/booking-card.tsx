@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
+import { ConveyorAnimation } from "@/components/ui/conveyor-animation"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
 interface BookingCardProps {
@@ -75,13 +76,15 @@ export function BookingCard({
 
   return (
     <div
-      className={`rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-all ${
+      className={`relative rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-all ${
         isSelected ? "border-primary bg-primary/5" : ""
       }`}
       onClick={() => onClick?.(booking)}
     >
+      {/* Swimming Fish Animation - Only show when offloading */}
+      {booking.status === "offloading" && <ConveyorAnimation />}
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3">
           {/* Selection Checkbox */}
           {onSelectionChange && (
@@ -126,7 +129,7 @@ export function BookingCard({
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+      <div className="grid grid-cols-2 gap-2 text-sm mb-3 relative z-10">
         {booking.driver_name && (
           <div className="flex items-center gap-2 text-muted-foreground">
             <User className="size-4" />
@@ -167,7 +170,7 @@ export function BookingCard({
 
       {/* Received Info */}
       {booking.status === "received" && booking.actual_box_count && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded relative z-10">
           {t('received')}: {booking.actual_box_count} {t('boxes')}
           {booking.actual_box_count !== booking.box_count && (
             <span className="font-medium text-orange-600 dark:text-orange-400 ms-1">
@@ -180,7 +183,7 @@ export function BookingCard({
 
       {/* Rejection Info */}
       {booking.status === "rejected" && booking.rejection_reason && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800">
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800 relative z-10">
           <p className="font-medium text-red-600 dark:text-red-400">
             {t('rejected')}: {booking.rejection_reason}
           </p>
@@ -192,7 +195,7 @@ export function BookingCard({
 
       {/* Approval Pending Info */}
       {booking.is_pending_approval && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-amber-50 dark:bg-amber-900/10 rounded border border-amber-200 dark:border-amber-800">
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-amber-50 dark:bg-amber-900/10 rounded border border-amber-200 dark:border-amber-800 relative z-10">
           <p className="font-medium text-amber-600 dark:text-amber-400">
             {t('waitingForApproval')}
           </p>
@@ -204,7 +207,7 @@ export function BookingCard({
 
       {/* Approval Rejected Info */}
       {booking.approval_status === 'rejected' && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800">
+        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800 relative z-10">
           <p className="font-medium text-red-600 dark:text-red-400">
             {t('approvalRejectedMessage')}
           </p>
@@ -289,6 +292,15 @@ export function BookingCard({
                     >
                       <Edit className="size-4 me-2" />
                       {t('actions.edit')}
+                    </DropdownMenuItem>
+                  )}
+                  {booking.can_reject && onReject && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onReject(booking))}
+                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    >
+                      <XCircle className="size-4 me-2" />
+                      {t('actions.reject')}
                     </DropdownMenuItem>
                   )}
                   {booking.can_delete && onDelete && (

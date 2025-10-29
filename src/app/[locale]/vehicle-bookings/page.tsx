@@ -14,12 +14,14 @@ Truck,
   Package,
 } from "lucide-react";
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
+import axios from "axios";
 import type {
   VehicleBooking,
   BookingFilters,
   DailyCapacity,
   VehicleBookingSettings,
   CompleteOffloadingRequest,
+  Media,
 } from "@/types/vehicle-booking";
 import { toast } from "sonner";
 import { BookingCard } from "@/components/vehicle-booking/booking-card";
@@ -35,6 +37,7 @@ import { CompleteOffloadingSheet } from "@/components/vehicle-booking/complete-o
 import { CapacityCard } from "@/components/vehicle-booking/capacity-card";
 import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer";
 import { EditDrawer } from "@/components/vehicle-booking/edit-drawer";
+import { FilePreviewModal } from "@/components/vehicle-booking/FilePreviewModal";
 import { VehicleBookingGuard } from "@/components/permission-guard";
 import { usePermissions } from "@/lib/stores/permission-store";
 
@@ -78,9 +81,10 @@ export default function VehicleBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(
     null
   );
+  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null);
 
   // Fetch bookings and stats
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (signal?: AbortSignal) => {
     try {
       setLoading(true);
       const [bookingsData, dailyCapacityData, settingsData] =
@@ -99,15 +103,24 @@ export default function VehicleBookingsPage() {
       setCapacityInfo(dailyCapacityData);
       setSettings(settingsData);
 
-    } catch (error) {
-      console.error("Error fetching bookings:", error);
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching bookings:", error);
+      }
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
     }
   }, [timeRangeFilter]);
 
   useEffect(() => {
-    fetchData();
+    const abortController = new AbortController();
+    fetchData(abortController.signal);
+
+    return () => {
+      abortController.abort();
+    };
   }, [fetchData]);
 
   // Set initial scroll position for RTL
@@ -850,6 +863,7 @@ export default function VehicleBookingsPage() {
         onUnreceive={handleUnreceive}
         onReject={handleReject}
         onBookingUpdate={handleBookingUpdate}
+        onPreviewAttachment={setPreviewAttachment}
       />
 
       <EditDrawer
@@ -857,6 +871,12 @@ export default function VehicleBookingsPage() {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onSuccess={handleDialogSuccess}
+      />
+
+      <FilePreviewModal
+        isOpen={!!previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+        attachment={previewAttachment}
       />
     </VehicleBookingGuard>
   );

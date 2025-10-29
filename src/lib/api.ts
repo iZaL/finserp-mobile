@@ -32,6 +32,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Ignore cancelled requests (from AbortController)
+    if (axios.isCancel(error)) {
+      return Promise.reject(error)
+    }
+
     // Extract error message from response
     let errorMessage = "An error occurred. Please try again."
 

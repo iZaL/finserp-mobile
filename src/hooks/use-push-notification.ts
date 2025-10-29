@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   requestNotificationPermission,
   subscribeToPushNotifications,
@@ -17,6 +17,7 @@ export function usePushNotification() {
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isMountedRef = useRef(true);
 
   // Check support and permission on mount
   useEffect(() => {
@@ -29,6 +30,10 @@ export function usePushNotification() {
       // Check if already subscribed
       checkSubscriptionStatus();
     }
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const checkSubscriptionStatus = async () => {
@@ -37,9 +42,15 @@ export function usePushNotification() {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
+
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setIsSubscribed(!!subscription);
+      }
     } catch (error) {
-      console.error("Failed to check subscription status:", error);
+      if (isMountedRef.current) {
+        console.error("Failed to check subscription status:", error);
+      }
     }
   };
 
@@ -60,6 +71,8 @@ export function usePushNotification() {
     try {
       // Request permission
       const perm = await requestNotificationPermission();
+
+      if (!isMountedRef.current) return false;
       setPermission(perm);
 
       if (perm !== "granted") {
@@ -70,6 +83,8 @@ export function usePushNotification() {
       // Subscribe to push notifications
       const subscription = await subscribeToPushNotifications(VAPID_PUBLIC_KEY);
 
+      if (!isMountedRef.current) return false;
+
       if (!subscription) {
         toast.error("Failed to subscribe to notifications");
         return false;
@@ -78,15 +93,21 @@ export function usePushNotification() {
       // Send subscription to backend
       await sendSubscriptionToBackend(subscription, VAPID_PUBLIC_KEY);
 
+      if (!isMountedRef.current) return false;
+
       setIsSubscribed(true);
       toast.success("Push notifications enabled!");
       return true;
     } catch (error) {
-      console.error("Failed to subscribe to push notifications:", error);
-      toast.error("Failed to enable push notifications");
+      if (isMountedRef.current) {
+        console.error("Failed to subscribe to push notifications:", error);
+        toast.error("Failed to enable push notifications");
+      }
       return false;
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [isSupported]);
 
@@ -98,15 +119,24 @@ export function usePushNotification() {
     try {
       // Get current subscription
       const registration = await navigator.serviceWorker.ready;
+
+      if (!isMountedRef.current) return false;
+
       const subscription = await registration.pushManager.getSubscription();
+
+      if (!isMountedRef.current) return false;
 
       if (subscription) {
         // Remove from backend first
         await removeSubscriptionFromBackend(subscription.endpoint);
+
+        if (!isMountedRef.current) return false;
       }
 
       // Unsubscribe locally
       const success = await unsubscribeFromPushNotifications();
+
+      if (!isMountedRef.current) return false;
 
       if (success) {
         setIsSubscribed(false);
@@ -116,11 +146,15 @@ export function usePushNotification() {
 
       return false;
     } catch (error) {
-      console.error("Failed to unsubscribe from push notifications:", error);
-      toast.error("Failed to disable push notifications");
+      if (isMountedRef.current) {
+        console.error("Failed to unsubscribe from push notifications:", error);
+        toast.error("Failed to disable push notifications");
+      }
       return false;
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [isSupported]);
 

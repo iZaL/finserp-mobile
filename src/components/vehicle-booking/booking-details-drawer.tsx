@@ -44,7 +44,6 @@ import { RelativeTime } from "@/components/relative-time";
 import type { VehicleBooking, VehicleActivity, Media } from "@/types/vehicle-booking";
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
 import { CompactBillAttachments } from "./compact-bill-attachments";
-import { FilePreviewModal } from "./FilePreviewModal";
 import { usePermissions } from "@/lib/stores/permission-store";
 import { MoreVertical, RotateCcw } from "lucide-react";
 import {
@@ -61,6 +60,7 @@ interface BookingDetailsDrawerProps {
   onUnreceive?: (booking: VehicleBooking) => void;
   onReject?: (booking: VehicleBooking) => void;
   onBookingUpdate?: (booking: VehicleBooking) => void;
+  onPreviewAttachment?: (attachment: Media | null) => void;
 }
 
 export function BookingDetailsDrawer({
@@ -71,6 +71,7 @@ export function BookingDetailsDrawer({
   onUnreceive,
   onReject,
   onBookingUpdate,
+  onPreviewAttachment,
 }: BookingDetailsDrawerProps) {
   const t = useTranslations("vehicleBookings.bookingCard");
   const tDetails = useTranslations("vehicleBookings.bookingDetails");
@@ -79,26 +80,47 @@ export function BookingDetailsDrawer({
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [showActivities, setShowActivities] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
-  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null);
 
   // Fetch activities when dialog opens and booking changes
   useEffect(() => {
-    if (open && booking) {
-      setIsLoadingActivities(true);
-      vehicleBookingService
-        .getBookingActivities(booking.id)
-        .then((data) => {
-          setActivities(data);
-        })
-        .catch((error) => {
+    if (!open || !booking) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    setIsLoadingActivities(true);
+
+    vehicleBookingService
+      .getBookingActivities(booking.id, { signal: abortController.signal })
+      .then((data) => {
+        setActivities(data);
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
           console.error("Failed to fetch activities:", error);
           setActivities([]);
-        })
-        .finally(() => {
-          setIsLoadingActivities(false);
-        });
-    }
+        }
+      })
+      .finally(() => {
+        setIsLoadingActivities(false);
+      });
+
+    // Cleanup: abort the request if component unmounts or dependencies change
+    return () => {
+      abortController.abort();
+    };
   }, [open, booking]);
+
+  // Reset states when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setShowActivities(false);
+      setShowAttachments(false);
+      setActivities([]);
+      setIsLoadingActivities(false);
+      onPreviewAttachment?.(null);
+    }
+  }, [open, onPreviewAttachment]);
 
   // Filter activities to show only edits (not status changes shown in Timeline)
   const editActivities = activities.filter(
@@ -864,7 +886,7 @@ export function BookingDetailsDrawer({
                         <CompactBillAttachments
                           vehicle={booking}
                           onUpdate={handleUploadSuccess}
-                          onPreview={setPreviewAttachment}
+                          onPreview={onPreviewAttachment}
                         />
                       </CollapsibleContent>
                     </div>
@@ -971,13 +993,6 @@ export function BookingDetailsDrawer({
           )}
         </div>
       </DrawerContent>
-
-      {/* File Preview Modal */}
-      <FilePreviewModal
-        isOpen={!!previewAttachment}
-        onClose={() => setPreviewAttachment(null)}
-        attachment={previewAttachment}
-      />
     </Drawer>
   );
 }
