@@ -83,33 +83,20 @@ export default function VehicleBookingsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [bookingsData, statsData, dailyCapacityData, settingsData] =
+      const [bookingsData, dailyCapacityData, settingsData] =
         await Promise.all([
           vehicleBookingService.getBookings({
             status: "all", // Always fetch all bookings
             date_filter: timeRangeFilter,
             per_page: 50,
           }),
-          vehicleBookingService.getStats(),
           vehicleBookingService.getDailyCapacity(),
           vehicleBookingService.getSettings(),
         ]);
       setBookings(bookingsData.data);
 
-      // Convert stats data to capacity format, using daily limits from daily capacity
-      const capacityData = {
-        date: dailyCapacityData.date,
-        daily_limit_boxes: dailyCapacityData.daily_limit_boxes,
-        daily_limit_tons: dailyCapacityData.daily_limit_tons,
-        total_booked_boxes: statsData.total_boxes, // Use stats for actual factory load
-        total_received_boxes: statsData.received_boxes,
-        remaining_capacity_boxes: Math.max(0, dailyCapacityData.daily_limit_boxes - statsData.total_boxes),
-        capacity_used_percent: dailyCapacityData.daily_limit_boxes > 0 ?
-          (statsData.total_boxes / dailyCapacityData.daily_limit_boxes) * 100 : 0,
-        can_override: dailyCapacityData.can_override
-      };
-
-      setCapacityInfo(capacityData);
+      // Use backend-calculated capacity data directly
+      setCapacityInfo(dailyCapacityData);
       setSettings(settingsData);
 
     } catch (error) {
@@ -326,33 +313,14 @@ export default function VehicleBookingsPage() {
     }
   );
 
-  // Count vehicles by status - mutually exclusive categories
+  // Use backend-calculated status counts (will come from dailyCapacityData)
   const statusCounts = {
-    // Bookings waiting for approval
-    pending: bookings.filter((b) => b.is_pending_approval).length,
-
-    // Bookings that are approved and waiting to be received (exclude pending and approval-rejected)
-    booked: bookings.filter((b) =>
-      b.status === "booked" &&
-      !b.is_pending_approval &&
-      b.approval_status !== "rejected"
-    ).length,
-
-    // Bookings currently in factory being offloaded (received + offloading + offloaded)
-    received: bookings.filter((b) =>
-      b.status === "received" ||
-      b.status === "offloading" ||
-      b.status === "offloaded"
-    ).length,
-
-    // Bookings that finished offloading and exited
-    exited: bookings.filter((b) => b.status === "exited").length,
-
-    // Bookings rejected at gate OR rejected at approval stage
-    rejected: bookings.filter((b) =>
-      b.status === "rejected" ||
-      b.approval_status === "rejected"
-    ).length,
+    pending: capacityInfo?.pending_count || 0,
+    booked: capacityInfo?.booked_count || 0,
+    // Use the accurate in_progress_count (received but not yet offloaded)
+    received: capacityInfo?.in_progress_count || 0,
+    exited: capacityInfo?.exited_count || 0,
+    rejected: capacityInfo?.rejected_count || 0,
   };
 
   return (
@@ -554,8 +522,6 @@ export default function VehicleBookingsPage() {
           capacity={capacityInfo}
           loading={loading}
           allowOverride={settings?.allow_vehicle_booking_override}
-          bookings={bookings}
-          defaultBoxWeightKg={settings?.default_box_weight_kg}
         />
       )}
 

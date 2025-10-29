@@ -124,10 +124,39 @@ export interface DailyCapacity {
   remaining_capacity_boxes: number
   capacity_used_percent: number
   can_override: boolean
-  // Optional fields for future backend support
-  total_booked_tons?: number
-  total_received_tons?: number
-  remaining_capacity_tons?: number
+
+  // Status counts (backend-calculated) - Updated field names
+  pending_count: number
+  booked_count: number
+  in_progress_count: number        // NEW: replaces misleading received_count
+  completed_count: number          // NEW: offloaded + exited vehicles
+  actual_received_count: number    // NEW: just received status vehicles
+  exited_count: number
+  rejected_count: number
+
+  // Legacy field for backward compatibility (will be removed in future)
+  received_count: number
+
+  // Box breakdowns by status (backend-calculated)
+  pending_boxes: number
+  booked_boxes: number
+  received_boxes: number
+  offloading_boxes: number
+  offloaded_boxes: number
+  exited_boxes: number
+  rejected_boxes: number
+
+  // Tonnage breakdowns (backend-calculated)
+  total_booked_tons: number
+  total_received_tons: number
+  remaining_capacity_tons: number | null
+  pending_tons: number
+  booked_tons: number
+  received_tons: number
+  offloading_tons: number
+  offloaded_tons: number
+  exited_tons: number
+  rejected_tons: number
 }
 
 export interface VehicleBookingSettings {
