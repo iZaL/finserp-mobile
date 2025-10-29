@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Phone, MessageCircle, Search, Users, Loader2, MapPin } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import axios from "axios"
 
 interface Supplier {
   name: string
@@ -27,44 +28,60 @@ export default function SuppliersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
-  const fetchSuppliers = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const response = await api.get("/suppliers")
+  useEffect(() => {
+    const abortController = new AbortController()
 
-      if (response.data?.data) {
-        setSuppliers(response.data.data)
-        setFilteredSuppliers(response.data.data)
+    const fetchSuppliers = async () => {
+      try {
+        setIsLoading(true)
+        const response = await api.get("/suppliers", {
+          signal: abortController.signal
+        })
+
+        if (response.data?.data) {
+          setSuppliers(response.data.data)
+          setFilteredSuppliers(response.data.data)
+        }
+      } catch (error: unknown) {
+        if (!axios.isCancel(error)) {
+          console.error("Failed to fetch suppliers:", error)
+          toast.error(t("suppliers.errors.fetchFailed"))
+        }
+      } finally {
+        if (!abortController.signal.aborted) {
+          setIsLoading(false)
+        }
       }
-    } catch (error) {
-      console.error("Failed to fetch suppliers:", error)
-      toast.error(t("suppliers.errors.fetchFailed"))
-    } finally {
-      setIsLoading(false)
+    }
+
+    fetchSuppliers()
+
+    return () => {
+      abortController.abort()
     }
   }, [t])
 
   useEffect(() => {
-    fetchSuppliers()
-  }, [fetchSuppliers])
+    const debounceTimer = setTimeout(() => {
+      if (searchQuery === "") {
+        setFilteredSuppliers(suppliers)
+      } else {
+        const filtered: GroupedSuppliers = {}
+        Object.entries(suppliers).forEach(([location, suppliersList]) => {
+          const matchedSuppliers = suppliersList.filter(
+            (supplier) =>
+              supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              supplier.phone.includes(searchQuery)
+          )
+          if (matchedSuppliers.length > 0) {
+            filtered[location] = matchedSuppliers
+          }
+        })
+        setFilteredSuppliers(filtered)
+      }
+    }, 300)
 
-  useEffect(() => {
-    if (searchQuery === "") {
-      setFilteredSuppliers(suppliers)
-    } else {
-      const filtered: GroupedSuppliers = {}
-      Object.entries(suppliers).forEach(([location, suppliersList]) => {
-        const matchedSuppliers = suppliersList.filter(
-          (supplier) =>
-            supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            supplier.phone.includes(searchQuery)
-        )
-        if (matchedSuppliers.length > 0) {
-          filtered[location] = matchedSuppliers
-        }
-      })
-      setFilteredSuppliers(filtered)
-    }
+    return () => clearTimeout(debounceTimer)
   }, [searchQuery, suppliers])
 
   const handleCall = (phone: string) => {

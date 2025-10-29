@@ -150,7 +150,7 @@
         "receive": "Receive",
         "reject": "Reject",
         "startOffloading": "Start Offloading",
-        "completeOffloading": "Complete Offloading",
+        "completeOffloading": "Finish Offloading",
         "exit": "Exit",
         "unreceive": "Unreceive",
         "edit": "Edit",
@@ -197,8 +197,8 @@
       }
     },
     "completeOffloading": {
-      "title": "Complete Offloading",
-      "description": "Record the actual box count and complete offloading",
+      "title": "Finish Offloading",
+      "description": "Record the actual box count and finish offloading",
       "actualBoxCount": {
         "label": "Actual Box Count",
         "placeholder": "Enter actual boxes received"
@@ -213,8 +213,8 @@
       },
       "actions": {
         "cancel": "Cancel",
-        "complete": "Complete Offloading",
-        "completing": "Completing..."
+        "complete": "Finish Offloading",
+        "completing": "Finishing..."
       }
     },
     "rejectDialog": {
@@ -285,8 +285,8 @@
     "refreshSuccess": "Bookings refreshed",
     "startOffloadingSuccess": "Offloading started successfully",
     "startOffloadingError": "Failed to start offloading",
-    "completeOffloadingSuccess": "Offloading completed successfully",
-    "completeOffloadingError": "Failed to complete offloading",
+    "completeOffloadingSuccess": "Offloading finished successfully",
+    "completeOffloadingError": "Failed to finish offloading",
     "rejectionReasons": {
       "vehicleCondition": "Vehicle condition unsatisfactory",
       "fishQuality": "Fish quality below standards",

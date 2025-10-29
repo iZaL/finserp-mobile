@@ -25,7 +25,8 @@ import type {
 export const vehicleBookingService = {
   // Get all bookings with filters and pagination
   getBookings: async (
-    filters?: BookingFilters
+    filters?: BookingFilters,
+    config?: { signal?: AbortSignal }
   ): Promise<PaginatedResponse<VehicleBooking>> => {
     const params = new URLSearchParams()
 
@@ -38,7 +39,8 @@ export const vehicleBookingService = {
     if (filters?.per_page) params.append("per_page", filters.per_page.toString())
 
     const response = await api.get<PaginatedResponse<VehicleBooking>>(
-      `/fish-purchase-vehicles?${params.toString()}`
+      `/fish-purchase-vehicles?${params.toString()}`,
+      config
     )
     return response.data
   },
@@ -52,47 +54,65 @@ export const vehicleBookingService = {
   },
 
   // Get booking activities (edit history)
-  getBookingActivities: async (id: number): Promise<VehicleActivity[]> => {
+  getBookingActivities: async (
+    id: number,
+    config?: { signal?: AbortSignal }
+  ): Promise<VehicleActivity[]> => {
     const response = await api.get<ApiResponse<VehicleActivity[]>>(
-      `/fish-purchase-vehicles/${id}/activities`
+      `/fish-purchase-vehicles/${id}/activities`,
+      config
     )
     return response.data.data || []
   },
 
   // Get booking statistics
-  getStats: async (date?: string): Promise<BookingStats> => {
+  getStats: async (
+    date?: string,
+    config?: { signal?: AbortSignal }
+  ): Promise<BookingStats> => {
     const params = date ? `?date=${date}` : ""
     const response = await api.get<ApiResponse<BookingStats>>(
-      `/fish-purchase-vehicles/stats${params}`
+      `/fish-purchase-vehicles/stats${params}`,
+      config
     )
     return response.data.data!
   },
 
   // Get range statistics
-  getRangeStats: async (dateFrom: string, dateTo: string): Promise<RangeStats> => {
+  getRangeStats: async (
+    dateFrom: string,
+    dateTo: string,
+    config?: { signal?: AbortSignal }
+  ): Promise<RangeStats> => {
     const params = new URLSearchParams()
     params.append("date_from", dateFrom)
     params.append("date_to", dateTo)
 
     const response = await api.get<ApiResponse<RangeStats>>(
-      `/fish-purchase-vehicles/stats/range?${params.toString()}`
+      `/fish-purchase-vehicles/stats/range?${params.toString()}`,
+      config
     )
     return response.data.data!
   },
 
   // Get daily capacity info
-  getDailyCapacity: async (date?: string): Promise<DailyCapacity> => {
+  getDailyCapacity: async (
+    date?: string,
+    config?: { signal?: AbortSignal }
+  ): Promise<DailyCapacity> => {
     const params = date ? `?date=${date}` : ""
     const response = await api.get<ApiResponse<DailyCapacity>>(
-      `/fish-purchase-vehicles/daily-capacity${params}`
+      `/fish-purchase-vehicles/daily-capacity${params}`,
+      config
     )
     return response.data.data!
   },
 
   // Get system settings
-  getSettings: async (): Promise<VehicleBookingSettings> => {
+  getSettings: async (config?: { signal?: AbortSignal }): Promise<VehicleBookingSettings> => {
     const response = await api.get<ApiResponse<VehicleBookingSettings>>(
-      `/fish-purchase-vehicles/settings`
+      `/fish-purchase-vehicles/settings`,
+      config
     )
     return response.data.data!
   },
@@ -282,16 +302,19 @@ export const vehicleBookingService = {
   },
 
   // Get bills gallery
-  getBillsGallery: async (filters?: {
-    search?: string;
-    page?: number;
-    file_type?: 'all' | 'images' | 'pdfs';
-    status?: string;
-    date_from?: string;
-    date_to?: string;
-    entry_date_from?: string;
-    entry_date_to?: string;
-  }): Promise<PaginatedResponse<VehicleBooking>> => {
+  getBillsGallery: async (
+    filters?: {
+      search?: string;
+      page?: number;
+      file_type?: 'all' | 'images' | 'pdfs';
+      status?: string;
+      date_from?: string;
+      date_to?: string;
+      entry_date_from?: string;
+      entry_date_to?: string;
+    },
+    config?: { signal?: AbortSignal }
+  ): Promise<PaginatedResponse<VehicleBooking>> => {
     const params = new URLSearchParams()
 
     if (filters?.search) params.append('search', filters.search)
@@ -304,7 +327,8 @@ export const vehicleBookingService = {
     if (filters?.entry_date_to) params.append('entry_date_to', filters.entry_date_to)
 
     const response = await api.get<PaginatedResponse<VehicleBooking>>(
-      `/fish-purchase-vehicles/bills?${params.toString()}`
+      `/fish-purchase-vehicles/bills?${params.toString()}`,
+      config
     )
     return response.data
   },

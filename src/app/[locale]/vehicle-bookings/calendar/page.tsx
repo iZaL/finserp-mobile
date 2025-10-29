@@ -16,6 +16,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import axios from "axios"
 import type { VehicleBooking, RangeStats } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
@@ -70,7 +71,7 @@ export default function CalendarViewPage() {
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
   // Fetch bookings for the current month
-  const fetchData = async (month: Date) => {
+  const fetchData = async (month: Date, signal?: AbortSignal) => {
     try {
       setLoading(true)
       const start = format(startOfMonth(month), "yyyy-MM-dd")
@@ -80,38 +81,56 @@ export default function CalendarViewPage() {
         date_from: start,
         date_to: end,
         per_page: 1000, // Get all for the month
-      })
+      }, { signal })
 
       setBookings(bookingsResponse.data)
-    } catch (error) {
-      console.error("Error fetching data:", error)
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching data:", error)
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }
 
   useEffect(() => {
-    fetchData(currentMonth)
+    const abortController = new AbortController()
+    fetchData(currentMonth, abortController.signal)
+
+    return () => {
+      abortController.abort()
+    }
   }, [currentMonth])
 
   // Fetch range stats
-  const fetchRangeStats = async (datetimeFrom: string, datetimeTo: string) => {
+  const fetchRangeStats = async (datetimeFrom: string, datetimeTo: string, signal?: AbortSignal) => {
     try {
       setStatsLoading(true)
       // Convert from "2025-01-10T09:00" to "2025-01-10 09:00:00"
       const from = datetimeFrom.replace('T', ' ') + ':00'
       const to = datetimeTo.replace('T', ' ') + ':59'
-      const stats = await vehicleBookingService.getRangeStats(from, to)
+      const stats = await vehicleBookingService.getRangeStats(from, to, { signal })
       setRangeStats(stats)
-    } catch (error) {
-      console.error("Error fetching range stats:", error)
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching range stats:", error)
+      }
     } finally {
-      setStatsLoading(false)
+      if (!signal?.aborted) {
+        setStatsLoading(false)
+      }
     }
   }
 
   useEffect(() => {
-    fetchRangeStats(statsDatetimeFrom, statsDatetimeTo)
+    const abortController = new AbortController()
+    fetchRangeStats(statsDatetimeFrom, statsDatetimeTo, abortController.signal)
+
+    return () => {
+      abortController.abort()
+    }
   }, [statsDatetimeFrom, statsDatetimeTo])
 
   const handleStatsDatetimeChange = (from: string, to: string) => {

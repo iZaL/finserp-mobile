@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import axios from "axios"
 import type { DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 import { PermissionGuard } from "@/components/permission-guard"
@@ -52,17 +53,11 @@ export default function NewBookingPage() {
   const [showCapacityDialog, setShowCapacityDialog] = useState(false)
   const [isSystemEnabled, setIsSystemEnabled] = useState(true)
 
-  // Fetch capacity info and settings on mount
-  useEffect(() => {
-    fetchInitialData()
-    vehicleNumberRef.current?.focus()
-  }, [])
-
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (signal?: AbortSignal) => {
     try {
       const [capacityData, settingsData] = await Promise.all([
-        vehicleBookingService.getDailyCapacity(),
-        vehicleBookingService.getSettings(),
+        vehicleBookingService.getDailyCapacity(undefined, { signal }),
+        vehicleBookingService.getSettings({ signal }),
       ])
       setCapacityInfo(capacityData)
       setSettings(settingsData)
@@ -70,12 +65,25 @@ export default function NewBookingPage() {
 
       // Set initial box weight from settings
       setBoxWeightKg(settingsData.default_box_weight_kg.toString())
-    } catch (error) {
-      console.error("Error fetching initial data:", error)
-      // Fallback to default if fetching fails
-      setBoxWeightKg("50")
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        console.error("Error fetching initial data:", error)
+        // Fallback to default if fetching fails
+        setBoxWeightKg("50")
+      }
     }
   }
+
+  // Fetch capacity info and settings on mount
+  useEffect(() => {
+    const abortController = new AbortController()
+    fetchInitialData(abortController.signal)
+    vehicleNumberRef.current?.focus()
+
+    return () => {
+      abortController.abort()
+    }
+  }, [])
 
   // Calculate total weight
   const calculateTotalWeight = useCallback((boxes: number, weightKg: number): string => {

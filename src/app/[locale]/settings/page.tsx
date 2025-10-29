@@ -18,6 +18,7 @@ import { Settings2, Package, ChevronRight, Loader2, TrendingUp, Power, CheckCirc
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import axios from "axios"
 
 export default function SettingsPage() {
   const t = useTranslations()
@@ -43,12 +44,12 @@ export default function SettingsPage() {
   } | null>(null)
 
   // Fetch current settings
-  const fetchSettings = useCallback(async () => {
+  const fetchSettings = useCallback(async (signal?: AbortSignal) => {
     try {
       setIsFetching(true)
 
       // Get general settings for default box weight and control settings
-      const settingsResponse = await api.get("/fish-purchase-vehicles/settings")
+      const settingsResponse = await api.get("/fish-purchase-vehicles/settings", { signal })
       if (settingsResponse.data?.data) {
         const settings = settingsResponse.data.data
         if (settings.default_box_weight_kg) {
@@ -61,20 +62,29 @@ export default function SettingsPage() {
 
       // Get daily capacity for today
       const today = new Date().toISOString().split("T")[0]
-      const capacityResponse = await api.get(`/fish-purchase-vehicles/daily-capacity?date=${today}`)
+      const capacityResponse = await api.get(`/fish-purchase-vehicles/daily-capacity?date=${today}`, { signal })
 
       if (capacityResponse.data?.data) {
         setBoxLimit(capacityResponse.data.data.daily_limit_boxes || 5000)
       }
-    } catch (error) {
-      console.error("Failed to fetch settings:", error)
+    } catch (error: unknown) {
+      if (!axios.isCancel(error)) {
+        console.error("Failed to fetch settings:", error)
+      }
     } finally {
-      setIsFetching(false)
+      if (!signal?.aborted) {
+        setIsFetching(false)
+      }
     }
   }, [])
 
   useEffect(() => {
-    fetchSettings()
+    const abortController = new AbortController()
+    fetchSettings(abortController.signal)
+
+    return () => {
+      abortController.abort()
+    }
   }, [fetchSettings])
 
   // Helper functions for confirmation dialog content

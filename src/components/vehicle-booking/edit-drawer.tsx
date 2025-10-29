@@ -65,6 +65,24 @@ export function EditDrawer({
     }
   }, [booking, open])
 
+  // Reset form state when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        vehicle_number: "",
+        box_count: 0,
+        box_weight_kg: 50,
+        driver_name: "",
+        driver_phone: "",
+        supplier_name: "",
+        supplier_phone: "",
+        notes: "",
+      })
+      setErrors({})
+      setIsSubmitting(false)
+    }
+  }, [open])
+
   const calculateTotalWeight = () => {
     return ((formData.box_count * formData.box_weight_kg) / 1000).toFixed(2)
   }
