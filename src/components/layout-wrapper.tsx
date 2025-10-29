@@ -39,7 +39,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             <UserMenu />
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 pb-[calc(5rem+env(safe-area-inset-bottom,0))] md:pb-6 md:gap-6 md:p-6">
+        <main className="flex flex-1 flex-col gap-3 p-3 pb-[calc(5rem+env(safe-area-inset-bottom,0))] md:pb-6 md:gap-6 md:p-6">
           {children}
         </main>
         <MobileNav />
