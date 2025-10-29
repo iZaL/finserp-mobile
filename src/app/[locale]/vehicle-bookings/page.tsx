@@ -377,9 +377,16 @@ export default function VehicleBookingsPage() {
 
   return (
     <VehicleBookingGuard>
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
+      {/* Search Bar and Action Buttons */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-10"
+          />
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Button
@@ -387,7 +394,7 @@ export default function VehicleBookingsPage() {
             disabled={refreshing}
             variant="outline"
             size="default"
-            className="w-11 h-11"
+            className="w-10 h-10"
           >
             <RefreshCw
               className={`size-5 ${refreshing ? "animate-spin" : ""}`}
@@ -396,7 +403,7 @@ export default function VehicleBookingsPage() {
           {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
             <Button
               onClick={() => router.push("/vehicle-bookings/new")}
-              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 w-11 h-11 px-0 md:w-auto md:px-3 md:h-10"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 h-10 w-10 px-0 md:w-auto md:px-3"
               size="default"
               title={t("newBooking")}
             >
@@ -405,27 +412,6 @@ export default function VehicleBookingsPage() {
             </Button>
           )}
         </div>
-      </div>
-
-      {/* Vehicle Booking System Status Indicator */}
-      {settings && !settings.vehicle_booking_enabled && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-950 dark:border-red-800">
-          <div className="font-medium text-red-800 dark:text-red-200">
-            {t("systemDisabledTitle")}
-          </div>
-        </div>
-
-      )}
-
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input
-          placeholder={t("searchPlaceholder")}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
       </div>
 
       {/* Status Filter Tabs */}

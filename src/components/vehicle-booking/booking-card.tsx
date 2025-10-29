@@ -236,11 +236,11 @@ export function BookingCard({
                 <DropdownMenuTrigger asChild>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+                    variant="outline"
+                    className="px-2 py-1.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="size-3" />
+                    <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -276,11 +276,11 @@ export function BookingCard({
                 <DropdownMenuTrigger asChild>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+                    variant="outline"
+                    className="px-2 py-1.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="size-3" />
+                    <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -336,11 +336,11 @@ export function BookingCard({
                 <DropdownMenuTrigger asChild>
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+                    variant="outline"
+                    className="px-2 py-1.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="size-3" />
+                    <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
