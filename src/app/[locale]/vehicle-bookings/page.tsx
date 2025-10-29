@@ -546,7 +546,7 @@ export default function VehicleBookingsPage() {
       )}
 
       {/* Capacity Card */}
-      {statusFilter === "all" && (
+      {statusFilter === "all" && !searchQuery.trim() && (
         <CapacityCard
           capacity={capacityInfo}
           loading={loading}

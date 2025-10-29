@@ -22,13 +22,13 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
   if (loading) {
     return (
       <Card>
-        <CardHeader className="pb-0 pt-4">
+        <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm">
             <Gauge className="size-3.5" />
             {t('title')}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pb-3 pt-3">
+        <CardContent className="">
           <div className="animate-pulse space-y-2.5">
             <div className="h-1.5 bg-muted rounded"></div>
             <div className="grid grid-cols-4 gap-2">
@@ -69,7 +69,7 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
 
   return (
     <Card>
-      <CardHeader className="pb-0 pt-4">
+      <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-1.5 text-sm">
             <Gauge className="size-3.5 text-blue-600 dark:text-blue-400" />
