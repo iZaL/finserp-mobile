@@ -237,7 +237,7 @@ export default function VehicleBillsPage() {
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label htmlFor="date-from" className="text-[10px] font-medium text-muted-foreground">
-              From
+              {t("fromLabel")}
             </Label>
             <Input
               id="date-from"
@@ -249,7 +249,7 @@ export default function VehicleBillsPage() {
           </div>
           <div className="space-y-1">
             <Label htmlFor="date-to" className="text-[10px] font-medium text-muted-foreground">
-              To
+              {t("toLabel")}
             </Label>
             <Input
               id="date-to"
@@ -269,7 +269,7 @@ export default function VehicleBillsPage() {
             onClick={() => handlePreset("today")}
             className="text-xs h-7 px-2"
           >
-            Today
+            {t("todayButton")}
           </Button>
           <Button
             variant="outline"
@@ -277,7 +277,7 @@ export default function VehicleBillsPage() {
             onClick={() => handlePreset("last7")}
             className="text-xs h-7 px-2"
           >
-            7D
+            {t("sevenDaysButton")}
           </Button>
           <Button
             variant="outline"
@@ -285,7 +285,7 @@ export default function VehicleBillsPage() {
             onClick={() => handlePreset("last30")}
             className="text-xs h-7 px-2"
           >
-            30D
+            {t("thirtyDaysButton")}
           </Button>
           <Button
             variant="outline"
@@ -293,14 +293,14 @@ export default function VehicleBillsPage() {
             onClick={() => handlePreset("thisMonth")}
             className="text-xs h-7 px-2"
           >
-            This Month
+            {t("thisMonthButton")}
           </Button>
         </div>
 
         {/* Info Text */}
         {getDayCount() > 0 && (
           <div className="text-center text-[10px] text-muted-foreground">
-            Showing bills for {getDayCount()} days
+            {t("showingBillsForDays", { days: getDayCount() })}
           </div>
         )}
       </Card>
@@ -313,14 +313,14 @@ export default function VehicleBillsPage() {
         </div>
         <div className="bg-card rounded-lg p-4 border">
           <div className="text-2xl font-bold">{vehicles.length}</div>
-          <div className="text-sm text-muted-foreground">Vehicles</div>
+          <div className="text-sm text-muted-foreground">{t("vehiclesLabel")}</div>
         </div>
       </div>
 
       {/* Bills Display */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading bills...</div>
+          <div className="text-muted-foreground">{t("loadingBills")}</div>
         </div>
       ) : allBills.length > 0 ? (
         viewMode === 'grid' ? (

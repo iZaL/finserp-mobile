@@ -418,10 +418,10 @@ export default function VehicleBookingsPage() {
             <div className="h-3 w-3 rounded-full bg-red-500" />
             <div className="flex-1">
               <div className="font-medium text-red-800 dark:text-red-200">
-                Vehicle Booking System Disabled
+                {t("systemDisabledTitle")}
               </div>
               <p className="text-sm text-red-700 dark:text-red-300">
-                Vehicle booking is currently disabled. Please contact your administrator.
+                {t("systemDisabledMessage")}
               </p>
             </div>
           </div>
@@ -473,14 +473,14 @@ export default function VehicleBookingsPage() {
           {selectedBookings.size > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">
-                {selectedBookings.size} vehicle(s) selected
+                {t("vehiclesSelected", { count: selectedBookings.size })}
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSelectedBookings(new Set())}
               >
-                Clear Selection
+                {t("clearSelection")}
               </Button>
             </div>
           )}
@@ -495,7 +495,7 @@ export default function VehicleBookingsPage() {
                 setSelectedBookings(new Set(booked.map(b => b.id)));
               }}
             >
-              Select All Booked ({filteredBookings.filter(b => b.status === "booked").length})
+              {t("selectAllBooked", { count: filteredBookings.filter(b => b.status === "booked").length })}
             </Button>
             <Button
               variant="outline"
@@ -505,7 +505,7 @@ export default function VehicleBookingsPage() {
                 setSelectedBookings(new Set(received.map(b => b.id)));
               }}
             >
-              Select All Received ({filteredBookings.filter(b => b.status === "received").length})
+              {t("selectAllReceived", { count: filteredBookings.filter(b => b.status === "received").length })}
             </Button>
             <Button
               variant="outline"
@@ -514,7 +514,7 @@ export default function VehicleBookingsPage() {
                 setSelectedBookings(new Set(filteredBookings.map(b => b.id)));
               }}
             >
-              Select All Visible ({filteredBookings.length})
+              {t("selectAllVisible", { count: filteredBookings.length })}
             </Button>
           </div>
 
@@ -530,10 +530,10 @@ export default function VehicleBookingsPage() {
                 {bulkLoading ? (
                   <>
                     <RefreshCw className="size-3 mr-1 animate-spin" />
-                    Receiving...
+                    {t("bulkReceiving")}
                   </>
                 ) : (
-                  `Bulk Receive (${selectedBookings.size})`
+                  t("bulkReceive", { count: selectedBookings.size })
                 )}
               </Button>
               <Button
@@ -545,10 +545,10 @@ export default function VehicleBookingsPage() {
                 {bulkLoading ? (
                   <>
                     <RefreshCw className="size-3 mr-1 animate-spin" />
-                    Rejecting...
+                    {t("bulkRejecting")}
                   </>
                 ) : (
-                  `Bulk Reject (${selectedBookings.size})`
+                  t("bulkReject", { count: selectedBookings.size })
                 )}
               </Button>
               <Button
@@ -560,10 +560,10 @@ export default function VehicleBookingsPage() {
                 {bulkLoading ? (
                   <>
                     <RefreshCw className="size-3 mr-1 animate-spin" />
-                    Exiting...
+                    {t("bulkExiting")}
                   </>
                 ) : (
-                  `Bulk Exit (${selectedBookings.size})`
+                  t("bulkExit", { count: selectedBookings.size })
                 )}
               </Button>
             </div>
@@ -591,7 +591,7 @@ export default function VehicleBookingsPage() {
               {t("vehiclesInsideFactory")}
             </h3>
             <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-              {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length} {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length === 1 ? "vehicle" : "vehicles"}
+              {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length} {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length === 1 ? t("vehicle") : t("vehicles")}
             </span>
           </div>
           <div className="space-y-3">
@@ -685,55 +685,55 @@ export default function VehicleBookingsPage() {
             {searchQuery ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No results found
+                  {t("noResultsFound")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Try adjusting your search or filter to find what you&apos;re looking for
+                  {t("noResultsDescription")}
                 </p>
               </>
             ) : statusFilter === "pending" ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No pending approvals
+                  {t("noPendingApprovals")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  All bookings have been approved or there are no bookings awaiting approval
+                  {t("noPendingApprovalsDescription")}
                 </p>
               </>
             ) : statusFilter === "booked" ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No booked vehicles
+                  {t("noBookedVehicles")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No vehicles are currently waiting to be received
+                  {t("noBookedVehiclesDescription")}
                 </p>
               </>
             ) : statusFilter === "received" ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No vehicles in factory
+                  {t("noVehiclesInFactory")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No vehicles are currently being offloaded
+                  {t("noVehiclesInFactoryDescription")}
                 </p>
               </>
             ) : statusFilter === "exited" ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No exited vehicles
+                  {t("noExitedVehicles")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No vehicles have completed offloading and exited yet
+                  {t("noExitedVehiclesDescription")}
                 </p>
               </>
             ) : statusFilter === "rejected" ? (
               <>
                 <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                  No rejected bookings
+                  {t("noRejectedBookings")}
                 </h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No bookings have been rejected
+                  {t("noRejectedBookingsDescription")}
                 </p>
               </>
             ) : (

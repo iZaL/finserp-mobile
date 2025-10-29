@@ -47,6 +47,7 @@ export function AppSidebar() {
   const pathname = usePathname()
   const locale = useLocale()
   const t = useTranslations('navigation')
+  const tLayout = useTranslations('layout')
   const sidebarSide = isRTL(locale) ? "right" : "left"
 
   return (
@@ -61,7 +62,7 @@ export function AppSidebar() {
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">FinsERP</span>
-                  <span className="text-xs text-muted-foreground">Mobile App</span>
+                  <span className="text-xs text-muted-foreground">{tLayout("mobileApp")}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -70,7 +71,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("mainMenu")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {

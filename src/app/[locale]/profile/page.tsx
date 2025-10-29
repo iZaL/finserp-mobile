@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { usePushNotification } from "@/hooks/use-push-notification"
+import { useTranslations } from "next-intl"
 import axios from "axios"
 
 interface NotificationPreferences {
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const { user } = useAuthStore()
   const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotification()
   const abortControllerRef = useRef<AbortController | null>(null)
+  const t = useTranslations("profile")
 
   const defaultPreferences: NotificationPreferences = {
     vehicle_bookings: {
@@ -133,26 +135,26 @@ export default function ProfilePage() {
           <User className="h-6 w-6 text-primary" />
         </div>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-          <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
       {/* User Information */}
       <div className="bg-card border rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Account Information</h2>
+        <h2 className="text-lg font-semibold mb-4">{t("accountInformation")}</h2>
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+            <Label className="text-sm font-medium text-muted-foreground">{t("name")}</Label>
             <p className="text-base">{user.name}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+            <Label className="text-sm font-medium text-muted-foreground">{t("email")}</Label>
             <p className="text-base">{user.email}</p>
           </div>
           {user.phone && (
             <div>
-              <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
+              <Label className="text-sm font-medium text-muted-foreground">{t("phone")}</Label>
               <p className="text-base">{user.phone}</p>
             </div>
           )}
@@ -164,7 +166,7 @@ export default function ProfilePage() {
         <div className="bg-card border rounded-lg p-6">
           <div className="flex items-center gap-2 mb-6">
             <Bell className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Push Notifications</h2>
+            <h2 className="text-lg font-semibold">{t("pushNotifications")}</h2>
           </div>
 
           <div className="space-y-4">
@@ -178,12 +180,12 @@ export default function ProfilePage() {
                   )}
                   <div>
                     <h3 className="font-medium">
-                      {isSubscribed ? "Push Notifications Enabled" : "Push Notifications Disabled"}
+                      {isSubscribed ? t("pushNotificationsEnabled") : t("pushNotificationsDisabled")}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {isSubscribed
-                        ? "You'll receive push notifications for vehicle bookings and system alerts"
-                        : "Enable push notifications to receive real-time updates"
+                        ? t("enabledDescription")
+                        : t("disabledDescription")
                       }
                     </p>
                   </div>
@@ -197,7 +199,7 @@ export default function ProfilePage() {
                     disabled={isLoading}
                     className="min-w-[100px]"
                   >
-                    {isLoading ? "Processing..." : "Disable"}
+                    {isLoading ? t("processing") : t("disable")}
                   </Button>
                 ) : (
                   <Button
@@ -205,7 +207,7 @@ export default function ProfilePage() {
                     disabled={isLoading}
                     className="min-w-[100px]"
                   >
-                    {isLoading ? "Processing..." : "Enable"}
+                    {isLoading ? t("processing") : t("enable")}
                   </Button>
                 )}
               </div>
@@ -216,9 +218,9 @@ export default function ProfilePage() {
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
-                    <p className="font-medium text-green-900 dark:text-green-100 mb-1">Push notifications are active</p>
+                    <p className="font-medium text-green-900 dark:text-green-100 mb-1">{t("pushNotificationsActive")}</p>
                     <p className="text-green-800 dark:text-green-200">
-                      You can control which specific notifications you receive using the settings below.
+                      {t("pushNotificationsActiveDescription")}
                     </p>
                   </div>
                 </div>
@@ -232,21 +234,21 @@ export default function ProfilePage() {
       <div className="bg-card border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-6">
           <Bell className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold">Notification Preferences</h2>
+          <h2 className="text-lg font-semibold">{t("notificationPreferences")}</h2>
         </div>
 
         <div className="space-y-6">
             {/* Vehicle Bookings Section */}
             <div className="space-y-4">
-              <h3 className="text-base font-medium">Vehicle Bookings</h3>
+              <h3 className="text-base font-medium">{t("vehicleBookingsSection")}</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_booked" className="cursor-pointer font-medium">
-                      Vehicle Booked
+                      {t("vehicleBooked")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified when a vehicle booking is created
+                      {t("vehicleBookedDescription")}
                     </p>
                   </div>
                   <Switch
@@ -260,10 +262,10 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_received" className="cursor-pointer font-medium">
-                      Vehicle Received
+                      {t("vehicleReceived")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified when a vehicle is received at the facility
+                      {t("vehicleReceivedDescription")}
                     </p>
                   </div>
                   <Switch
@@ -277,10 +279,10 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_exited" className="cursor-pointer font-medium">
-                      Vehicle Exited
+                      {t("vehicleExited")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified when a vehicle exits the facility
+                      {t("vehicleExitedDescription")}
                     </p>
                   </div>
                   <Switch
@@ -294,10 +296,10 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_approved" className="cursor-pointer font-medium">
-                      Vehicle Approved
+                      {t("vehicleApproved")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified when a vehicle booking is approved
+                      {t("vehicleApprovedDescription")}
                     </p>
                   </div>
                   <Switch
@@ -311,10 +313,10 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_rejected" className="cursor-pointer font-medium">
-                      Vehicle Rejected
+                      {t("vehicleRejected")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified when a vehicle booking is rejected
+                      {t("vehicleRejectedDescription")}
                     </p>
                   </div>
                   <Switch
@@ -331,15 +333,15 @@ export default function ProfilePage() {
 
             {/* System Alerts Section */}
             <div className="space-y-4">
-              <h3 className="text-base font-medium">System Alerts</h3>
+              <h3 className="text-base font-medium">{t("systemAlerts")}</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_capacity_alerts" className="cursor-pointer font-medium">
-                      Capacity Alerts
+                      {t("capacityAlerts")}
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Get notified about capacity limit warnings and status
+                      {t("capacityAlertsDescription")}
                     </p>
                   </div>
                   <Switch
@@ -357,12 +359,12 @@ export default function ProfilePage() {
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
-                  <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">About notification preferences</p>
+                  <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">{t("aboutNotificationPreferences")}</p>
                   <ul className="text-blue-800 dark:text-blue-200 space-y-1">
-                    <li>• These settings control which notifications you receive personally</li>
-                    <li>• Changes apply immediately to future notifications</li>
-                    <li>• You can enable or disable specific notification types as needed</li>
-                    <li>• Notifications may be delivered via the application or WhatsApp</li>
+                    <li>• {t("notificationInfo1")}</li>
+                    <li>• {t("notificationInfo2")}</li>
+                    <li>• {t("notificationInfo3")}</li>
+                    <li>• {t("notificationInfo4")}</li>
                   </ul>
                 </div>
               </div>
@@ -374,14 +376,14 @@ export default function ProfilePage() {
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Disable Notifications?</AlertDialogTitle>
+            <AlertDialogTitle>{t("disableNotificationsTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              You will no longer receive push notifications for vehicle bookings. You can re-enable them at any time.
+              {t("disableNotificationsDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDisable}>Disable</AlertDialogAction>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDisable}>{t("disable")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

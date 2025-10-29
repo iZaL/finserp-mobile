@@ -8,12 +8,14 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import { useTranslations } from "next-intl"
 
 const publicRoutes = ["/login", "/register", "/forgot-password"]
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isPublicRoute = publicRoutes.includes(pathname)
+  const t = useTranslations("layout")
 
   // For public routes, render children without header
   if (isPublicRoute) {
@@ -29,7 +31,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex flex-1 items-center gap-2">
             <SidebarTrigger className="-ms-1 md:flex hidden" />
             <Separator orientation="vertical" className="me-2 h-6 md:flex hidden" />
-            <h1 className="text-sm font-semibold md:hidden">FinsERP</h1>
+            <h1 className="text-sm font-semibold md:hidden">{t("appName")}</h1>
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />

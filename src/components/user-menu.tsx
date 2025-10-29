@@ -3,6 +3,7 @@
 import { LogOut, User } from "lucide-react"
 import { useRouter } from "@/i18n/navigation"
 import { useAuthStore } from "@/lib/stores/auth-store"
+import { useTranslations } from "next-intl"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button"
 export function UserMenu() {
   const router = useRouter()
   const { user, logout } = useAuthStore()
+  const t = useTranslations("navigation")
 
   const handleLogout = async () => {
     await logout()
@@ -59,12 +61,12 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
           <User className="me-2 size-4" />
-          Profile
+          {t("profile")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
           <LogOut className="me-2 size-4" />
-          Logout
+          {t("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
