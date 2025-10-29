@@ -47,7 +47,7 @@
     "offloadingBoxes": "Boxes",
     "offloadingWeight": "Weight",
     "offloadingSupplier": "Supplier",
-    "systemDisabledTitle": "Vehicle Booking System Disabled",
+    "systemDisabledTitle": "Booking system is currently disabled",
     "systemDisabledMessage": "Vehicle booking is currently disabled. Please contact your administrator.",
     "vehiclesSelected": "{count} vehicle(s) selected",
     "clearSelection": "Clear Selection",

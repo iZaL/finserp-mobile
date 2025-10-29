@@ -380,7 +380,6 @@ export default function VehicleBookingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
-          <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Button
@@ -411,16 +410,8 @@ export default function VehicleBookingsPage() {
       {/* Vehicle Booking System Status Indicator */}
       {settings && !settings.vehicle_booking_enabled && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-950 dark:border-red-800">
-          <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-red-500" />
-            <div className="flex-1">
-              <div className="font-medium text-red-800 dark:text-red-200">
-                {t("systemDisabledTitle")}
-              </div>
-              <p className="text-sm text-red-700 dark:text-red-300">
-                {t("systemDisabledMessage")}
-              </p>
-            </div>
+          <div className="font-medium text-red-800 dark:text-red-200">
+            {t("systemDisabledTitle")}
           </div>
         </div>
 

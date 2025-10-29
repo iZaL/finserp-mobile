@@ -311,15 +311,6 @@ export function BookingCard({
                       {t('actions.delete')}
                     </DropdownMenuItem>
                   )}
-                  {booking.can_reject && onReject && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onReject(booking))}
-                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    >
-                      <XCircle className="size-4 me-2" />
-                      {t('actions.reject')}
-                    </DropdownMenuItem>
-                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
