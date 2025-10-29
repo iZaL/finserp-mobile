@@ -165,14 +165,14 @@ export function BookingDetailsDrawer({
       color: 'emerald' as const
     }] : []),
     ...(booking.offloading_started_at ? [{
-      type: 'offloadingStarted',
+      type: 'offloading_started',
       timestamp: booking.offloading_started_at,
       user: booking.offloaded_by_name,
       icon: Fish,
       color: 'blue' as const
     }] : []),
     ...(booking.offloading_completed_at ? [{
-      type: 'offloadingCompleted',
+      type: 'offloading_completed',
       timestamp: booking.offloading_completed_at,
       user: booking.offloaded_by_name,
       icon: Fish,
