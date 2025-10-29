@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical } from "lucide-react"
+import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical, Fish } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -94,8 +94,21 @@ export function BookingCard({
               onClick={(e) => e.stopPropagation()}
             />
           )}
-          <div className="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+          <div className="relative flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
             <Truck className="size-5" />
+            {/* Corner fish badge for offloading status */}
+            {booking.status === "offloading" && (
+              <div className="absolute -top-1.5 -right-1.5 size-6 rounded-full bg-amber-100 dark:bg-amber-900/70 border-2 border-white dark:border-gray-800 overflow-hidden">
+                <div className="relative w-full h-full">
+                  <Fish
+                    className="absolute size-3.5 text-amber-600 dark:text-amber-400 top-1/2 transform -translate-y-1/2"
+                    style={{
+                      animation: 'fishSwimBadge 4s ease-in-out infinite',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           <div>
             <h4 className="font-semibold">{booking.vehicle_number}</h4>
@@ -204,29 +217,44 @@ export function BookingCard({
         </div>
       )}
 
+
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-2 relative z-10">
+      <div className="flex items-center justify-end gap-1.5 mt-3">
         {/* Approval Actions - Show when user can approve */}
-        {booking.can_approve && onApprove && onRejectApproval && (
+        {booking.can_approve && onApprove && (
           <>
             <Button
               size="sm"
               variant="outline"
               onClick={(e) => handleAction(e, () => onApprove(booking))}
-              className="flex-1 border-green-600 text-green-600 bg-green-50 hover:bg-green-100 dark:border-green-500 dark:text-green-500 dark:bg-green-950 dark:hover:bg-green-900"
+              className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
             >
-              <CheckCircle className="size-4 me-1" />
+              <CheckCircle className="size-3 me-1.5" />
               {t('actions.approve')}
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={(e) => handleAction(e, () => onRejectApproval(booking))}
-              className="flex-1 border-red-600 text-red-600 bg-red-50 hover:bg-red-100 dark:border-red-500 dark:text-red-500 dark:bg-red-950 dark:hover:bg-red-900"
-            >
-              <XCircle className="size-4 me-1" />
-              {t('actions.rejectApproval')}
-            </Button>
+            {onRejectApproval && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="size-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={(e) => handleAction(e, () => onRejectApproval(booking))}
+                    className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                  >
+                    <XCircle className="size-3 me-2" />
+                    {t('actions.rejectApproval')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </>
         )}
 
@@ -238,9 +266,9 @@ export function BookingCard({
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onReceive(booking))}
-                className="flex-1 border-emerald-600 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:border-emerald-500 dark:text-emerald-500 dark:bg-emerald-950 dark:hover:bg-emerald-900"
+                className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
               >
-                <CheckCircle className="size-4 me-1" />
+                <CheckCircle className="size-3 me-1.5" />
                 {t('actions.receive')}
               </Button>
             )}
@@ -249,11 +277,11 @@ export function BookingCard({
                 <DropdownMenuTrigger asChild>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="px-3"
+                    variant="ghost"
+                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="size-4" />
+                    <MoreVertical className="size-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -284,6 +312,15 @@ export function BookingCard({
                       {t('actions.delete')}
                     </DropdownMenuItem>
                   )}
+                  {booking.can_reject && onReject && (
+                    <DropdownMenuItem
+                      onClick={(e) => handleAction(e, () => onReject(booking))}
+                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    >
+                      <XCircle className="size-4 me-2" />
+                      {t('actions.reject')}
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -298,9 +335,9 @@ export function BookingCard({
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onStartOffloading(booking))}
-                className="flex-1 border-amber-600 text-amber-600 bg-amber-50 hover:bg-amber-100 dark:border-amber-500 dark:text-amber-500 dark:bg-amber-950 dark:hover:bg-amber-900"
+                className="px-3 py-1.5 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm"
               >
-                <CheckCircle className="size-4 me-1" />
+                <CheckCircle className="size-3 me-1.5" />
                 {t('actions.startOffloading')}
               </Button>
             )}
@@ -309,11 +346,11 @@ export function BookingCard({
                 <DropdownMenuTrigger asChild>
                   <Button
                     size="sm"
-                    variant="outline"
-                    className="px-3"
+                    variant="ghost"
+                    className="px-2 py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <MoreVertical className="size-4" />
+                    <MoreVertical className="size-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -349,9 +386,9 @@ export function BookingCard({
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onCompleteOffloading(booking))}
-                className="flex-1 border-green-600 text-green-600 bg-green-50 hover:bg-green-100 dark:border-green-500 dark:text-green-500 dark:bg-green-950 dark:hover:bg-green-900 relative z-10"
+                className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
               >
-                <CheckCircle className="size-4 me-1" />
+                <CheckCircle className="size-3 me-1.5" />
                 {t('actions.completeOffloading')}
               </Button>
             )}
@@ -366,9 +403,9 @@ export function BookingCard({
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onExit(booking))}
-                className="flex-1 border-blue-600 text-blue-600 bg-blue-50 hover:bg-blue-100 dark:border-blue-500 dark:text-blue-500 dark:bg-blue-950 dark:hover:bg-blue-900"
+                className="px-3 py-1.5 border-blue-300 text-blue-700 bg-white hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:bg-slate-800 dark:hover:bg-blue-950 text-sm"
               >
-                <LogOut className="size-4 me-1" />
+                <LogOut className="size-3 me-1.5" />
                 {t('actions.exit')}
               </Button>
             )}

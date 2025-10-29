@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import {
@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { vehicleBookingService } from "@/lib/services/vehicle-booking";
-import axios from "axios";
 import { FilePreviewModal } from "@/components/vehicle-booking/FilePreviewModal";
 import { BillAttachmentsGuard } from "@/components/permission-guard";
 import { toast } from "sonner";
@@ -111,51 +110,33 @@ export default function VehicleBillsPage() {
   };
 
   // Fetch vehicles with bills
-  useEffect(() => {
-    const abortController = new AbortController();
+  const fetchBills = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await vehicleBookingService.getBillsGallery({
+        search: searchQuery.trim() || undefined,
+        date_from: dateFrom,
+        date_to: dateTo,
+      });
+      setVehicles(response.data);
 
-    const fetchBills = async () => {
-      setLoading(true);
-      try {
-        const response = await vehicleBookingService.getBillsGallery(
-          {
-            search: searchQuery.trim() || undefined,
-            date_from: dateFrom,
-            date_to: dateTo,
-          },
-          { signal: abortController.signal }
-        );
-        console.log('Vehicles response:', response.data);
-        setVehicles(response.data);
-
-        // Calculate total bills across all vehicles
-        const total = response.data.reduce((acc, vehicle) => {
-          const billCount = vehicle.bill_attachments?.length || 0;
-          console.log(`Vehicle ${vehicle.vehicle_number} has ${billCount} bills:`, vehicle.bill_attachments);
-          return acc + billCount;
-        }, 0);
-        setTotalBills(total);
-      } catch (error: unknown) {
-        if (!axios.isCancel(error)) {
-          console.error("Failed to fetch bills:", error);
-          toast.error("Failed to load bills");
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const debounceTimer = setTimeout(() => {
-      fetchBills();
-    }, 300);
-
-    return () => {
-      clearTimeout(debounceTimer);
-      abortController.abort();
-    };
+      // Calculate total bills across all vehicles
+      const total = response.data.reduce((acc, vehicle) => {
+        const billCount = vehicle.bill_attachments?.length || 0;
+        return acc + billCount;
+      }, 0);
+      setTotalBills(total);
+    } catch (error) {
+      console.error("Failed to fetch bills:", error);
+      toast.error("Failed to load bills");
+    } finally {
+      setLoading(false);
+    }
   }, [searchQuery, dateFrom, dateTo]);
+
+  useEffect(() => {
+    fetchBills();
+  }, [fetchBills]);
 
   // Get all bills flattened with vehicle info
   const allBills = vehicles.flatMap(vehicle =>
@@ -166,10 +147,6 @@ export default function VehicleBillsPage() {
       uploaded_at: attachment.created_at
     }))
   );
-
-  console.log('All bills:', allBills);
-  console.log('Total vehicles:', vehicles.length);
-  console.log('Total bills:', allBills.length);
 
   const handlePreview = (attachment: Media) => {
     setPreviewAttachment(attachment);

@@ -4,39 +4,20 @@ import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Gauge, Shield } from "lucide-react"
-import type { DailyCapacity, VehicleBooking } from "@/types/vehicle-booking"
+import type { DailyCapacity } from "@/types/vehicle-booking"
 
 interface CapacityCardProps {
   capacity: DailyCapacity | null
   loading?: boolean
   allowOverride?: boolean
-  bookings?: VehicleBooking[]
-  defaultBoxWeightKg?: number
 }
 
-export function CapacityCard({ capacity, loading, allowOverride, bookings = [], defaultBoxWeightKg = 50 }: CapacityCardProps) {
+export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardProps) {
   const t = useTranslations('vehicleBookings.capacity')
 
-  // Calculate box counts and tonnage from bookings array for consistency
-  // Only count vehicles that are using capacity (booked and received)
-
-  // Booked: Approved vehicles waiting at gate (exclude pending approval and approval-rejected)
-  const bookedBookings = bookings.filter(b =>
-    b.status === "booked" &&
-    !b.is_pending_approval &&
-    b.approval_status !== "rejected"
-  )
-  const bookedBoxes = bookedBookings.reduce((sum, b) => sum + b.box_count, 0)
-  const bookedTons = bookedBookings.reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
-
-  // Received: Vehicles currently in factory being offloaded
-  const receivedBookings = bookings.filter(b => b.status === "received")
-  const receivedBoxes = receivedBookings.reduce((sum, b) => sum + (b.actual_box_count || b.box_count), 0)
-  const receivedTons = receivedBookings.reduce((sum, b) => sum + Number(b.weight_tons || 0), 0)
-
-  // Calculate totals and remaining capacity
-  const totalUsedBoxes = bookedBoxes + receivedBoxes
-  const totalUsedTons = bookedTons + receivedTons
+  // Use backend-calculated data exclusively (no frontend calculations)
+  const bookedBoxes = Number(capacity?.booked_boxes || 0)
+  const receivedBoxes = Number(capacity?.received_boxes || 0)
 
   if (loading) {
     return (
@@ -65,14 +46,11 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
     return null
   }
 
-  // Calculate remaining capacity and usage percentage
-  const remainingBoxes = capacity.daily_limit_boxes - totalUsedBoxes
-  // Use daily_limit_tons from backend if available, otherwise calculate as fallback
-  const limitTons = capacity.daily_limit_tons != null
-    ? Number(capacity.daily_limit_tons)
-    : (capacity.daily_limit_boxes * defaultBoxWeightKg) / 1000
-  const remainingTons = limitTons - totalUsedTons
-  const usagePercent = capacity.daily_limit_boxes > 0 ? (totalUsedBoxes / capacity.daily_limit_boxes) * 100 : 0
+  // Use backend-calculated remaining capacity and percentages (ensure numbers)
+  const remainingBoxes = Number(capacity?.remaining_capacity_boxes || 0)
+  const limitTons = Number(capacity?.daily_limit_tons || 0)
+  const remainingTons = Number(capacity?.remaining_capacity_tons || 0)
+  const usagePercent = Number(capacity?.capacity_used_percent || 0)
 
   const isWarning = usagePercent >= 80 && usagePercent < 100
   const isDanger = usagePercent >= 100
@@ -124,7 +102,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{t('usage')}</span>
             <span>
-              {totalUsedBoxes.toLocaleString()} / {capacity.daily_limit_boxes.toLocaleString()} {t('boxes')}
+              {(Number(capacity?.total_booked_boxes || 0)).toLocaleString()} / {(capacity?.daily_limit_boxes || 0).toLocaleString()} {t('boxes')}
             </span>
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -141,7 +119,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           <div className="text-center">
             <div className="text-xs text-muted-foreground mb-1">{t('limit')}</div>
             <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {capacity.daily_limit_boxes.toLocaleString()}
+              {(capacity?.daily_limit_boxes || 0).toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
               {limitTons.toFixed(1)} {t('mt')}
@@ -155,7 +133,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {bookedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {bookedTons.toFixed(1)} {t('mt')}
+              {(Number(capacity?.booked_tons || 0)).toFixed(1)} {t('mt')}
             </div>
           </div>
 
@@ -166,7 +144,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
               {receivedBoxes.toLocaleString()}
             </div>
             <div className="text-xs text-muted-foreground mt-0.5">
-              {receivedTons.toFixed(1)} {t('mt')}
+              {(Number(capacity?.received_tons || 0)).toFixed(1)} {t('mt')}
             </div>
           </div>
 
@@ -189,6 +167,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
             </div>
           </div>
         </div>
+
 
         {/* Warning Message */}
         {isDanger && (

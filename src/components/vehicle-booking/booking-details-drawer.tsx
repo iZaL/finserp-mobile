@@ -22,6 +22,7 @@ import {
   LogIn,
   Paperclip,
   Shield,
+  Fish,
 } from "lucide-react";
 import {
   Drawer,
@@ -128,6 +129,56 @@ export function BookingDetailsDrawer({
       activity.action === "edited" ||
       activity.action === "approval_rejected"
   );
+
+  // Helper function for timeline item styling
+  const getTimelineColorClasses = (color: 'blue' | 'emerald' | 'red' | 'muted') => {
+    const colorMap = {
+      blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800',
+      emerald: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800',
+      red: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800',
+      muted: 'bg-muted border'
+    };
+    return colorMap[color];
+  };
+
+  // Create dynamic timeline events array sorted chronologically
+  const timelineEvents = booking ? [
+    {
+      type: 'booked',
+      timestamp: booking.entry_datetime || booking.created_at,
+      user: booking.created_by_name,
+      icon: Clock,
+      color: 'blue' as const
+    },
+    ...(booking.approved_at ? [{
+      type: 'approved',
+      timestamp: booking.approved_at,
+      user: booking.approved_by_name,
+      icon: Shield,
+      color: 'emerald' as const
+    }] : []),
+    ...(booking.received_at ? [{
+      type: 'received',
+      timestamp: booking.received_at,
+      user: booking.received_by_name,
+      icon: CheckCircle,
+      color: 'emerald' as const
+    }] : []),
+    ...(booking.exited_at ? [{
+      type: 'exited',
+      timestamp: booking.exited_at,
+      user: booking.exited_by_name,
+      icon: LogOut,
+      color: 'muted' as const
+    }] : []),
+    ...(booking.rejected_at ? [{
+      type: 'rejected',
+      timestamp: booking.rejected_at,
+      user: booking.rejected_by_name,
+      icon: XCircle,
+      color: 'red' as const
+    }] : [])
+  ].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) : [];
 
   const handleAction = (action: () => void) => {
     action();
@@ -430,6 +481,73 @@ export function BookingDetailsDrawer({
                 </>
               )}
 
+              {/* Offloading Information - Compact */}
+              {(booking.status === "offloading" || booking.status === "offloaded" || booking.status === "exited") &&
+               booking.offloading_started_at && (
+                <>
+                  <Separator className="my-2" />
+                  <div className={`p-2 rounded-lg border ${
+                    booking.status === "offloading"
+                      ? "border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-900/10"
+                      : "border-emerald-200 dark:border-emerald-800 bg-emerald-50/30 dark:bg-emerald-900/10"
+                  }`}>
+                    <div className={`flex items-center justify-between mb-1.5 ${
+                      booking.status === "offloading"
+                        ? "text-amber-700 dark:text-amber-400"
+                        : "text-emerald-700 dark:text-emerald-400"
+                    }`}>
+                      <div className="flex items-center gap-1.5">
+                        {booking.status === "offloading" ? (
+                          <Fish
+                            className="size-3 animate-bounce"
+                            style={{
+                              animationDuration: '2s',
+                              transformOrigin: 'center'
+                            }}
+                          />
+                        ) : (
+                          <Fish className="size-3" />
+                        )}
+                        <span className="text-xs font-semibold">
+                          {booking.status === "offloading"
+                            ? tDetails("offloadingInProgress")
+                            : tDetails("offloadingCompleted")
+                          }
+                        </span>
+                      </div>
+
+                      {/* Duration Badge */}
+                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        booking.status === "offloading"
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                      }`}>
+                        {booking.status === "offloading" ? (
+                          (() => {
+                            const start = new Date(booking.offloading_started_at).getTime()
+                            const now = new Date().getTime()
+                            const diffMs = now - start
+                            const hours = Math.floor(diffMs / (1000 * 60 * 60))
+                            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
+                          })()
+                        ) : booking.offloading_completed_at ? (
+                          (() => {
+                            const start = new Date(booking.offloading_started_at).getTime()
+                            const end = new Date(booking.offloading_completed_at).getTime()
+                            const diffMs = end - start
+                            const hours = Math.floor(diffMs / (1000 * 60 * 60))
+                            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+                            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`
+                          })()
+                        ) : null}
+                      </div>
+                    </div>
+
+                  </div>
+                </>
+              )}
+
               {/* Rejection Information */}
               {booking.status === "rejected" && booking.rejection_reason && (
                 <>
@@ -574,106 +692,27 @@ export function BookingDetailsDrawer({
                   {tDetails("timeline")}
                 </h3>
                 <div className="space-y-2.5">
-                  <div className="flex items-start gap-2.5">
-                    <div className="flex items-center justify-center size-7 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex-shrink-0">
-                      <Clock className="size-3.5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{t("booked")}</div>
-                      <div className="text-xs text-muted-foreground">
-                        <RelativeTime
-                          date={booking.entry_datetime || booking.created_at}
-                        />
-                      </div>
-                      {booking.created_by_name && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {tDetails("bookedBy")}: {booking.created_by_name}
+                  {timelineEvents.map((event, index) => {
+                    const IconComponent = event.icon;
+                    return (
+                      <div key={index} className="flex items-start gap-2.5">
+                        <div className={`flex items-center justify-center size-7 rounded-full ${getTimelineColorClasses(event.color)} flex-shrink-0`}>
+                          <IconComponent className="size-3.5" />
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {booking.received_at && (
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex items-center justify-center size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
-                        <CheckCircle className="size-3.5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {t("received")}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          <RelativeTime date={booking.received_at} />
-                        </div>
-                        {booking.received_by_name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tDetails("receivedBy")}: {booking.received_by_name}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{t(event.type)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            <RelativeTime date={event.timestamp} />
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {booking.approved_at && (
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex items-center justify-center size-7 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
-                        <Shield className="size-3.5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {t("approved")}
+                          {event.user && (
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {tDetails(`${event.type}By`)}: {event.user}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          <RelativeTime date={booking.approved_at} />
-                        </div>
-                        {booking.approved_by_name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tDetails("approvedBy")}: {booking.approved_by_name}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  )}
-
-                  {booking.exited_at && (
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex items-center justify-center size-7 rounded-full bg-muted border flex-shrink-0">
-                        <LogOut className="size-3.5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{t("exited")}</div>
-                        <div className="text-xs text-muted-foreground">
-                          <RelativeTime date={booking.exited_at} />
-                        </div>
-                        {booking.exited_by_name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tDetails("exitedBy")}: {booking.exited_by_name}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {booking.rejected_at && (
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex items-center justify-center size-7 rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 flex-shrink-0">
-                        <XCircle className="size-3.5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">
-                          {t("rejected")}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          <RelativeTime date={booking.rejected_at} />
-                        </div>
-                        {booking.rejected_by_name && (
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {tDetails("rejectedBy")}: {booking.rejected_by_name}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -819,8 +858,9 @@ export function BookingDetailsDrawer({
                 </>
               )}
 
-              {/* Bill Attachments - Collapsible like Edit History */}
-              {permissions.canViewBillAttachments() && (
+              {/* Bill Attachments - Only show after offloaded */}
+              {permissions.canViewBillAttachments() &&
+               (booking.status === "offloaded" || booking.status === "exited") && (
                 <>
                   <Separator className="my-2" />
                   <Collapsible

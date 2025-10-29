@@ -69,6 +69,7 @@ export function validateFile(file: File, maxSize: number = 10 * 1024 * 1024): st
 
 export function getMimeTypeFromFileName(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase()
+  const lowerFileName = fileName.toLowerCase()
 
   switch (ext) {
     case 'pdf':
@@ -78,7 +79,26 @@ export function getMimeTypeFromFileName(fileName: string): string {
       return 'image/jpeg'
     case 'png':
       return 'image/png'
+    case 'tmp':
+    case 'temp':
+    case 'dat':
+      // Common camera temporary file extensions - assume JPEG
+      return 'image/jpeg'
     default:
+      // For unknown extensions, assume it's an image if the filename suggests it
+      // This helps with camera uploads that might have generic names
+      if (lowerFileName.includes('img') ||
+          lowerFileName.includes('image') ||
+          lowerFileName.includes('photo') ||
+          lowerFileName.includes('camera') ||
+          lowerFileName.includes('pic') ||
+          lowerFileName.includes('capture') ||
+          lowerFileName.includes('snapshot') ||
+          lowerFileName.startsWith('dsc') ||      // Digital Still Camera
+          lowerFileName.startsWith('p_') ||       // Photo prefix
+          lowerFileName.match(/^\d{8}_\d{6}/)) {  // YYYYMMDD_HHMMSS pattern
+        return 'image/jpeg' // Default to JPEG for camera images
+      }
       return 'application/octet-stream'
   }
 }
