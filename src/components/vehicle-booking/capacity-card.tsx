@@ -41,13 +41,13 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
   if (loading) {
     return (
       <Card>
-        <CardHeader className="pb-2 pt-4">
+        <CardHeader className="pb-0 pt-4">
           <CardTitle className="flex items-center gap-1.5 text-sm">
             <Gauge className="size-3.5" />
             {t('title')}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pb-3">
+        <CardContent className="pb-3 pt-3">
           <div className="animate-pulse space-y-2.5">
             <div className="h-1.5 bg-muted rounded"></div>
             <div className="grid grid-cols-4 gap-2">
@@ -91,7 +91,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
 
   return (
     <Card>
-      <CardHeader className="pb-2 pt-4">
+      <CardHeader className="pb-0 pt-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-1.5 text-sm">
             <Gauge className="size-3.5 text-blue-600 dark:text-blue-400" />
@@ -118,7 +118,7 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-2.5 pb-3">
+      <CardContent className="space-y-2.5">
         {/* Progress Bar */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
