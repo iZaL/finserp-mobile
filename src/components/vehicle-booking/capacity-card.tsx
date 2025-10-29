@@ -41,18 +41,18 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
   if (loading) {
     return (
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Gauge className="size-4" />
             {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-3">
-            <div className="h-2 bg-muted rounded"></div>
-            <div className="grid grid-cols-4 gap-3">
+          <div className="animate-pulse space-y-2.5 sm:space-y-3">
+            <div className="h-1.5 sm:h-2 bg-muted rounded"></div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-16 bg-muted rounded"></div>
+                <div key={i} className="h-14 sm:h-16 bg-muted rounded"></div>
               ))}
             </div>
           </div>
@@ -91,43 +91,43 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
             <Gauge className="size-4 text-blue-600 dark:text-blue-400" />
             {t('title')}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {allowOverride !== undefined && (
               <Badge
                 variant="outline"
-                className={`text-xs ${
+                className={`text-[10px] sm:text-xs ${
                   allowOverride
                     ? "border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400"
                     : "border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/20 text-gray-600 dark:text-gray-400"
                 }`}
               >
-                <Shield className="size-3 mr-1" />
+                <Shield className="size-2.5 sm:size-3 mr-0.5 sm:mr-1" />
                 {allowOverride ? t('overrideEnabled') : t('overrideDisabled')}
               </Badge>
             )}
-            <Badge className={badgeColor}>
+            <Badge className={`${badgeColor} text-xs sm:text-sm`}>
               {usagePercent.toFixed(0)}%
             </Badge>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-2.5 sm:space-y-4">
         {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground">
             <span>{t('usage')}</span>
-            <span>
+            <span className="font-medium">
               {totalUsedBoxes.toLocaleString()} / {capacity.daily_limit_boxes.toLocaleString()} {t('boxes')}
             </span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-300 ${progressColor}`}
               style={{ width: `${Math.min(usagePercent, 100)}%` }}
@@ -135,52 +135,52 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
           </div>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-4 gap-3">
+        {/* Metrics Grid - 2x2 on mobile, 4 columns on larger screens */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {/* Daily Limit */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">{t('limit')}</div>
-            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">{t('limit')}</div>
+            <div className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
               {capacity.daily_limit_boxes.toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
               {limitTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
           {/* Booked */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">{t('booked')}</div>
-            <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">{t('booked')}</div>
+            <div className="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400">
               {bookedBoxes.toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
               {bookedTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
           {/* Received */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">{t('received')}</div>
-            <div className="text-lg font-bold text-green-600 dark:text-green-400">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">{t('received')}</div>
+            <div className="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">
               {receivedBoxes.toLocaleString()}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
               {receivedTons.toFixed(1)} {t('mt')}
             </div>
           </div>
 
           {/* Remaining */}
           <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">{t('remaining')}</div>
-            <div className={`text-lg font-bold ${
+            <div className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">{t('remaining')}</div>
+            <div className={`text-base sm:text-lg font-bold ${
               isDanger ? "text-red-600 dark:text-red-400" :
               isWarning ? "text-amber-600 dark:text-amber-400" :
               "text-gray-600 dark:text-gray-400"
             }`}>
               {remainingBoxes.toLocaleString()}
             </div>
-            <div className={`text-xs mt-0.5 ${
+            <div className={`text-[10px] sm:text-xs mt-0.5 ${
               isDanger ? "text-red-600/80 dark:text-red-400/80" :
               isWarning ? "text-amber-600/80 dark:text-amber-400/80" :
               "text-muted-foreground"
@@ -192,11 +192,11 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
 
         {/* Warning Message */}
         {isDanger && (
-          <div className="flex items-start gap-2 p-3 border border-red-800 dark:border-red-800 rounded-lg">
-            <AlertTriangle className="size-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
+          <div className="flex items-start gap-1.5 sm:gap-2 p-2 sm:p-3 border border-red-800 dark:border-red-800 rounded-lg">
+            <AlertTriangle className="size-3.5 sm:size-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm">
               <p className="font-medium text-red-600 dark:text-red-400">{t('exceeded')}</p>
-              <p className="text-red-600/80 dark:text-red-400/80 text-xs">
+              <p className="text-red-600/80 dark:text-red-400/80 text-[10px] sm:text-xs">
                 {t('exceededDescription')}
               </p>
             </div>
@@ -204,11 +204,11 @@ export function CapacityCard({ capacity, loading, allowOverride, bookings = [], 
         )}
 
         {isWarning && !isDanger && (
-          <div className="flex items-start gap-2 p-3 border border-amber-800 dark:border-amber-800 rounded-lg">
-            <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
+          <div className="flex items-start gap-1.5 sm:gap-2 p-2 sm:p-3 border border-amber-800 dark:border-amber-800 rounded-lg">
+            <AlertTriangle className="size-3.5 sm:size-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm">
               <p className="font-medium text-amber-600 dark:text-amber-400">{t('approaching')}</p>
-              <p className="text-amber-600/80 dark:text-amber-400/80 text-xs">
+              <p className="text-amber-600/80 dark:text-amber-400/80 text-[10px] sm:text-xs">
                 {t('approachingDescription', { count: remainingBoxes })}
               </p>
             </div>
