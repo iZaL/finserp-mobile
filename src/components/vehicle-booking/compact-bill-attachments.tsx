@@ -71,7 +71,7 @@ export function CompactBillAttachments({
       const updatedVehicle = await vehicleBookingService.uploadMedia(vehicle.id, processedFile)
       onUpdate(updatedVehicle)
       toast.success(t('uploadSuccess'))
-    } catch (error) {
+    } catch {
       toast.error(t('uploadError'))
     } finally {
       setIsUploading(false)

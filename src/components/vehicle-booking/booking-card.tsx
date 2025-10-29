@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
-import { ConveyorAnimation } from "@/components/ui/conveyor-animation"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
 interface BookingCardProps {
@@ -82,7 +81,7 @@ export function BookingCard({
       onClick={() => onClick?.(booking)}
     >
       {/* Swimming Fish Animation - Only show when offloading */}
-      {booking.status === "offloading" && <ConveyorAnimation />}
+      {booking.status === "offloading"}
       {/* Header */}
       <div className="flex items-start justify-between mb-3 relative z-10">
         <div className="flex items-center gap-3">

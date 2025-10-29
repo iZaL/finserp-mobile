@@ -342,7 +342,6 @@ export default function VehicleBookingsPage() {
 
   // Use backend-calculated status counts (will come from dailyCapacityData)
   const statusCounts = {
-<<<<<<< HEAD
     // Bookings waiting for approval
     pending: bookings.filter((b) => b.is_pending_approval).length,
 
@@ -368,14 +367,12 @@ export default function VehicleBookingsPage() {
       b.status === "rejected" ||
       b.approval_status === "rejected"
     ).length,
-=======
-    pending: capacityInfo?.pending_count || 0,
-    booked: capacityInfo?.booked_count || 0,
-    // Use the accurate in_progress_count (received but not yet offloaded)
-    received: capacityInfo?.in_progress_count || 0,
-    exited: capacityInfo?.exited_count || 0,
-    rejected: capacityInfo?.rejected_count || 0,
->>>>>>> 43e89528c243ba0f6385f914b6a13881e8bf8f03
+    // pending: capacityInfo?.pending_count || 0,
+    // booked: capacityInfo?.booked_count || 0,
+    // // Use the accurate in_progress_count (received but not yet offloaded)
+    // received: capacityInfo?.in_progress_count || 0,
+    // exited: capacityInfo?.exited_count || 0,
+    // rejected: capacityInfo?.rejected_count || 0,
   };
 
   return (
