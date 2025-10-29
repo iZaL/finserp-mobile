@@ -587,7 +587,17 @@ export default function VehicleBookingsPage() {
       )}
 
       {/* Vehicles Inside Factory Section */}
-      {!loading && (statusFilter === "all" || statusFilter === "received" || statusFilter === "offloading" || statusFilter === "offloaded") && bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length > 0 && (
+      {!loading && (statusFilter === "all" || statusFilter === "received" || statusFilter === "offloading" || statusFilter === "offloaded") && bookings.filter(b => {
+        if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded") return false;
+        if (!searchQuery.trim()) return true;
+        return (
+          b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+          (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+          (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+          (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+        );
+      }).length > 0 && (
         <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
@@ -595,12 +605,39 @@ export default function VehicleBookingsPage() {
               {t("vehiclesInsideFactory")}
             </h3>
             <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-              {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length} {bookings.filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded").length === 1 ? t("vehicle") : t("vehicles")}
+              {(() => {
+                const count = bookings.filter(b => {
+                  if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded") return false;
+                  if (!searchQuery.trim()) return true;
+                  return (
+                    b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                    (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                    (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                    (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+                  );
+                }).length;
+                return `${count} ${count === 1 ? t("vehicle") : t("vehicles")}`;
+              })()}
             </span>
           </div>
           <div className="space-y-3">
             {bookings
-              .filter(b => b.status === "received" || b.status === "offloading" || b.status === "offloaded")
+              .filter(b => {
+                // Status filter
+                if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded") return false;
+
+                // Apply search filter
+                if (!searchQuery.trim()) return true;
+
+                return (
+                  b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                  (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                  (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                  (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+                );
+              })
               .sort((a, b) => {
                 // Define priority: offloading (1) -> received (2) -> offloaded (3)
                 const statusPriority: Record<string, number> = {
