@@ -509,6 +509,7 @@
     "disableNotificationsTitle": "Disable Notifications?",
     "disableNotificationsDescription": "You will no longer receive push notifications for vehicle bookings. You can re-enable them at any time.",
     "cancel": "Cancel",
+    "enable": "Enable",
     "disable": "Disable"
   },
   "suppliers": {

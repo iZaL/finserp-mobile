@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Bell, BellOff, User, Info } from "lucide-react"
+import { Bell, User, Info } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
@@ -167,86 +167,63 @@ export default function ProfilePage() {
 
       {/* Push Notifications */}
       {isSupported && (
-        <div className="bg-card border rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <Bell className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">{t("pushNotifications")}</h2>
+        <div className="bg-card border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">{t("pushNotifications")}</h2>
+            </div>
+            <div className="flex-shrink-0">
+              {isSubscribed ? (
+                <Button
+                  variant="outline"
+                  onClick={handleDisableClick}
+                  disabled={isLoading}
+                  size="sm"
+                >
+                  {isLoading ? t("processing") : t("disable")}
+                </Button>
+              ) : (
+                <Button
+                  onClick={subscribe}
+                  disabled={isLoading}
+                  size="sm"
+                >
+                  {isLoading ? t("processing") : t("enable")}
+                </Button>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-lg">
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  {isSubscribed ? (
-                    <Bell className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <BellOff className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <div>
-                    <h3 className="font-medium">
-                      {isSubscribed ? t("pushNotificationsEnabled") : t("pushNotificationsDisabled")}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isSubscribed
-                        ? t("enabledDescription")
-                        : t("disabledDescription")
-                      }
-                    </p>
-                  </div>
+          {isSubscribed && (
+            <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-green-900 dark:text-green-100 mb-1">{t("pushNotificationsActive")}</p>
+                  <p className="text-green-800 dark:text-green-200">
+                    {t("pushNotificationsActiveDescription")}
+                  </p>
                 </div>
-              </div>
-              <div className="flex-shrink-0">
-                {isSubscribed ? (
-                  <Button
-                    variant="outline"
-                    onClick={handleDisableClick}
-                    disabled={isLoading}
-                    className="min-w-[100px]"
-                  >
-                    {isLoading ? t("processing") : t("disable")}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={subscribe}
-                    disabled={isLoading}
-                    className="min-w-[100px]"
-                  >
-                    {isLoading ? t("processing") : t("enable")}
-                  </Button>
-                )}
               </div>
             </div>
-
-            {isSubscribed && (
-              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Info className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium text-green-900 dark:text-green-100 mb-1">{t("pushNotificationsActive")}</p>
-                    <p className="text-green-800 dark:text-green-200">
-                      {t("pushNotificationsActiveDescription")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       )}
 
       {/* Notification Preferences */}
-      <div className="bg-card border rounded-lg p-6">
-        <div className="flex items-center gap-2 mb-6">
+      <div className="bg-card border rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-4">
           <Bell className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold">{t("notificationPreferences")}</h2>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Vehicle Bookings Section */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h3 className="text-base font-medium">{t("vehicleBookingsSection")}</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_booked" className="cursor-pointer font-medium">
                       {t("vehicleBooked")}
@@ -263,7 +240,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_received" className="cursor-pointer font-medium">
                       {t("vehicleReceived")}
@@ -280,7 +257,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_offloading" className="cursor-pointer font-medium">
                       Offloading Started
@@ -297,7 +274,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_offloaded" className="cursor-pointer font-medium">
                       Offloading Completed
@@ -314,7 +291,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_exited" className="cursor-pointer font-medium">
                       {t("vehicleExited")}
@@ -331,7 +308,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_approved" className="cursor-pointer font-medium">
                       {t("vehicleApproved")}
@@ -348,7 +325,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_rejected" className="cursor-pointer font-medium">
                       {t("vehicleRejected")}
@@ -370,10 +347,10 @@ export default function ProfilePage() {
             <Separator />
 
             {/* System Alerts Section */}
-            <div className="space-y-4">
+            <div className="space-y-2">
               <h3 className="text-base font-medium">{t("systemAlerts")}</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-muted/20 rounded-md">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2.5 bg-muted/20 rounded-md">
                   <div className="flex-1">
                     <Label htmlFor="notify_capacity_alerts" className="cursor-pointer font-medium">
                       {t("capacityAlerts")}
@@ -393,7 +370,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Info Section */}
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <div className="flex items-start gap-3">
                 <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">

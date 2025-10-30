@@ -513,6 +513,7 @@
     "disableNotificationsTitle": "تعطيل الإشعارات؟",
     "disableNotificationsDescription": "لن تتلقى بعد الآن إشعارات فورية لحجوزات السيارات. يمكنك إعادة تفعيلها في أي وقت.",
     "cancel": "إلغاء",
+    "enable": "تفعيل",
     "disable": "تعطيل"
   },
   "suppliers": {
