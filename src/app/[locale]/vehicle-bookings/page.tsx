@@ -377,7 +377,7 @@ export default function VehicleBookingsPage() {
 
   return (
     <VehicleBookingGuard>
-      <div className="overscroll-y-none flex flex-col gap-2">
+      <div className="overscroll-none overflow-x-hidden flex flex-col gap-2">
       {/* Search Bar and Action Buttons */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
