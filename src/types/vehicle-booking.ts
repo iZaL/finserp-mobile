@@ -53,6 +53,10 @@ export interface VehicleBooking {
   // Bill attachments
   bill_attachments?: Media[]
 
+  // Fish Purchase Link
+  fish_purchase_id?: number
+  fish_purchase_bill_number?: string
+
   // Permissions
   can_edit: boolean
   can_delete: boolean

@@ -1,7 +1,8 @@
 "use client"
 
+import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
-import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical, Fish } from "lucide-react"
+import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical, Fish, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -46,6 +47,7 @@ export function BookingCard({
   isSelected = false,
   onSelectionChange,
 }: BookingCardProps) {
+  const router = useRouter()
   const t = useTranslations('vehicleBookings.bookingCard')
 
   const getStatusColor = (status: string) => {
@@ -388,6 +390,41 @@ export function BookingCard({
         {/* Offloaded Status Actions */}
         {booking.status === "offloaded" && (
           <>
+            {/* Create Fish Purchase Bill Button */}
+            {!booking.fish_purchase_id && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  const params = new URLSearchParams({
+                    vehicle: booking.vehicle_number,
+                    ...(booking.driver_name && { driver: booking.driver_name }),
+                    ...(booking.driver_phone && { driver_phone: booking.driver_phone }),
+                    ...(booking.supplier_name && { supplier_name: booking.supplier_name }),
+                    ...(booking.supplier_phone && { supplier_phone: booking.supplier_phone }),
+                  });
+                  handleAction(e, () => router.push(`/fish-purchases/new?${params.toString()}`));
+                }}
+                className="px-3 py-1.5 border-purple-300 text-purple-700 bg-white hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:bg-slate-800 dark:hover:bg-purple-950 text-sm"
+              >
+                <FileText className="size-3 me-1.5" />
+                {t('actions.createFishPurchase')}
+              </Button>
+            )}
+
+            {/* Show linked fish purchase bill if exists */}
+            {booking.fish_purchase_id && booking.fish_purchase_bill_number && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => handleAction(e, () => router.push(`/fish-purchases/${booking.fish_purchase_id}`))}
+                className="px-3 py-1.5 border-purple-300 text-purple-700 bg-white hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:bg-slate-800 dark:hover:bg-purple-950 text-sm"
+              >
+                <FileText className="size-3 me-1.5" />
+                {booking.fish_purchase_bill_number}
+              </Button>
+            )}
+
             {booking.can_exit && onExit && (
               <Button
                 size="sm"
