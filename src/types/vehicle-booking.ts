@@ -34,11 +34,13 @@ export interface VehicleBooking {
   updated_at: string
   created_by?: number
   received_by?: number
+  offloading_started_by?: number
   offloaded_by?: number
   rejected_by?: number
   exited_by?: number
   created_by_name?: string
   received_by_name?: string
+  offloading_by_name?: string
   offloaded_by_name?: string
   rejected_by_name?: string
   exited_by_name?: string

@@ -167,7 +167,7 @@ export function BookingDetailsDrawer({
     ...(booking.offloading_started_at ? [{
       type: 'offloading_started',
       timestamp: booking.offloading_started_at,
-      user: booking.offloaded_by_name,
+      user: booking.offloading_by_name,
       icon: Fish,
       color: 'blue' as const
     }] : []),
@@ -412,9 +412,26 @@ export function BookingDetailsDrawer({
                     <div className="text-xs text-muted-foreground">
                       {tDetails("boxCount")}
                     </div>
-                    <div className="text-xl font-bold">{booking.box_count}</div>
+                    <div className="text-xl font-bold">
+                      {booking.actual_box_count && booking.actual_box_count !== booking.box_count ? (
+                        <span className="flex items-center gap-1">
+                          <span className={boxDiscrepancy < 0 ? 'text-red-600 dark:text-red-400' : boxDiscrepancy > 0 ? 'text-amber-600 dark:text-amber-400' : ''}>
+                            {booking.actual_box_count}
+                          </span>
+                          <span className="text-muted-foreground text-sm">/</span>
+                          <span className="text-muted-foreground text-lg">{booking.box_count}</span>
+                        </span>
+                      ) : (
+                        booking.box_count
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {t("boxes")}
+                      {booking.actual_box_count && booking.actual_box_count !== booking.box_count && (
+                        <span className={`ml-1 font-medium ${boxDiscrepancy < 0 ? 'text-red-600 dark:text-red-400' : boxDiscrepancy > 0 ? 'text-green-600 dark:text-green-400' : ''}`}>
+                          ({boxDiscrepancy > 0 ? '+' : ''}{boxDiscrepancy})
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-1 p-3 rounded-lg border bg-muted/30">
