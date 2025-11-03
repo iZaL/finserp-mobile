@@ -212,7 +212,7 @@ export default function CreateFishPurchasePage() {
           fish_species_id: item.fish_species_id,
           box_count: item.box_count,
           box_weights: item.box_weights,
-          rate: item.rate,
+          rate: item.rate / 1000, // Convert BZ to OMR (1 OMR = 1000 BZ)
           fish_count: item.fish_count,
           remarks: item.remarks,
         })),
@@ -352,34 +352,30 @@ export default function CreateFishPurchasePage() {
 
         {/* Review Step */}
         {activeStep === "review" && (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold">{t("review.supplierInfo")}</h3>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  <dt className="text-muted-foreground">{t("supplier.name")}:</dt>
-                  <dd className="font-medium">{formData.contact_name}</dd>
-                  <dt className="text-muted-foreground">{t("supplier.phone")}:</dt>
-                  <dd className="font-medium">{formData.contact_number}</dd>
-                </dl>
-              </CardContent>
-            </Card>
+          <div className="space-y-4">
+            <div className="p-4 bg-card rounded-lg border space-y-3">
+              <h3 className="font-semibold text-sm">{t("review.supplierInfo")}</h3>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <dt className="text-muted-foreground">{t("supplier.name")}:</dt>
+                <dd className="font-medium">{formData.contact_name}</dd>
+                <dt className="text-muted-foreground">{t("supplier.phone")}:</dt>
+                <dd className="font-medium">{formData.contact_number}</dd>
+              </dl>
+            </div>
 
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold">{t("review.purchaseDetails")}</h3>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  <dt className="text-muted-foreground">{t("details.billNumber")}:</dt>
-                  <dd className="font-medium">{formData.bill_number}</dd>
-                  <dt className="text-muted-foreground">{t("details.vehicleNumber")}:</dt>
-                  <dd className="font-medium">{formData.vehicle_number}</dd>
-                  <dt className="text-muted-foreground">{t("details.driverName")}:</dt>
-                  <dd className="font-medium">{formData.driver_name}</dd>
-                </dl>
-              </CardContent>
-            </Card>
+            <div className="p-4 bg-card rounded-lg border space-y-3">
+              <h3 className="font-semibold text-sm">{t("review.purchaseDetails")}</h3>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <dt className="text-muted-foreground">{t("details.billNumber")}:</dt>
+                <dd className="font-medium">{formData.bill_number}</dd>
+                <dt className="text-muted-foreground">{t("details.vehicleNumber")}:</dt>
+                <dd className="font-medium">{formData.vehicle_number}</dd>
+                <dt className="text-muted-foreground">{t("details.driverName")}:</dt>
+                <dd className="font-medium">{formData.driver_name}</dd>
+              </dl>
+            </div>
 
-            <PurchaseSummary items={formData.items} showDetails={true} />
+            <PurchaseSummary items={formData.items} showDetails={true} fishSpecies={fishSpecies} />
           </div>
         )}
       </div>

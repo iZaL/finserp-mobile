@@ -8,12 +8,15 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
+import Image from "next/image"
 
 const publicRoutes = ["/login", "/register", "/forgot-password"]
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const locale = useLocale()
+  const isRTL = locale === "ar"
   const isPublicRoute = publicRoutes.includes(pathname)
   const t = useTranslations("layout")
 
@@ -28,10 +31,18 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset>
         <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 z-40">
-          <div className="flex flex-1 items-center gap-2">
+          <div className={`flex flex-1 items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <SidebarTrigger className="-ms-1 md:flex hidden" />
             <Separator orientation="vertical" className="me-2 h-6 md:flex hidden" />
-            <h1 className="text-sm font-semibold md:hidden">{t("appName")}</h1>
+            <div className={`md:hidden flex items-center`}>
+              <Image
+                src="/icon-192x192.png"
+                alt={t("appName")}
+                width={52}
+                height={52}
+                className="object-contain"
+              />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <ModeToggle />

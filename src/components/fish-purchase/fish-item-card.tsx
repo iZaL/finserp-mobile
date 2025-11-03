@@ -58,10 +58,13 @@ export function FishItemCard({
   // Recalculate when box weights or rate changes
   useEffect(() => {
     if (boxWeights.length > 0 && item.rate && item.box_count) {
+      // Convert BZ to OMR (1 OMR = 1000 BZ)
+      const rateInOMR = item.rate / 1000;
+
       const calculated = fishPurchaseService.calculateFishItem(
         item.box_count,
         boxWeights,
-        item.rate
+        rateInOMR
       );
 
       onUpdate({
@@ -115,7 +118,7 @@ export function FishItemCard({
                   <span className="font-medium">{selectedSpecies.name}</span>
                 </div>
               ) : (
-                <span className="text-muted-foreground text-sm">
+                <span className="text-foreground font-semibold text-base">
                   {t("selectSpecies")}
                 </span>
               )}
@@ -204,6 +207,7 @@ export function FishItemCard({
               </Label>
               <Input
                 type="number"
+                inputMode="numeric"
                 value={item.box_count || ""}
                 onChange={(e) =>
                   handleFieldChange("box_count", parseInt(e.target.value) || 0)
@@ -219,17 +223,17 @@ export function FishItemCard({
 
             <div className="space-y-2">
               <Label>
-                {t("rate")} (OMR/kg) <span className="text-destructive">*</span>
+                {t("rate")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="number"
-                step="0.001"
+                inputMode="numeric"
                 value={item.rate || ""}
                 onChange={(e) =>
-                  handleFieldChange("rate", parseFloat(e.target.value) || 0)
+                  handleFieldChange("rate", parseInt(e.target.value) || 0)
                 }
-                placeholder="0.000"
-                min="0.001"
+                placeholder="0"
+                min="1"
                 className={errors.rate ? "border-destructive" : ""}
               />
               {errors.rate && (
@@ -261,6 +265,7 @@ export function FishItemCard({
                 <div key={weightIndex} className="relative">
                   <Input
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     value={weight || ""}
                     onChange={(e) =>

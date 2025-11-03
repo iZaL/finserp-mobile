@@ -796,7 +796,7 @@
       "selectSpecies": "Select fish species...",
       "boxCount": "Box Count",
       "boxCountPlaceholder": "Enter number of boxes",
-      "rate": "Rate (OMR/kg)",
+      "rate": "Rate (BZ/kg)",
       "ratePlaceholder": "Enter rate per kg",
       "fishCount": "Fish Count",
       "fishCountPlaceholder": "Enter fish count (optional)",
