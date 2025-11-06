@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, Edit, Trash2, CheckCircle, XCircle, Loader2, Package, Scale, CircleDollarSign } from "lucide-react";
+import { ChevronLeft, Edit, Trash2, CheckCircle, XCircle, Loader2, Package, Scale, CircleDollarSign, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,12 +21,13 @@ import { useFishPurchase, useDeleteFishPurchase } from "@/hooks/use-fish-purchas
 import { toast } from "sonner";
 import type { FishPurchaseStatus } from "@/types/fish-purchase";
 import { cn } from "@/lib/utils";
+import { FinancialSummary } from "@/components/fish-purchase/financial-summary";
 
 export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const t = useTranslations("fishPurchases");
-  const { data: purchase, loading } = useFishPurchase(parseInt(id));
+  const { data: purchase, loading, refresh } = useFishPurchase(parseInt(id));
   const { deletePurchase, loading: deleting } = useDeleteFishPurchase();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -109,7 +110,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
             >
               <Trash2 className="size-4" />
             </Button>
-            <Button size="icon">
+            <Button size="icon" onClick={() => router.push(`/fish-purchases/${id}/edit`)}>
               <Edit className="size-4" />
             </Button>
           </div>
@@ -122,7 +123,8 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
           <CardContent className="p-4 text-center">
             <Package className="size-5 text-muted-foreground mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">{t("summary.totalBoxes")}</p>
-            <p className="text-2xl font-bold">{purchase.total_boxes}</p>
+            <p className="text-2xl font-bold">{purchase.total_boxes.toLocaleString('en-US')}</p>
+            <p className="text-xs text-muted-foreground">boxes</p>
           </CardContent>
         </Card>
 
@@ -130,8 +132,8 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
           <CardContent className="p-4 text-center">
             <Scale className="size-5 text-muted-foreground mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">{t("summary.totalWeight")}</p>
-            <p className="text-2xl font-bold">{purchase.total_weight.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">kg</p>
+            <p className="text-2xl font-bold">{(purchase.total_weight / 1000).toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</p>
+            <p className="text-xs text-muted-foreground">ton</p>
           </CardContent>
         </Card>
 
@@ -139,7 +141,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
           <CardContent className="p-4 text-center">
             <CircleDollarSign className="size-5 text-primary mx-auto mb-2" />
             <p className="text-xs text-muted-foreground">{t("summary.totalAmount")}</p>
-            <p className="text-2xl font-bold text-primary">{purchase.total_amount.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-primary">{purchase.total_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             <p className="text-xs text-muted-foreground">OMR</p>
           </CardContent>
         </Card>
@@ -214,10 +216,10 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-primary">
-                      {item.net_amount.toFixed(2)} OMR
+                      {item.net_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OMR
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      @ {item.rate.toFixed(3)} OMR/kg
+                      @ {Math.round(item.rate * 1000).toLocaleString('en-US')} BZ/kg
                     </p>
                   </div>
                 </div>
@@ -225,15 +227,15 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
                     <p className="text-xs text-muted-foreground">{t("items.boxes")}</p>
-                    <p className="font-semibold">{item.box_count}</p>
+                    <p className="font-semibold">{item.box_count} boxes</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t("items.avgWeight")}</p>
-                    <p className="font-semibold">{item.average_box_weight.toFixed(2)} kg</p>
+                    <p className="font-semibold">{item.average_box_weight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t("items.totalWeight")}</p>
-                    <p className="font-semibold">{item.net_weight.toFixed(2)} kg</p>
+                    <p className="font-semibold">{item.net_weight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
                   </div>
                 </div>
 
@@ -247,6 +249,43 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
           </div>
         </CardContent>
       </Card>
+
+      {/* Financial Summary */}
+      {purchase.bill && (
+        <FinancialSummary
+          purchase={purchase}
+          onPaymentAdded={refresh}
+        />
+      )}
+
+      {/* Create/Edit Fish Bill Button */}
+      {!purchase.bill && purchase.status === "draft" && (
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <Button
+              className="w-full"
+              onClick={() => router.push(`/bills/new?fish_purchase_id=${id}`)}
+            >
+              <FileText className="size-4 mr-2" />
+              {t("actions.createFishBill")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {purchase.bill && purchase.bill.status === "draft" && (
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <Button
+              className="w-full"
+              onClick={() => router.push(`/bills/${purchase.bill?.id}/edit`)}
+            >
+              <FileText className="size-4 mr-2" />
+              {t("actions.editFishBill")}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

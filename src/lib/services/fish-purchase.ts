@@ -9,6 +9,7 @@ import type {
   UpdateStatusRequest,
   FishPurchaseStats,
 } from "@/types/fish-purchase";
+import type { AdvancePaymentRequest } from "@/types/payment";
 import type {
   PaginatedResponse,
   ApiResponse,
@@ -88,6 +89,18 @@ export const fishPurchaseService = {
   ): Promise<FishPurchase> => {
     const response = await api.post<ApiResponse<FishPurchase>>(
       `/fish-purchases/${id}/update-status`,
+      data
+    );
+    return response.data.data!;
+  },
+
+  // Add payment to fish purchase
+  addPayment: async (
+    id: number,
+    data: AdvancePaymentRequest
+  ): Promise<FishPurchase> => {
+    const response = await api.post<ApiResponse<FishPurchase>>(
+      `/fish-purchases/${id}/payments`,
       data
     );
     return response.data.data!;

@@ -2,6 +2,7 @@
 // Source: erp-web/resources/js/types.ts
 
 import type { Contact, Address, Media, Bank, ApiResponse, PaginatedResponse } from "./shared";
+import type { Payment, PaymentAccount } from "./payment";
 
 /**
  * Fish Species
@@ -102,6 +103,7 @@ export interface BillDocument {
   total_amount: number;
   paid_amount: number;
   balance_amount: number;
+  payments?: Payment[];
   created_at: string;
 }
 
@@ -128,6 +130,7 @@ export interface FishPurchase {
   contact_id?: number;
   bank_id?: number;
   agent_id?: number;
+  vehicle_booking_id?: number;
   account_number?: string;
   bill_number: string;
   contact_name: string;
@@ -161,6 +164,7 @@ export interface FishPurchase {
   date: string;
   date_formatted?: string;
   permissions?: FishPurchasePermissions;
+  payment_accounts?: PaymentAccount[];
 }
 
 // ============= Request/Response Types for API =============
@@ -174,6 +178,7 @@ export interface CreateFishPurchaseRequest {
   contact_number: string;
   bank_id?: number;
   agent_id?: number;
+  vehicle_booking_id?: number;
   account_number?: string;
   fish_location_id: number;
   bill_number: string;
@@ -204,9 +209,7 @@ export interface CreateFishPurchaseItemRequest {
 /**
  * Update Fish Purchase Request
  */
-export interface UpdateFishPurchaseRequest extends Partial<CreateFishPurchaseRequest> {
-  id: number;
-}
+export interface UpdateFishPurchaseRequest extends Partial<CreateFishPurchaseRequest> {}
 
 /**
  * Fish Purchase Filters for List/Search
