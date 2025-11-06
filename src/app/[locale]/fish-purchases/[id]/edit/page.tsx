@@ -289,7 +289,7 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
         steps={steps}
         activeStep={activeStep}
         isStepComplete={isStepComplete}
-        onStepClick={setActiveStep}
+        onStepClick={(stepId) => setActiveStep(stepId as FishPurchaseFormStep)}
       />
 
       {/* Step Content */}
@@ -366,7 +366,10 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
             }}
             locations={locations}
             agents={agents}
-            errors={errors as Record<string, { message?: string }>}
+            errors={Object.entries(errors).reduce((acc, [key, value]) => ({
+              ...acc,
+              [key]: value?.message || String(value)
+            }), {} as Record<string, string>)}
             onAddLocation={handleAddLocation}
           />
         )}

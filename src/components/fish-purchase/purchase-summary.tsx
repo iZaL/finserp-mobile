@@ -6,7 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FishPurchaseItem, FishSpecies } from "@/types/fish-purchase";
 
 interface PurchaseSummaryProps {
-  items: FishPurchaseItem[];
+  items: FishPurchaseItem[] | Array<{
+    fish_species_id: number;
+    box_count: number;
+    box_weights: number[];
+    rate: number;
+    id?: string | number;
+    fish_count?: string;
+    remarks?: string;
+    average_box_weight?: number;
+    net_weight?: number;
+    net_amount?: number;
+  }>;
   showDetails?: boolean;
   fishSpecies?: FishSpecies[];
 }

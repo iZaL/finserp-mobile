@@ -34,15 +34,15 @@ export type FishBoxWeight = number[];
  * Fish Purchase Item
  */
 export interface FishPurchaseItem {
-  id: number;
+  id?: number | string; // Optional for form usage, can be string or number
   fish_purchase_id?: number;
   fish_species_id: number;
   rate: number;
   fish_count?: string;
   box_count: number;
-  net_weight: number;
-  net_amount: number;
-  average_box_weight: number;
+  net_weight?: number; // Optional for form usage, calculated
+  net_amount?: number; // Optional for form usage, calculated
+  average_box_weight?: number; // Optional for form usage, calculated
   box_weights: number[];
   remarks?: string;
   fish_species?: FishSpecies;

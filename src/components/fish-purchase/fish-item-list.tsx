@@ -79,7 +79,7 @@ export function FishItemList({
   };
 
   const handleAddItem = () => {
-    const newId = Math.max(...items.map((item) => item.id || 0), 0) + 1;
+    const newId = Math.max(...items.map((item) => Number(item.id) || 0), 0) + 1;
     const newItem: FishPurchaseItem = {
       id: newId,
       fish_species_id: 0,
@@ -157,7 +157,7 @@ export function FishItemList({
               onToggleExpand={() => handleToggleExpand(actualIndex)}
               onUpdate={(updatedItem) => handleUpdateItem(actualIndex, updatedItem)}
               onRemove={() => handleRemoveItem(actualIndex)}
-              errors={errors[item.id || actualIndex]}
+              errors={errors[Number(item.id) || actualIndex]}
               canRemove={items.length > 1}
             />
           );

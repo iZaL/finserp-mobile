@@ -131,10 +131,10 @@ export function FishItemCard({
                   <Package className="size-3 mr-1" />
                   {item.box_count}
                 </Badge>
-                {item.net_weight > 0 && (
+                {(item.net_weight || 0) > 0 && (
                   <Badge variant="secondary" className="text-xs">
                     <Scale className="size-3 mr-1" />
-                    {item.net_weight.toFixed(2)} kg
+                    {(item.net_weight || 0).toFixed(2)} kg
                   </Badge>
                 )}
               </div>

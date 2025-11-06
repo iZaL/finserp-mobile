@@ -172,8 +172,8 @@ export default function CreateFishPurchasePage() {
   ];
 
   // Check if step is complete
-  const isStepComplete = (stepId: FishPurchaseFormStep): boolean => {
-    switch (stepId) {
+  const isStepComplete = (stepId: string): boolean => {
+    switch (stepId as FishPurchaseFormStep) {
       case "supplier":
         return Boolean(
           formData.contact_name &&
@@ -295,7 +295,7 @@ export default function CreateFishPurchasePage() {
         steps={steps}
         activeStep={activeStep}
         isStepComplete={isStepComplete}
-        onStepClick={setActiveStep}
+        onStepClick={(stepId) => setActiveStep(stepId as FishPurchaseFormStep)}
       />
 
       {/* Step Content */}
@@ -372,7 +372,10 @@ export default function CreateFishPurchasePage() {
             }}
             locations={locations}
             agents={agents}
-            errors={errors as Record<string, { message?: string }>}
+            errors={Object.entries(errors).reduce((acc, [key, value]) => ({
+              ...acc,
+              [key]: value?.message || String(value)
+            }), {} as Record<string, string>)}
             onAddLocation={handleAddLocation}
           />
         )}

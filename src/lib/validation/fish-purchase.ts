@@ -5,20 +5,11 @@ import { z } from "zod";
  */
 export const fishPurchaseItemSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(), // Local ID for React keys
-  fish_species_id: z.number({
-    required_error: "Please select a fish species",
-    invalid_type_error: "Fish species is required",
-  }).min(1, "Please select a fish species"),
-  box_count: z.number({
-    required_error: "Box count is required",
-    invalid_type_error: "Box count must be a number",
-  }).min(1, "Box count must be at least 1"),
+  fish_species_id: z.number().min(1, "Please select a fish species"),
+  box_count: z.number().min(1, "Box count must be at least 1"),
   box_weights: z.array(z.number().min(0.1, "Box weight must be at least 0.1 kg"))
     .min(1, "At least one box weight is required"),
-  rate: z.number({
-    required_error: "Rate is required",
-    invalid_type_error: "Rate must be a number",
-  }).min(0.001, "Rate must be greater than 0"),
+  rate: z.number().min(0.001, "Rate must be greater than 0"),
   fish_count: z.string().optional(),
   remarks: z.string().optional(),
   // Calculated fields (will be computed, not validated)
@@ -55,10 +46,7 @@ export const purchaseDetailsStepSchema = z.object({
     .min(1, "Driver name is required")
     .min(2, "Driver name must be at least 2 characters"),
   driver_number: z.string().optional(),
-  fish_location_id: z.number({
-    required_error: "Location is required",
-    invalid_type_error: "Please select a location",
-  }).min(1, "Please select a location"),
+  fish_location_id: z.number().min(1, "Please select a location"),
   agent_id: z.number().optional(),
   date: z.string()
     .min(1, "Date is required"),
@@ -102,10 +90,7 @@ export const fishPurchaseFormSchema = z.object({
     .min(1, "Driver name is required")
     .min(2, "Driver name must be at least 2 characters"),
   driver_number: z.string().optional(),
-  fish_location_id: z.number({
-    required_error: "Location is required",
-    invalid_type_error: "Please select a location",
-  }).min(1, "Please select a location"),
+  fish_location_id: z.number().min(1, "Please select a location"),
   agent_id: z.number().optional(),
   date: z.string()
     .min(1, "Date is required"),
@@ -154,9 +139,7 @@ export const fishPurchaseFormSchema = z.object({
  * Update Fish Purchase Status Schema
  */
 export const updateStatusSchema = z.object({
-  status: z.enum(["draft", "pending", "approved", "paid", "closed", "rejected"], {
-    required_error: "Status is required",
-  }),
+  status: z.enum(["draft", "pending", "approved", "paid", "closed", "rejected"]),
   reason: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -209,7 +192,7 @@ export function validateStep(
 
   // Convert Zod errors to flat error object
   const errors: Record<string, string> = {};
-  result.error.errors.forEach((err) => {
+  result.error.issues.forEach((err) => {
     const path = err.path.join(".");
     errors[path] = err.message;
   });
@@ -230,7 +213,7 @@ export function validateFishItem(
   }
 
   const errors: Record<string, string> = {};
-  result.error.errors.forEach((err) => {
+  result.error.issues.forEach((err) => {
     const path = err.path.join(".");
     errors[path] = err.message;
   });

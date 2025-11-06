@@ -216,7 +216,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-primary">
-                      {item.net_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OMR
+                      {(item.net_amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} OMR
                     </p>
                     <p className="text-xs text-muted-foreground">
                       @ {Math.round(item.rate * 1000).toLocaleString('en-US')} BZ/kg
@@ -231,11 +231,11 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t("items.avgWeight")}</p>
-                    <p className="font-semibold">{item.average_box_weight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
+                    <p className="font-semibold">{(item.average_box_weight || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{t("items.totalWeight")}</p>
-                    <p className="font-semibold">{item.net_weight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
+                    <p className="font-semibold">{(item.net_weight || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</p>
                   </div>
                 </div>
 
