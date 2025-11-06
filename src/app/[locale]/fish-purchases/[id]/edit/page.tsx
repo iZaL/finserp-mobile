@@ -156,8 +156,8 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
   ];
 
   // Check if step is complete
-  const isStepComplete = (stepId: FishPurchaseFormStep): boolean => {
-    switch (stepId) {
+  const isStepComplete = (stepId: string): boolean => {
+    switch (stepId as FishPurchaseFormStep) {
       case "supplier":
         return Boolean(
           formData.contact_name &&
