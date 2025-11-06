@@ -7,8 +7,8 @@ import type {
   CreateFishPurchaseRequest,
   UpdateFishPurchaseRequest,
   UpdateStatusRequest,
-  FishPurchaseStats,
 } from "@/types/fish-purchase";
+import type { AdvancePaymentRequest } from "@/types/payment";
 import type {
   PaginatedResponse,
   ApiResponse,
@@ -47,10 +47,15 @@ export const fishPurchaseService = {
 
   // Get single fish purchase by ID
   getFishPurchase: async (id: number): Promise<FishPurchase> => {
-    const response = await api.get<ApiResponse<FishPurchase>>(
+    const response = await api.get<ApiResponse<FishPurchase> & { payment_accounts?: Array<{ id: number; name: string }> }>(
       `/fish-purchases/${id}`
     );
-    return response.data.data!;
+    // Merge payment_accounts from root into the purchase data
+    const purchase = response.data.data!;
+    if (response.data.payment_accounts) {
+      purchase.payment_accounts = response.data.payment_accounts;
+    }
+    return purchase;
   },
 
   // Create new fish purchase
@@ -93,6 +98,23 @@ export const fishPurchaseService = {
     return response.data.data!;
   },
 
+  // Add payment to fish purchase
+  addPayment: async (
+    id: number,
+    data: AdvancePaymentRequest
+  ): Promise<FishPurchase> => {
+    const response = await api.post<ApiResponse<FishPurchase> & { payment_accounts?: Array<{ id: number; name: string }> }>(
+      `/fish-purchases/${id}/payments`,
+      data
+    );
+    // Merge payment_accounts from root into the purchase data
+    const purchase = response.data.data!;
+    if (response.data.payment_accounts) {
+      purchase.payment_accounts = response.data.payment_accounts;
+    }
+    return purchase;
+  },
+
   // Get fish species list
   getFishSpecies: async (
     config?: { signal?: AbortSignal }
@@ -113,6 +135,20 @@ export const fishPurchaseService = {
       config
     );
     return response.data.data || [];
+  },
+
+  // Create a new supplier
+  createSupplier: async (data: {
+    name: string;
+    phone: string;
+    bank_id?: number;
+    account_number?: string;
+  }): Promise<Contact> => {
+    const response = await api.post<ApiResponse<Contact>>(
+      `/fish-purchases/suppliers`,
+      data
+    );
+    return response.data.data!;
   },
 
   // Get fish landing sites (locations)
@@ -161,6 +197,28 @@ export const fishPurchaseService = {
       `/fish-purchases/settings`,
       config
     );
+    return response.data.data!;
+  },
+
+  // Get vehicle booking data for pre-populating form
+  getVehicleBookingData: async (vehicleBookingId: number): Promise<{
+    vehicle_number: string;
+    driver_name: string;
+    driver_phone?: string;
+    supplier_name: string;
+    supplier_phone?: string;
+    box_count: number;
+    entry_date: string;
+  }> => {
+    const response = await api.get<ApiResponse<{
+      vehicle_number: string;
+      driver_name: string;
+      driver_phone?: string;
+      supplier_name: string;
+      supplier_phone?: string;
+      box_count: number;
+      entry_date: string;
+    }>>(`/fish-purchases/vehicle-booking/${vehicleBookingId}`);
     return response.data.data!;
   },
 

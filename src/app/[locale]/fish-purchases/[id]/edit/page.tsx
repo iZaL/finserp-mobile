@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { use, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,33 +26,34 @@ import { PurchaseDetailsForm } from "@/components/fish-purchase/purchase-details
 import { FishItemList } from "@/components/fish-purchase/fish-item-list";
 import { PurchaseSummary } from "@/components/fish-purchase/purchase-summary";
 import { useFishPurchaseFormData } from "@/hooks/use-fish-purchase-data";
-import { useCreateFishPurchase } from "@/hooks/use-fish-purchases";
+import { useFishPurchase, useUpdateFishPurchase } from "@/hooks/use-fish-purchases";
 import { fishPurchaseFormSchema, type FishPurchaseFormData } from "@/lib/validation/fish-purchase";
 import { fishPurchaseService } from "@/lib/services/fish-purchase";
 import type { FishPurchaseFormStep } from "@/types/fish-purchase";
 import type { Contact, Address } from "@/types/shared";
 
-export default function CreateFishPurchasePage() {
+export default function EditFishPurchasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const t = useTranslations("fishPurchases");
-  const vehicleBookingId = searchParams?.get("vehicle_booking_id");
-  
+
+  // Load existing purchase data
+  const { data: existingPurchase, loading: loadingPurchase } = useFishPurchase(parseInt(id));
+
   const {
     fishSpecies,
     suppliers,
     locations: initialLocations,
     // banks,
     agents,
-    settings,
+    // settings,
     loading: dataLoading,
   } = useFishPurchaseFormData();
 
-  const { createPurchase, loading: submitting } = useCreateFishPurchase();
+  const { updatePurchase, loading: submitting } = useUpdateFishPurchase();
 
   const [activeStep, setActiveStep] = useState<FishPurchaseFormStep>("supplier");
   const [locations, setLocations] = useState<Address[]>([]);
-  const [loadingVehicleData, setLoadingVehicleData] = useState(false);
 
   // Initialize form with React Hook Form
   const {
@@ -63,15 +64,15 @@ export default function CreateFishPurchasePage() {
   } = useForm<FishPurchaseFormData>({
     resolver: zodResolver(fishPurchaseFormSchema),
     defaultValues: {
-      contact_id: searchParams?.get("supplier_id") ? parseInt(searchParams.get("supplier_id")!) : undefined,
-      contact_name: searchParams?.get("supplier_name") || "",
-      contact_number: searchParams?.get("supplier_phone") || "",
+      contact_id: undefined,
+      contact_name: "",
+      contact_number: "",
       bank_id: undefined,
       account_number: "",
       bill_number: "",
-      vehicle_number: searchParams?.get("vehicle") || "",
-      driver_name: searchParams?.get("driver") || "",
-      driver_number: searchParams?.get("driver_phone") || "",
+      vehicle_number: "",
+      driver_name: "",
+      driver_number: "",
       fish_location_id: 0,
       date: new Date().toISOString().split("T")[0],
       items: [
@@ -97,62 +98,45 @@ export default function CreateFishPurchasePage() {
     }
   }, [initialLocations]);
 
-  // Set bill number from settings
+  // Load existing purchase data into form
   useEffect(() => {
-    if (settings?.bill_number && !formData.bill_number) {
-      setValue("bill_number", settings.bill_number);
-    }
-  }, [settings, formData.bill_number, setValue]);
+    if (existingPurchase && fishSpecies.length > 0) {
+      setValue("contact_id", existingPurchase.contact_id);
+      setValue("contact_name", existingPurchase.contact_name);
+      setValue("contact_number", existingPurchase.contact_number);
+      setValue("bank_id", existingPurchase.bank_id);
+      setValue("account_number", existingPurchase.account_number || "");
+      setValue("bill_number", existingPurchase.bill_number);
+      setValue("vehicle_number", existingPurchase.vehicle_number);
+      setValue("driver_name", existingPurchase.driver_name);
+      setValue("driver_number", existingPurchase.driver_number || "");
+      setValue("fish_location_id", existingPurchase.fish_location_id);
+      setValue("date", existingPurchase.date);
+      setValue("agent_id", existingPurchase.agent_id);
 
-  // Fetch and pre-populate data from vehicle booking if vehicle_booking_id is provided
-  useEffect(() => {
-    const fetchVehicleData = async () => {
-      if (!vehicleBookingId) return;
-      
-      setLoadingVehicleData(true);
-      try {
-        const vehicleData = await fishPurchaseService.getVehicleBookingData(parseInt(vehicleBookingId));
-        
-        // Pre-populate form fields
-        setValue("contact_name", vehicleData.supplier_name);
-        setValue("contact_number", vehicleData.supplier_phone || "");
-        setValue("vehicle_number", vehicleData.vehicle_number);
-        setValue("driver_name", vehicleData.driver_name);
-        setValue("driver_number", vehicleData.driver_phone || "");
-        setValue("date", vehicleData.entry_date);
-        
-        // Set box count in first item if available
-        if (vehicleData.box_count > 0) {
-          setValue("items.0.box_count", vehicleData.box_count);
-        }
-      } catch (error) {
-        console.error("Failed to fetch vehicle data:", error);
-        toast.error("Failed to load vehicle booking data");
-      } finally {
-        setLoadingVehicleData(false);
-      }
-    };
-    
-    fetchVehicleData();
-  }, [vehicleBookingId, setValue]);
-
-  // Pre-populate supplier bank details if supplier_id is provided in URL
-  useEffect(() => {
-    const supplierId = searchParams?.get("supplier_id");
-    if (supplierId && suppliers.length > 0) {
-      const supplier = suppliers.find((s) => s.id === parseInt(supplierId));
-      if (supplier) {
-        setValue("bank_id", supplier.bank_account?.bank_id);
-        setValue("account_number", supplier.bank_account?.account_number || "");
+      // Convert items and OMR rate to BZ
+      if (existingPurchase.items) {
+        const convertedItems = existingPurchase.items.map((item) => ({
+          id: item.id,
+          fish_species_id: item.fish_species_id,
+          box_count: item.box_count,
+          box_weights: item.box_weights,
+          rate: Math.round(item.rate * 1000), // Convert OMR to BZ
+          fish_count: item.fish_count || "",
+          remarks: item.remarks || "",
+          average_box_weight: item.average_box_weight,
+          net_weight: item.net_weight,
+          net_amount: item.net_amount,
+        }));
+        setValue("items", convertedItems);
       }
     }
-  }, [suppliers, searchParams, setValue]);
+  }, [existingPurchase, fishSpecies, setValue]);
 
   // Handle adding new location
   const handleAddLocation = async (data: { name: string; city?: string }): Promise<Address> => {
     try {
       const newLocation = await fishPurchaseService.createLocation(data);
-      // Add the new location to the list
       setLocations(prev => [...prev, newLocation]);
       toast.success(t("details.addLocationDialog.success") || "Location added successfully");
       return newLocation;
@@ -243,9 +227,8 @@ export default function CreateFishPurchasePage() {
       // Transform items to match API request structure
       const requestData = {
         ...data,
-        // Include vehicle_booking_id if present
-        ...(vehicleBookingId && { vehicle_booking_id: parseInt(vehicleBookingId) }),
         items: data.items.map((item) => ({
+          ...(item.id && typeof item.id === 'number' ? { id: item.id } : {}), // Include id only if it's a number
           fish_species_id: item.fish_species_id,
           box_count: item.box_count,
           box_weights: item.box_weights,
@@ -255,20 +238,31 @@ export default function CreateFishPurchasePage() {
         })),
       };
 
-      const result = await createPurchase(requestData);
+      const result = await updatePurchase(parseInt(id), requestData);
 
-      toast.success(t("createSuccess"));
+      toast.success(t("updateSuccess") || "Fish purchase updated successfully");
       router.push(`/fish-purchases/${result.id}`);
     } catch (error) {
-      console.error("Failed to create fish purchase:", error);
-      toast.error(t("createError"));
+      console.error("Failed to update fish purchase:", error);
+      toast.error(t("updateError") || "Failed to update fish purchase");
     }
   };
 
-  if (dataLoading || loadingVehicleData) {
+  if (loadingPurchase || dataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!existingPurchase) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-muted-foreground mb-4">{t("notFound")}</p>
+        <Button onClick={() => router.push("/fish-purchases")}>
+          {t("backToList")}
+        </Button>
       </div>
     );
   }
@@ -285,8 +279,8 @@ export default function CreateFishPurchasePage() {
           <ChevronLeft className="size-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">{t("createNew")}</h1>
-          <p className="text-sm text-muted-foreground">{t("createDescription")}</p>
+          <h1 className="text-2xl font-bold">{t("edit") || "Edit Fish Purchase"}</h1>
+          <p className="text-sm text-muted-foreground">{existingPurchase.bill_number}</p>
         </div>
       </div>
 
@@ -452,12 +446,12 @@ export default function CreateFishPurchasePage() {
               {submitting ? (
                 <>
                   <Loader2 className="size-4 mr-1 animate-spin" />
-                  {t("buttons.submitting")}
+                  {t("buttons.updating") || "Updating..."}
                 </>
               ) : (
                 <>
                   <Check className="size-4 mr-1" />
-                  {t("buttons.submit")}
+                  {t("buttons.update") || "Update"}
                 </>
               )}
             </Button>

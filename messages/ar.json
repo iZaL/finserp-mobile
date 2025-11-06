@@ -700,6 +700,7 @@
     "createNew": "شراء جديد",
     "createFirst": "إنشاء أول شراء",
     "createDescription": "إنشاء فاتورة شراء سمك جديدة",
+    "edit": "تعديل فاتورة الشراء",
     "createSuccess": "تم إنشاء فاتورة الشراء بنجاح!",
     "createError": "فشل إنشاء فاتورة الشراء",
     "updateSuccess": "تم تحديث فاتورة الشراء بنجاح!",
@@ -730,6 +731,7 @@
       "select": "اختر مورد...",
       "search": "البحث عن الموردين...",
       "notFound": "لم يتم العثور على موردين",
+      "addNew": "إضافة مورد",
       "orManual": "أو أدخل يدوياً",
       "name": "اسم المورد",
       "namePlaceholder": "أدخل اسم المورد",
@@ -740,7 +742,20 @@
       "searchSuppliers": "البحث عن الموردين...",
       "noSuppliers": "لم يتم العثور على موردين",
       "bank": "البنك",
-      "accountNumber": "رقم الحساب"
+      "accountNumber": "رقم الحساب",
+      "addSupplierDialog": {
+        "title": "إضافة مورد جديد",
+        "description": "إنشاء مورد سمك جديد",
+        "supplierName": "اسم المورد",
+        "supplierNamePlaceholder": "أدخل اسم المورد",
+        "supplierPhone": "رقم الهاتف",
+        "supplierPhonePlaceholder": "أدخل رقم الهاتف",
+        "cancel": "إلغاء",
+        "add": "إضافة مورد",
+        "adding": "جاري الإضافة...",
+        "success": "تمت إضافة المورد بنجاح",
+        "error": "فشل في إضافة المورد"
+      }
     },
     "details": {
       "title": "تفاصيل الشراء",
@@ -800,7 +815,7 @@
       "selectSpecies": "اختر نوع السمك...",
       "boxCount": "عدد البانات",
       "boxCountPlaceholder": "أدخل عدد البانات",
-      "rate": "السعر (ر.ع/كجم)",
+      "rate": "السعر (بيسة/كجم)",
       "ratePlaceholder": "أدخل السعر لكل كجم",
       "fishCount": "عدد الأسماك",
       "fishCountPlaceholder": "أدخل عدد الأسماك (اختياري)",
@@ -843,7 +858,9 @@
       "previous": "السابق",
       "next": "التالي",
       "submit": "إرسال الشراء",
-      "submitting": "جاري الإرسال..."
+      "submitting": "جاري الإرسال...",
+      "update": "تحديث الشراء",
+      "updating": "جاري التحديث..."
     },
     "empty": {
       "title": "لا توجد مشتريات أسماك",
@@ -876,6 +893,49 @@
       "boxWeightsRequired": "مطلوب وزن بانة واحدة على الأقل",
       "weighingEndAfterStart": "وقت نهاية الوزن يجب أن يكون بعد وقت البداية",
       "departureAfterArrival": "وقت المغادرة يجب أن يكون بعد وقت الوصول"
+    },
+    "actions": {
+      "createFishBill": "إنشاء فاتورة السمك",
+      "editFishBill": "تعديل فاتورة السمك"
+    },
+    "payment": {
+      "financialSummary": "الملخص المالي",
+      "totalAmount": "المبلغ الإجمالي",
+      "advancePaid": "دفعة مقدمة",
+      "balance": "الرصيد",
+      "paymentProgress": "تقدم الدفع",
+      "addAdvancePayment": "إضافة دفعة مقدمة",
+      "recentPayments": "المدفوعات الأخيرة",
+      "viewAllPayments": "عرض جميع المدفوعات ({count})",
+      "paymentsPendingInfo": "تبقى المدفوعات في حالة الانتظار حتى تتم الموافقة على الشراء. بعد الموافقة، يمكن معالجة المدفوعات.",
+      "ref": "المرجع",
+      "advancePaymentDescription": "يتم تسجيل الدفعات المقدمة قبل الموافقة وتبقى في حالة انتظار. بعد الموافقة، يجب إجراء جميع المدفوعات المتبقية من خلال مستند الفاتورة.",
+      "addAdvancePaymentDescription": "يتم تسجيل الدفعات المقدمة قبل الموافقة وتبقى في حالة انتظار. بعد الموافقة، يجب إجراء جميع المدفوعات المتبقية من خلال مستند الفاتورة.",
+      "transactionDate": "تاريخ المعاملة",
+      "amount": "المبلغ",
+      "paidThroughAccount": "مدفوع من خلال الحساب",
+      "selectAccount": "حدد الحساب...",
+      "beneficiaryName": "اسم المستفيد",
+      "beneficiaryPhone": "هاتف المستفيد",
+      "paymentReference": "مرجع الدفع",
+      "isAdvancePayment": "هذا دفع مقدم",
+      "isAdvancePaymentDescription": "حدد هذا المربع إذا كان هذا الدفع يتم مقدمًا قبل الموافقة على الشراء.",
+      "notes": "ملاحظات",
+      "saving": "جاري الحفظ...",
+      "save": "حفظ",
+      "selectPaymentAccount": "حدد حساب الدفع",
+      "selectPaymentAccountDescription": "اختر الحساب المستخدم لدفع هذه المعاملة",
+      "searchAccounts": "البحث عن الحسابات...",
+      "noAccountsFound": "لم يتم العثور على حسابات",
+      "cancel": "إلغاء",
+      "confirmSelection": "تأكيد الاختيار",
+      "status": {
+        "paid": "مدفوع",
+        "pending": "قيد الانتظار",
+        "partial": "جزئي",
+        "success": "نجح",
+        "failed": "فشل"
+      }
     }
   }
 }

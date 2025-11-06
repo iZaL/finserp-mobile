@@ -3,14 +3,26 @@
 import { useTranslations } from "next-intl";
 import { Package, Scale, CircleDollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { FishPurchaseItem } from "@/types/fish-purchase";
+import type { FishPurchaseItem, FishSpecies } from "@/types/fish-purchase";
 
 interface PurchaseSummaryProps {
-  items: FishPurchaseItem[];
+  items: FishPurchaseItem[] | Array<{
+    fish_species_id: number;
+    box_count: number;
+    box_weights: number[];
+    rate: number;
+    id?: string | number;
+    fish_count?: string;
+    remarks?: string;
+    average_box_weight?: number;
+    net_weight?: number;
+    net_amount?: number;
+  }>;
   showDetails?: boolean;
+  fishSpecies?: FishSpecies[];
 }
 
-export function PurchaseSummary({ items, showDetails = true }: PurchaseSummaryProps) {
+export function PurchaseSummary({ items, showDetails = true, fishSpecies = [] }: PurchaseSummaryProps) {
   const t = useTranslations("fishPurchases");
 
   // Calculate totals
@@ -18,52 +30,67 @@ export function PurchaseSummary({ items, showDetails = true }: PurchaseSummaryPr
   const totalWeight = items.reduce((sum, item) => sum + (item.net_weight || 0), 0);
   const totalAmount = items.reduce((sum, item) => sum + (item.net_amount || 0), 0);
 
+  // Format number with thousand separators
+  const formatNumber = (value: number, decimals: number = 2) => {
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+  };
+
+  // Get fish species name by ID
+  const getSpeciesName = (speciesId: number) => {
+    const species = fishSpecies.find(s => s.id === speciesId);
+    return species?.name || t("items.species");
+  };
+
   return (
     <Card className="bg-primary/5 border-primary/20">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">{t("summary.title")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           {/* Total Boxes */}
-          <div className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-900 rounded-lg border">
-            <Package className="size-5 text-muted-foreground mb-1" />
-            <p className="text-xs text-muted-foreground">{t("summary.totalBoxes")}</p>
-            <p className="text-xl font-bold">{totalBoxes}</p>
+          <div className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg border text-center">
+            <Package className="size-6 text-muted-foreground mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">{t("summary.totalBoxes")}</p>
+            <p className="text-2xl font-bold">{formatNumber(totalBoxes, 0)}</p>
+            <p className="text-xs text-muted-foreground mt-1">boxes</p>
           </div>
 
           {/* Total Weight */}
-          <div className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-900 rounded-lg border">
-            <Scale className="size-5 text-muted-foreground mb-1" />
-            <p className="text-xs text-muted-foreground">{t("summary.totalWeight")}</p>
-            <p className="text-xl font-bold">{totalWeight.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">kg</p>
+          <div className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg border text-center">
+            <Scale className="size-6 text-muted-foreground mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">{t("summary.totalWeight")}</p>
+            <p className="text-2xl font-bold">{formatNumber(totalWeight / 1000, 3)}</p>
+            <p className="text-xs text-muted-foreground mt-1">ton</p>
           </div>
 
           {/* Total Amount */}
-          <div className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-900 rounded-lg border">
-            <CircleDollarSign className="size-5 text-muted-foreground mb-1" />
-            <p className="text-xs text-muted-foreground">{t("summary.totalAmount")}</p>
-            <p className="text-xl font-bold">{totalAmount.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground">OMR</p>
+          <div className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-900 rounded-lg border text-center">
+            <CircleDollarSign className="size-6 text-muted-foreground mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">{t("summary.totalAmount")}</p>
+            <p className="text-2xl font-bold text-primary">{formatNumber(totalAmount)}</p>
+            <p className="text-xs text-muted-foreground mt-1">OMR</p>
           </div>
         </div>
 
         {/* Item Details */}
         {showDetails && items.length > 0 && (
-          <div className="pt-2 border-t">
-            <p className="text-sm font-medium mb-2">{t("summary.itemBreakdown")}</p>
-            <div className="space-y-1">
+          <div className="pt-3 border-t">
+            <p className="text-sm font-semibold mb-3">{t("summary.itemBreakdown")}</p>
+            <div className="space-y-2">
               {items.map((item, index) => (
                 <div
                   key={item.id || index}
-                  className="flex justify-between text-sm text-muted-foreground"
+                  className="flex justify-between items-center text-sm py-1"
                 >
-                  <span>
-                    {item.fish_species?.name || t("items.species")} × {item.box_count}
+                  <span className="text-muted-foreground">
+                    {getSpeciesName(item.fish_species_id)} × {item.box_count} boxes
                   </span>
-                  <span className="font-medium">
-                    {item.net_weight?.toFixed(2)} kg
+                  <span className="font-semibold">
+                    {formatNumber(item.net_weight || 0)} kg
                   </span>
                 </div>
               ))}

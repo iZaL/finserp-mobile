@@ -7,6 +7,7 @@ import type {
   UpdateFishPurchaseRequest,
   UpdateStatusRequest,
 } from "@/types/fish-purchase";
+import type { AdvancePaymentRequest } from "@/types/payment";
 import type { PaginatedResponse } from "@/types/shared";
 import { toast } from "sonner";
 
@@ -202,4 +203,32 @@ export function useUpdateFishPurchaseStatus() {
   };
 
   return { updateStatus, loading, error };
+}
+
+/**
+ * Hook to add payment to fish purchase
+ */
+export function useAddFishPurchasePayment() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const addPayment = async (id: number, data: AdvancePaymentRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await fishPurchaseService.addPayment(id, data);
+      toast.success("Payment added successfully");
+      return result;
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err);
+        toast.error(err.message || "Failed to add payment");
+      }
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { addPayment, loading, error };
 }

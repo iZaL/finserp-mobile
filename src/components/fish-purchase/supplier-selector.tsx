@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronsUpDown, Search, User } from "lucide-react";
+import { Check, ChevronsUpDown, User, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -17,13 +17,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { fishPurchaseService } from "@/lib/services/fish-purchase";
 import type { Contact } from "@/types/shared";
 
 interface SupplierSelectorProps {
   suppliers: Contact[];
   selectedSupplierId?: number;
   onSelect: (supplier: Contact | null) => void;
+  onSupplierAdded?: (supplier: Contact) => void;
   disabled?: boolean;
 }
 
@@ -31,17 +43,56 @@ export function SupplierSelector({
   suppliers,
   selectedSupplierId,
   onSelect,
+  onSupplierAdded,
   disabled = false,
 }: SupplierSelectorProps) {
   const t = useTranslations("fishPurchases.supplier");
   const [open, setOpen] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [addingSupplier, setAddingSupplier] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState("");
+  const [newSupplierPhone, setNewSupplierPhone] = useState("");
 
   const selectedSupplier = useMemo(
     () => suppliers.find((s) => s.id === selectedSupplierId),
     [suppliers, selectedSupplierId]
   );
 
+  const handleAddSupplier = async () => {
+    if (!newSupplierName.trim() || !newSupplierPhone.trim()) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setAddingSupplier(true);
+    try {
+      const newSupplier = await fishPurchaseService.createSupplier({
+        name: newSupplierName.trim(),
+        phone: newSupplierPhone.trim(),
+      });
+      
+      toast.success("Supplier added successfully");
+      setShowAddDialog(false);
+      setNewSupplierName("");
+      setNewSupplierPhone("");
+      
+      // Notify parent to refresh suppliers list
+      if (onSupplierAdded) {
+        onSupplierAdded(newSupplier);
+      }
+      
+      // Auto-select the newly created supplier
+      onSelect(newSupplier);
+    } catch (error) {
+      console.error("Failed to create supplier:", error);
+      toast.error("Failed to add supplier");
+    } finally {
+      setAddingSupplier(false);
+    }
+  };
+
   return (
+    <>
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
@@ -73,7 +124,22 @@ export function SupplierSelector({
         <Command>
           <CommandInput placeholder={t("search")} />
           <CommandList>
-            <CommandEmpty>{t("notFound")}</CommandEmpty>
+            <CommandEmpty>
+              <div className="text-center p-4">
+                <p className="text-sm text-muted-foreground mb-2">{t("notFound")}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setOpen(false);
+                    setShowAddDialog(true);
+                  }}
+                >
+                  <Plus className="size-4 mr-2" />
+                  {t("addNew")}
+                </Button>
+              </div>
+            </CommandEmpty>
             <CommandGroup>
               {suppliers.map((supplier) => (
                 <CommandItem
@@ -111,7 +177,80 @@ export function SupplierSelector({
             </CommandGroup>
           </CommandList>
         </Command>
+        <div className="p-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => {
+              setOpen(false);
+              setShowAddDialog(true);
+            }}
+          >
+            <Plus className="size-4 mr-2" />
+            {t("addNew")}
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
+
+    {/* Add Supplier Dialog */}
+    <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("addSupplierDialog.title")}</DialogTitle>
+          <DialogDescription>
+            {t("addSupplierDialog.description")}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="supplier-name">
+              {t("addSupplierDialog.supplierName")} <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="supplier-name"
+              value={newSupplierName}
+              onChange={(e) => setNewSupplierName(e.target.value)}
+              placeholder={t("addSupplierDialog.supplierNamePlaceholder")}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="supplier-phone">
+              {t("addSupplierDialog.supplierPhone")} <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="supplier-phone"
+              type="tel"
+              inputMode="tel"
+              value={newSupplierPhone}
+              onChange={(e) => setNewSupplierPhone(e.target.value)}
+              placeholder={t("addSupplierDialog.supplierPhonePlaceholder")}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAddDialog(false);
+                setNewSupplierName("");
+                setNewSupplierPhone("");
+              }}
+              className="flex-1"
+            >
+              {t("addSupplierDialog.cancel")}
+            </Button>
+            <Button
+              onClick={handleAddSupplier}
+              disabled={addingSupplier || !newSupplierName.trim() || !newSupplierPhone.trim()}
+              className="flex-1"
+            >
+              {addingSupplier ? t("addSupplierDialog.adding") : t("addSupplierDialog.add")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

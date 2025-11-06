@@ -696,6 +696,7 @@
     "createNew": "New Purchase",
     "createFirst": "Create First Purchase",
     "createDescription": "Create a new fish purchase bill",
+    "edit": "Edit Fish Purchase",
     "createSuccess": "Fish purchase created successfully!",
     "createError": "Failed to create fish purchase",
     "updateSuccess": "Fish purchase updated successfully!",
@@ -726,6 +727,7 @@
       "select": "Select a supplier...",
       "search": "Search suppliers...",
       "notFound": "No suppliers found",
+      "addNew": "Add Supplier",
       "orManual": "Or Enter Manually",
       "name": "Supplier Name",
       "namePlaceholder": "Enter supplier name",
@@ -736,7 +738,20 @@
       "searchSuppliers": "Search suppliers...",
       "noSuppliers": "No suppliers found",
       "bank": "Bank",
-      "accountNumber": "Account Number"
+      "accountNumber": "Account Number",
+      "addSupplierDialog": {
+        "title": "Add New Supplier",
+        "description": "Create a new fish supplier",
+        "supplierName": "Supplier Name",
+        "supplierNamePlaceholder": "Enter supplier name",
+        "supplierPhone": "Phone Number",
+        "supplierPhonePlaceholder": "Enter phone number",
+        "cancel": "Cancel",
+        "add": "Add Supplier",
+        "adding": "Adding...",
+        "success": "Supplier added successfully",
+        "error": "Failed to add supplier"
+      }
     },
     "details": {
       "title": "Purchase Details",
@@ -796,7 +811,7 @@
       "selectSpecies": "Select fish species...",
       "boxCount": "Box Count",
       "boxCountPlaceholder": "Enter number of boxes",
-      "rate": "Rate (OMR/kg)",
+      "rate": "Rate (BZ/kg)",
       "ratePlaceholder": "Enter rate per kg",
       "fishCount": "Fish Count",
       "fishCountPlaceholder": "Enter fish count (optional)",
@@ -839,7 +854,9 @@
       "previous": "Previous",
       "next": "Next",
       "submit": "Submit Purchase",
-      "submitting": "Submitting..."
+      "submitting": "Submitting...",
+      "update": "Update Purchase",
+      "updating": "Updating..."
     },
     "empty": {
       "title": "No Fish Purchases",
@@ -872,6 +889,49 @@
       "boxWeightsRequired": "At least one box weight is required",
       "weighingEndAfterStart": "Weighing end time must be after start time",
       "departureAfterArrival": "Departure time must be after arrival time"
+    },
+    "actions": {
+      "createFishBill": "Create Fish Bill",
+      "editFishBill": "Edit Fish Bill"
+    },
+    "payment": {
+      "financialSummary": "Financial Summary",
+      "totalAmount": "Total Amount",
+      "advancePaid": "Advance Paid",
+      "balance": "Balance",
+      "paymentProgress": "Payment Progress",
+      "addAdvancePayment": "Add Advance Payment",
+      "recentPayments": "Recent Payments",
+      "viewAllPayments": "View All Payments ({count})",
+      "paymentsPendingInfo": "Payments remain in pending status until the purchase is approved. After approval, payments can be processed.",
+      "ref": "Ref",
+      "advancePaymentDescription": "Advance payments are recorded before approval and remain in pending status. After approval, all remaining payments should be made through the bill document.",
+      "addAdvancePaymentDescription": "Advance payments are recorded before approval and remain in pending status. After approval, all remaining payments should be made through the bill document.",
+      "transactionDate": "Transaction Date",
+      "amount": "Amount",
+      "paidThroughAccount": "Paid Through Account",
+      "selectAccount": "Select account...",
+      "beneficiaryName": "Beneficiary Name",
+      "beneficiaryPhone": "Beneficiary Phone",
+      "paymentReference": "Payment Reference",
+      "isAdvancePayment": "This is an advance payment",
+      "isAdvancePaymentDescription": "Check this box if this payment is being made in advance before the purchase is approved.",
+      "notes": "Notes",
+      "saving": "Saving...",
+      "save": "Save",
+      "selectPaymentAccount": "Select Payment Account",
+      "selectPaymentAccountDescription": "Choose the account used to pay this transaction",
+      "searchAccounts": "Search accounts...",
+      "noAccountsFound": "No accounts found",
+      "cancel": "Cancel",
+      "confirmSelection": "Confirm Selection",
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "partial": "Partial",
+        "success": "Success",
+        "failed": "Failed"
+      }
     }
   }
 }

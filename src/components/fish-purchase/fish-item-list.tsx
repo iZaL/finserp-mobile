@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FishItemCard } from "./fish-item-card";
 import { PurchaseSummary } from "./purchase-summary";
@@ -79,7 +79,7 @@ export function FishItemList({
   };
 
   const handleAddItem = () => {
-    const newId = Math.max(...items.map((item) => item.id || 0), 0) + 1;
+    const newId = Math.max(...items.map((item) => Number(item.id) || 0), 0) + 1;
     const newItem: FishPurchaseItem = {
       id: newId,
       fish_species_id: 0,
@@ -93,17 +93,14 @@ export function FishItemList({
       remarks: "",
     };
 
-    // Add new item at the beginning
-    onChange([newItem, ...items]);
+    // Add new item at the end
+    onChange([...items, newItem]);
 
-    // Shift existing expanded items indices down by 1 and expand the new item at index 0
-    const newExpandedItems: Record<number, boolean> = { 0: true };
-    Object.keys(expandedItems).forEach((key) => {
-      const oldIndex = parseInt(key);
-      if (expandedItems[oldIndex]) {
-        newExpandedItems[oldIndex + 1] = true;
-      }
-    });
+    // Expand the new item at the last index
+    const newExpandedItems: Record<number, boolean> = {
+      ...expandedItems,
+      [items.length]: true,
+    };
     setExpandedItems(newExpandedItems);
   };
 
@@ -148,25 +145,28 @@ export function FishItemList({
 
       {/* Fish Items */}
       <div className="space-y-4">
-        {items.map((item, index) => (
-          <FishItemCard
-            key={item.id || index}
-            item={item}
-            index={index}
-            fishSpecies={fishSpecies}
-            expanded={expandedItems[index] || false}
-            onToggleExpand={() => handleToggleExpand(index)}
-            onUpdate={(updatedItem) => handleUpdateItem(index, updatedItem)}
-            onRemove={() => handleRemoveItem(index)}
-            errors={errors[item.id || index]}
-            canRemove={items.length > 1}
-          />
-        ))}
+        {[...items].reverse().map((item, reversedIndex) => {
+          const actualIndex = items.length - 1 - reversedIndex;
+          return (
+            <FishItemCard
+              key={item.id || actualIndex}
+              item={item}
+              index={actualIndex}
+              fishSpecies={fishSpecies}
+              expanded={expandedItems[actualIndex] || false}
+              onToggleExpand={() => handleToggleExpand(actualIndex)}
+              onUpdate={(updatedItem) => handleUpdateItem(actualIndex, updatedItem)}
+              onRemove={() => handleRemoveItem(actualIndex)}
+              errors={errors[Number(item.id) || actualIndex]}
+              canRemove={items.length > 1}
+            />
+          );
+        })}
       </div>
 
       {/* Summary */}
       {items.length > 0 && !hasIncompleteItems && (
-        <PurchaseSummary items={items} showDetails={true} />
+        <PurchaseSummary items={items} showDetails={true} fishSpecies={fishSpecies} />
       )}
 
       {/* Warning for incomplete items */}

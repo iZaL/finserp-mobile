@@ -1,7 +1,6 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Gauge, Shield } from "lucide-react"
 import type { DailyCapacity } from "@/types/vehicle-booking"
@@ -15,30 +14,38 @@ interface CapacityCardProps {
 export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardProps) {
   const t = useTranslations('vehicleBookings.capacity')
 
+  // Format tons: remove decimal if zero, keep if non-zero
+  const formatTons = (value: number): string => {
+    const formatted = value % 1 === 0 ? Math.floor(value) : value.toFixed(1)
+    return `${formatted} ${t('mt')}`
+  }
+
   // Use backend-calculated data exclusively (no frontend calculations)
   const bookedBoxes = Number(capacity?.booked_boxes || 0)
   const receivedBoxes = Number(capacity?.received_boxes || 0)
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-1.5 text-sm">
-            <Gauge className="size-3.5" />
-            {t('title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="">
-          <div className="animate-pulse space-y-2.5">
+      <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+        <div className="px-4 py-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Gauge className="size-5" />
+            </div>
+            <div className="h-4 w-12 bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="px-4 pb-3">
+          <div className="animate-pulse space-y-2">
             <div className="h-1.5 bg-muted rounded"></div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2 pt-0.5">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 bg-muted rounded"></div>
+                <div key={i} className="h-14 bg-muted rounded"></div>
               ))}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     )
   }
 
@@ -68,13 +75,13 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+      {/* Header */}
+      <div className="px-4 py-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-1.5 text-sm">
-            <Gauge className="size-3.5 text-blue-600 dark:text-blue-400" />
-            {t('title')}
-          </CardTitle>
+          <div className="flex items-center">
+            <Gauge className="size-5 text-blue-600 dark:text-blue-400" />
+          </div>
           <div className="flex items-center gap-1.5">
             {allowOverride !== undefined && (
               <Badge
@@ -94,9 +101,10 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
             </Badge>
           </div>
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="space-y-2.5">
+      {/* Content */}
+      <div className="px-4 pb-3 space-y-2">
         {/* Progress Bar */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
@@ -114,56 +122,56 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
         </div>
 
         {/* Metrics Grid - Keep 4 columns in one row */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 pt-0.5">
           {/* Daily Limit */}
-          <div className="text-center">
-            <div className="text-xs text-muted-foreground mb-1">{t('limit')}</div>
-            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {(capacity?.daily_limit_boxes || 0).toLocaleString()}
+          <div className="flex flex-col items-center justify-center py-1.5">
+            <div className="text-[10px] text-muted-foreground mb-0.5 leading-tight">{t('limit')}</div>
+            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 leading-none my-1">
+              {formatTons(limitTons)}
             </div>
-            <div className="text-[10px] text-muted-foreground">
-              {limitTons.toFixed(1)} {t('mt')}
+            <div className="text-[10px] text-muted-foreground leading-tight">
+              {(capacity?.daily_limit_boxes || 0).toLocaleString()} {t('boxes')}
             </div>
           </div>
 
           {/* Booked */}
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground mb-0.5">{t('booked')}</div>
-            <div className="text-base font-bold text-orange-600 dark:text-orange-400">
-              {bookedBoxes.toLocaleString()}
+          <div className="flex flex-col items-center justify-center py-1.5">
+            <div className="text-[10px] text-muted-foreground mb-0.5 leading-tight">{t('booked')}</div>
+            <div className="text-lg font-bold text-orange-600 dark:text-orange-400 leading-none my-1">
+              {formatTons(Number(capacity?.booked_tons || 0))}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {(Number(capacity?.booked_tons || 0)).toFixed(1)} {t('mt')}
+            <div className="text-[10px] text-muted-foreground leading-tight">
+              {bookedBoxes.toLocaleString()} {t('boxes')}
             </div>
           </div>
 
           {/* Received */}
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground mb-0.5">{t('received')}</div>
-            <div className="text-base font-bold text-green-600 dark:text-green-400">
-              {receivedBoxes.toLocaleString()}
+          <div className="flex flex-col items-center justify-center py-1.5">
+            <div className="text-[10px] text-muted-foreground mb-0.5 leading-tight">{t('received')}</div>
+            <div className="text-lg font-bold text-green-600 dark:text-green-400 leading-none my-1">
+              {formatTons(Number(capacity?.received_tons || 0))}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {(Number(capacity?.received_tons || 0)).toFixed(1)} {t('mt')}
+            <div className="text-[10px] text-muted-foreground leading-tight">
+              {receivedBoxes.toLocaleString()} {t('boxes')}
             </div>
           </div>
 
           {/* Remaining */}
-          <div className="text-center">
-            <div className="text-[10px] text-muted-foreground mb-0.5">{t('remaining')}</div>
-            <div className={`text-base font-bold ${
+          <div className="flex flex-col items-center justify-center py-1.5">
+            <div className="text-[10px] text-muted-foreground mb-0.5 leading-tight">{t('remaining')}</div>
+            <div className={`text-lg font-bold leading-none my-1 ${
               isDanger ? "text-red-600 dark:text-red-400" :
               isWarning ? "text-amber-600 dark:text-amber-400" :
               "text-gray-600 dark:text-gray-400"
             }`}>
-              {remainingBoxes.toLocaleString()}
+              {formatTons(remainingTons)}
             </div>
-            <div className={`text-[10px] ${
+            <div className={`text-[10px] leading-tight ${
               isDanger ? "text-red-600/80 dark:text-red-400/80" :
               isWarning ? "text-amber-600/80 dark:text-amber-400/80" :
               "text-muted-foreground"
             }`}>
-              {remainingTons.toFixed(1)} {t('mt')}
+              {remainingBoxes.toLocaleString()} {t('boxes')}
             </div>
           </div>
         </div>
@@ -171,11 +179,11 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
 
         {/* Warning Message */}
         {isDanger && (
-          <div className="flex items-start gap-1.5 p-2 border border-red-800 dark:border-red-800 rounded-lg">
+          <div className="flex items-start gap-2 p-2 border border-red-800 dark:border-red-800 rounded-lg">
             <AlertTriangle className="size-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
             <div className="text-xs">
-              <p className="font-medium text-red-600 dark:text-red-400">{t('exceeded')}</p>
-              <p className="text-red-600/80 dark:text-red-400/80 text-[10px]">
+              <p className="font-medium text-red-600 dark:text-red-400 leading-tight">{t('exceeded')}</p>
+              <p className="text-red-600/80 dark:text-red-400/80 text-[10px] leading-tight mt-1">
                 {t('exceededDescription')}
               </p>
             </div>
@@ -183,17 +191,17 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
         )}
 
         {isWarning && !isDanger && (
-          <div className="flex items-start gap-1.5 p-2 border border-amber-800 dark:border-amber-800 rounded-lg">
+          <div className="flex items-start gap-2 p-2 border border-amber-800 dark:border-amber-800 rounded-lg">
             <AlertTriangle className="size-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div className="text-xs">
-              <p className="font-medium text-amber-600 dark:text-amber-400">{t('approaching')}</p>
-              <p className="text-amber-600/80 dark:text-amber-400/80 text-[10px]">
+              <p className="font-medium text-amber-600 dark:text-amber-400 leading-tight">{t('approaching')}</p>
+              <p className="text-amber-600/80 dark:text-amber-400/80 text-[10px] leading-tight mt-1">
                 {t('approachingDescription', { count: remainingBoxes })}
               </p>
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

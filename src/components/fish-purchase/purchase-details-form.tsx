@@ -49,7 +49,7 @@ export function PurchaseDetailsForm({
   const [newLocationCity, setNewLocationCity] = useState("");
   const [addingLocation, setAddingLocation] = useState(false);
 
-  const handleChange = (field: keyof PurchaseDetailsStepFormData, value: any) => {
+  const handleChange = (field: keyof PurchaseDetailsStepFormData, value: string | number | undefined) => {
     onChange({ ...formData, [field]: value });
   };
 
