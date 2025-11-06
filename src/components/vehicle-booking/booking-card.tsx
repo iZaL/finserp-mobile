@@ -396,14 +396,7 @@ export function BookingCard({
                 size="sm"
                 variant="outline"
                 onClick={(e) => {
-                  const params = new URLSearchParams({
-                    vehicle: booking.vehicle_number,
-                    ...(booking.driver_name && { driver: booking.driver_name }),
-                    ...(booking.driver_phone && { driver_phone: booking.driver_phone }),
-                    ...(booking.supplier_name && { supplier_name: booking.supplier_name }),
-                    ...(booking.supplier_phone && { supplier_phone: booking.supplier_phone }),
-                  });
-                  handleAction(e, () => router.push(`/fish-purchases/new?${params.toString()}`));
+                  handleAction(e, () => router.push(`/fish-purchases/new?vehicle_booking_id=${booking.id}`));
                 }}
                 className="px-3 py-1.5 border-purple-300 text-purple-700 bg-white hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:bg-slate-800 dark:hover:bg-purple-950 text-sm"
               >

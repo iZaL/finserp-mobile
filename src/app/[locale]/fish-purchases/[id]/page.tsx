@@ -273,7 +273,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
         </Card>
       )}
 
-      {purchase.bill && purchase.bill.status === "draft" && (
+      {/* {purchase.bill && purchase.bill.status === "draft" && (
         <Card className="mb-6">
           <CardContent className="p-6">
             <Button
@@ -285,7 +285,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
             </Button>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

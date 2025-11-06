@@ -12,6 +12,7 @@ import type { FishPurchase } from "@/types/fish-purchase";
 import type { Payment } from "@/types/payment";
 import { AddAdvancePaymentDialog } from "./add-advance-payment-dialog";
 import type { AdvancePaymentRequest } from "@/types/payment";
+import { useAddFishPurchasePayment } from "@/hooks/use-fish-purchases";
 
 interface FinancialSummaryProps {
   purchase: FishPurchase;
@@ -21,6 +22,7 @@ interface FinancialSummaryProps {
 export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryProps) {
   const t = useTranslations("fishPurchases.payment");
   const [showAddPayment, setShowAddPayment] = useState(false);
+  const { addPayment, loading: addingPayment } = useAddFishPurchasePayment();
 
   // Calculate payment progress
   const totalAmount = purchase.total_amount || 0;
@@ -33,11 +35,15 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
   const hasMorePayments = (purchase.bill?.payments?.length || 0) > 3;
 
   const handleAddPayment = async (data: AdvancePaymentRequest) => {
-    // TODO: Make API call to add payment
-    console.log("Adding payment:", data);
-
-    // Call the callback to refresh purchase data
-    onPaymentAdded();
+    try {
+      await addPayment(purchase.id, data);
+      setShowAddPayment(false);
+      // Call the callback to refresh purchase data
+      onPaymentAdded();
+    } catch (error) {
+      console.error("Failed to add payment:", error);
+      // Error toast is already shown by the hook
+    }
   };
 
   const getPaymentStatusColor = (status: string) => {
@@ -144,6 +150,7 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
             <Button
               className="w-full"
               onClick={() => setShowAddPayment(true)}
+              disabled={addingPayment}
             >
               <Plus className="size-4 mr-2" />
               {t("addAdvancePayment")}
@@ -220,12 +227,12 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
       </Card>
 
       {/* Add Advance Payment Dialog */}
-      {purchase.payment_accounts && (
+      {purchase.payment_accounts && ( 
         <AddAdvancePaymentDialog
           open={showAddPayment}
           onOpenChange={setShowAddPayment}
           purchase={purchase}
-          paymentAccounts={purchase.payment_accounts}
+          paymentAccounts={purchase.payment_accounts || []}
           onSubmit={handleAddPayment}
         />
       )}

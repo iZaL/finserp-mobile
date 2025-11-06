@@ -727,6 +727,7 @@
       "select": "Select a supplier...",
       "search": "Search suppliers...",
       "notFound": "No suppliers found",
+      "addNew": "Add Supplier",
       "orManual": "Or Enter Manually",
       "name": "Supplier Name",
       "namePlaceholder": "Enter supplier name",
@@ -737,7 +738,20 @@
       "searchSuppliers": "Search suppliers...",
       "noSuppliers": "No suppliers found",
       "bank": "Bank",
-      "accountNumber": "Account Number"
+      "accountNumber": "Account Number",
+      "addSupplierDialog": {
+        "title": "Add New Supplier",
+        "description": "Create a new fish supplier",
+        "supplierName": "Supplier Name",
+        "supplierNamePlaceholder": "Enter supplier name",
+        "supplierPhone": "Phone Number",
+        "supplierPhonePlaceholder": "Enter phone number",
+        "cancel": "Cancel",
+        "add": "Add Supplier",
+        "adding": "Adding...",
+        "success": "Supplier added successfully",
+        "error": "Failed to add supplier"
+      }
     },
     "details": {
       "title": "Purchase Details",
@@ -891,6 +905,7 @@
       "viewAllPayments": "View All Payments ({count})",
       "paymentsPendingInfo": "Payments remain in pending status until the purchase is approved. After approval, payments can be processed.",
       "ref": "Ref",
+      "advancePaymentDescription": "Advance payments are recorded before approval and remain in pending status. After approval, all remaining payments should be made through the bill document.",
       "addAdvancePaymentDescription": "Advance payments are recorded before approval and remain in pending status. After approval, all remaining payments should be made through the bill document.",
       "transactionDate": "Transaction Date",
       "amount": "Amount",

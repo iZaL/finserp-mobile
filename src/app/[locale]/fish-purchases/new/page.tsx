@@ -36,6 +36,8 @@ export default function CreateFishPurchasePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations("fishPurchases");
+  const vehicleBookingId = searchParams?.get("vehicle_booking_id");
+  
   const {
     fishSpecies,
     suppliers,
@@ -50,6 +52,7 @@ export default function CreateFishPurchasePage() {
 
   const [activeStep, setActiveStep] = useState<FishPurchaseFormStep>("supplier");
   const [locations, setLocations] = useState<Address[]>([]);
+  const [loadingVehicleData, setLoadingVehicleData] = useState(false);
 
   // Initialize form with React Hook Form
   const {
@@ -100,6 +103,38 @@ export default function CreateFishPurchasePage() {
       setValue("bill_number", settings.bill_number);
     }
   }, [settings, formData.bill_number, setValue]);
+
+  // Fetch and pre-populate data from vehicle booking if vehicle_booking_id is provided
+  useEffect(() => {
+    const fetchVehicleData = async () => {
+      if (!vehicleBookingId) return;
+      
+      setLoadingVehicleData(true);
+      try {
+        const vehicleData = await fishPurchaseService.getVehicleBookingData(parseInt(vehicleBookingId));
+        
+        // Pre-populate form fields
+        setValue("contact_name", vehicleData.supplier_name);
+        setValue("contact_number", vehicleData.supplier_phone || "");
+        setValue("vehicle_number", vehicleData.vehicle_number);
+        setValue("driver_name", vehicleData.driver_name);
+        setValue("driver_number", vehicleData.driver_phone || "");
+        setValue("date", vehicleData.entry_date);
+        
+        // Set box count in first item if available
+        if (vehicleData.box_count > 0) {
+          setValue("items.0.box_count", vehicleData.box_count);
+        }
+      } catch (error) {
+        console.error("Failed to fetch vehicle data:", error);
+        toast.error("Failed to load vehicle booking data");
+      } finally {
+        setLoadingVehicleData(false);
+      }
+    };
+    
+    fetchVehicleData();
+  }, [vehicleBookingId, setValue]);
 
   // Pre-populate supplier bank details if supplier_id is provided in URL
   useEffect(() => {
@@ -208,6 +243,8 @@ export default function CreateFishPurchasePage() {
       // Transform items to match API request structure
       const requestData = {
         ...data,
+        // Include vehicle_booking_id if present
+        ...(vehicleBookingId && { vehicle_booking_id: parseInt(vehicleBookingId) }),
         items: data.items.map((item) => ({
           fish_species_id: item.fish_species_id,
           box_count: item.box_count,
@@ -228,7 +265,7 @@ export default function CreateFishPurchasePage() {
     }
   };
 
-  if (dataLoading) {
+  if (dataLoading || loadingVehicleData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="size-8 animate-spin text-primary" />
