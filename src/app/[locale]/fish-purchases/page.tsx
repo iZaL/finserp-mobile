@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Plus, Search, Filter, Package, Loader2 } from "lucide-react";
+import { Plus, Search, Package, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,7 +19,7 @@ export default function FishPurchasesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | FishPurchaseStatus>("all");
 
-  const { data, loading, refresh } = useFishPurchases({
+  const { data, loading } = useFishPurchases({
     search: searchQuery,
     status: statusFilter,
     per_page: 20,
@@ -71,7 +71,7 @@ export default function FishPurchasesPage() {
         </div>
 
         {/* Status Tabs */}
-        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+        <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as FishPurchaseStatus | "all")}>
           <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="all">{t("status.all")}</TabsTrigger>
             <TabsTrigger value="draft">{t("status.draft")}</TabsTrigger>

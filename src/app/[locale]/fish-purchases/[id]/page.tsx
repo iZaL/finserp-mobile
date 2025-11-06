@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, Edit, Trash2, CheckCircle, XCircle, Loader2, Package, Scale, CircleDollarSign, FileText } from "lucide-react";
+import { ChevronLeft, Edit, Trash2, Loader2, Package, Scale, CircleDollarSign, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +55,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
       await deletePurchase(parseInt(id));
       router.push("/fish-purchases");
       toast.success(t("deleteSuccess"));
-    } catch (error) {
+    } catch {
       toast.error(t("deleteError"));
     }
   };

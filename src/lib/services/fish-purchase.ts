@@ -7,7 +7,6 @@ import type {
   CreateFishPurchaseRequest,
   UpdateFishPurchaseRequest,
   UpdateStatusRequest,
-  FishPurchaseStats,
 } from "@/types/fish-purchase";
 import type { AdvancePaymentRequest } from "@/types/payment";
 import type {

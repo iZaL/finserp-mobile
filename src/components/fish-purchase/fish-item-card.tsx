@@ -8,7 +8,6 @@ import {
   Trash2,
   Package,
   Scale,
-  CircleDollarSign,
   Plus,
   X,
   Fish,
@@ -75,9 +74,10 @@ export function FishItemCard({
         net_amount: calculated.netAmount,
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boxWeights, item.rate, item.box_count]);
 
-  const handleFieldChange = (field: keyof FishPurchaseItem, value: any) => {
+  const handleFieldChange = (field: keyof FishPurchaseItem, value: string | number | number[] | undefined) => {
     onUpdate({ ...item, [field]: value });
   };
 

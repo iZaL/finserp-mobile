@@ -1,7 +1,7 @@
 // Fish Purchase Types - Copied from erp-web and adapted for mobile
 // Source: erp-web/resources/js/types.ts
 
-import type { Contact, Address, Media, Bank, ApiResponse, PaginatedResponse } from "./shared";
+import type { Contact, Address, Media, Bank } from "./shared";
 import type { Payment, PaymentAccount } from "./payment";
 
 /**
@@ -209,7 +209,7 @@ export interface CreateFishPurchaseItemRequest {
 /**
  * Update Fish Purchase Request
  */
-export interface UpdateFishPurchaseRequest extends Partial<CreateFishPurchaseRequest> {}
+export type UpdateFishPurchaseRequest = Partial<CreateFishPurchaseRequest>
 
 /**
  * Fish Purchase Filters for List/Search

@@ -44,9 +44,9 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
     fishSpecies,
     suppliers,
     locations: initialLocations,
-    banks,
+    // banks,
     agents,
-    settings,
+    // settings,
     loading: dataLoading,
   } = useFishPurchaseFormData();
 
@@ -361,12 +361,12 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
             formData={formData}
             onChange={(data) => {
               Object.entries(data).forEach(([key, value]) => {
-                setValue(key as any, value);
+                setValue(key as keyof FishPurchaseFormData, value);
               });
             }}
             locations={locations}
             agents={agents}
-            errors={errors as any}
+            errors={errors as Record<string, { message?: string }>}
             onAddLocation={handleAddLocation}
           />
         )}
