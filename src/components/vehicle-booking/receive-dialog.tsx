@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,10 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { CheckCircle, Loader2, Truck } from "lucide-react"
+import { useReceiveVehicle } from "@/hooks/use-vehicle-bookings"
 
 interface ReceiveDialogProps {
   booking: VehicleBooking | null
@@ -29,12 +27,11 @@ export function ReceiveDialog({
   onOpenChange,
   onSuccess,
 }: ReceiveDialogProps) {
-  const t = useTranslations('vehicleBookings.receiveDialog')
   const tCommon = useTranslations('common')
-  const [loading, setLoading] = useState(false)
+  const receiveMutation = useReceiveVehicle()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!receiveMutation.isPending) {
       onOpenChange(newOpen)
     }
   }
@@ -43,17 +40,15 @@ export function ReceiveDialog({
     if (!booking) return
 
     try {
-      setLoading(true)
-      await vehicleBookingService.receiveVehicle(booking.id, {})
-
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
+      await receiveMutation.mutateAsync({
+        id: booking.id,
+        data: {},
+      })
       handleOpenChange(false)
       onSuccess()
     } catch (error) {
+      // Error is already handled by the mutation hook with toast
       console.error("Error receiving vehicle:", error)
-      toast.error('Failed to receive vehicle')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -100,16 +95,16 @@ export function ReceiveDialog({
           <Button
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            disabled={loading}
+            disabled={receiveMutation.isPending}
           >
             {tCommon('cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={receiveMutation.isPending}
             className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
           >
-            {loading ? (
+            {receiveMutation.isPending ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
                 Receiving...

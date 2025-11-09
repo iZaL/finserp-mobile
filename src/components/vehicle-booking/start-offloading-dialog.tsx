@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,9 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useStartOffloading } from "@/hooks/use-vehicle-bookings"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { CheckCircle, Loader2, Truck } from "lucide-react"
 
 interface StartOffloadingDialogProps {
@@ -29,12 +27,11 @@ export function StartOffloadingDialog({
   onOpenChange,
   onSuccess,
 }: StartOffloadingDialogProps) {
-  const t = useTranslations('vehicleBookings')
   const tCommon = useTranslations('common')
-  const [loading, setLoading] = useState(false)
+  const mutation = useStartOffloading()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!mutation.isPending) {
       onOpenChange(newOpen)
     }
   }
@@ -42,19 +39,10 @@ export function StartOffloadingDialog({
   const handleConfirm = async () => {
     if (!booking) return
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.startOffloading(booking.id)
+    await mutation.mutateAsync({ id: booking.id })
 
-      toast.success(t('startOffloadingSuccess'))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error starting offloading:", error)
-      toast.error(t('startOffloadingError'))
-    } finally {
-      setLoading(false)
-    }
+    handleOpenChange(false)
+    onSuccess()
   }
 
   if (!booking) return null
@@ -100,16 +88,16 @@ export function StartOffloadingDialog({
           <Button
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            disabled={loading}
+            disabled={mutation.isPending}
           >
             {tCommon('cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={mutation.isPending}
             className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700"
           >
-            {loading ? (
+            {mutation.isPending ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
                 Starting...

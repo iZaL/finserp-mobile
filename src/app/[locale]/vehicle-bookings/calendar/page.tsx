@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
-import {
-  ArrowLeft
-} from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,9 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import axios from "axios"
-import type { VehicleBooking, RangeStats } from "@/types/vehicle-booking"
+import type { VehicleBooking } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
 import { KeyMetricsCards } from "@/components/vehicle-booking/key-metrics-cards"
@@ -34,24 +30,23 @@ import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approv
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
 import { format, startOfMonth, endOfMonth, isSameMonth } from "date-fns"
+import { useVehicleBookings, useRangeStats } from "@/hooks/use-vehicle-bookings"
 
 export default function CalendarViewPage() {
-  const t = useTranslations('vehicleBookings')
-  const tStats = useTranslations('vehicleBookings.rangeStats')
+  const t = useTranslations("vehicleBookings")
+  const tStats = useTranslations("vehicleBookings.rangeStats")
   const locale = useLocale()
   const isRTL = locale === "ar"
   const router = useRouter()
   const tabsScrollRef = useRef<HTMLDivElement>(null)
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [bookings, setBookings] = useState<VehicleBooking[]>([])
-  const [loading, setLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<"all" | "booked" | "received" | "exited" | "rejected">("all")
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "booked" | "received" | "exited" | "rejected"
+  >("all")
 
   // Stats state
-  const [rangeStats, setRangeStats] = useState<RangeStats | null>(null)
-  const [statsLoading, setStatsLoading] = useState(false)
   const [statsDatetimeFrom, setStatsDatetimeFrom] = useState(
     format(startOfMonth(new Date()), "yyyy-MM-dd'T'00:00")
   )
@@ -70,68 +65,26 @@ export default function CalendarViewPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
-  // Fetch bookings for the current month
-  const fetchData = async (month: Date, signal?: AbortSignal) => {
-    try {
-      setLoading(true)
-      const start = format(startOfMonth(month), "yyyy-MM-dd")
-      const end = format(endOfMonth(month), "yyyy-MM-dd")
+  // React Query hooks - All data fetching is now cached and optimized
+  const {
+    data: bookingsData,
+    isLoading: bookingsLoading,
+  } = useVehicleBookings({
+    date_from: format(startOfMonth(currentMonth), "yyyy-MM-dd"),
+    date_to: format(endOfMonth(currentMonth), "yyyy-MM-dd"),
+    per_page: 1000, // Get all for the month
+  })
 
-      const bookingsResponse = await vehicleBookingService.getBookings({
-        date_from: start,
-        date_to: end,
-        per_page: 1000, // Get all for the month
-      }, { signal })
+  // Convert stats datetime to backend format and fetch
+  const statsFrom = statsDatetimeFrom.replace("T", " ") + ":00"
+  const statsTo = statsDatetimeTo.replace("T", " ") + ":59"
+  const {
+    data: rangeStats,
+    isLoading: statsLoading,
+  } = useRangeStats(statsFrom, statsTo, true)
 
-      setBookings(bookingsResponse.data)
-    } catch (error: unknown) {
-      if (!axios.isCancel(error)) {
-        console.error("Error fetching data:", error)
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false)
-      }
-    }
-  }
-
-  useEffect(() => {
-    const abortController = new AbortController()
-    fetchData(currentMonth, abortController.signal)
-
-    return () => {
-      abortController.abort()
-    }
-  }, [currentMonth])
-
-  // Fetch range stats
-  const fetchRangeStats = async (datetimeFrom: string, datetimeTo: string, signal?: AbortSignal) => {
-    try {
-      setStatsLoading(true)
-      // Convert from "2025-01-10T09:00" to "2025-01-10 09:00:00"
-      const from = datetimeFrom.replace('T', ' ') + ':00'
-      const to = datetimeTo.replace('T', ' ') + ':59'
-      const stats = await vehicleBookingService.getRangeStats(from, to, { signal })
-      setRangeStats(stats)
-    } catch (error: unknown) {
-      if (!axios.isCancel(error)) {
-        console.error("Error fetching range stats:", error)
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setStatsLoading(false)
-      }
-    }
-  }
-
-  useEffect(() => {
-    const abortController = new AbortController()
-    fetchRangeStats(statsDatetimeFrom, statsDatetimeTo, abortController.signal)
-
-    return () => {
-      abortController.abort()
-    }
-  }, [statsDatetimeFrom, statsDatetimeTo])
+  const bookings = bookingsData?.data || []
+  const loading = bookingsLoading
 
   const handleStatsDatetimeChange = (from: string, to: string) => {
     setStatsDatetimeFrom(from)
@@ -157,7 +110,7 @@ export default function CalendarViewPage() {
     }
   }, [isRTL, sheetOpen])
 
-  // Group bookings by date
+  // Memoized: Group bookings by date
   const bookingsByDate = useMemo(() => {
     const grouped: Record<string, VehicleBooking[]> = {}
     bookings.forEach((booking) => {
@@ -170,7 +123,7 @@ export default function CalendarViewPage() {
     return grouped
   }, [bookings])
 
-  // Get bookings for selected date with status filter
+  // Memoized: Get bookings for selected date with status filter
   const selectedDateBookings = useMemo(() => {
     if (!selectedDate) return []
     const dateKey = format(selectedDate, "yyyy-MM-dd")
@@ -180,20 +133,23 @@ export default function CalendarViewPage() {
 
     // Handle special case for rejected status (includes approval rejection)
     if (statusFilter === "rejected") {
-      return dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected")
+      return dayBookings.filter(
+        (b) => b.status === "rejected" || b.approval_status === "rejected"
+      )
     }
 
     // Handle booked status (exclude approval-rejected)
     if (statusFilter === "booked") {
-      return dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected")
+      return dayBookings.filter((b) => b.status === "booked" && b.approval_status !== "rejected")
     }
 
-    return dayBookings.filter(b => b.status === statusFilter)
+    return dayBookings.filter((b) => b.status === statusFilter)
   }, [selectedDate, bookingsByDate, statusFilter])
 
-  // Get status counts for selected date
+  // Memoized: Get status counts for selected date
   const statusCounts = useMemo(() => {
-    if (!selectedDate) return { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
+    if (!selectedDate)
+      return { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
 
     const dateKey = format(selectedDate, "yyyy-MM-dd")
     const dayBookings = bookingsByDate[dateKey] || []
@@ -201,11 +157,15 @@ export default function CalendarViewPage() {
     return {
       all: dayBookings.length,
       // Booked includes pending and approved, but excludes approval-rejected
-      booked: dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected").length,
-      received: dayBookings.filter(b => b.status === "received").length,
-      exited: dayBookings.filter(b => b.status === "exited").length,
+      booked: dayBookings.filter(
+        (b) => b.status === "booked" && b.approval_status !== "rejected"
+      ).length,
+      received: dayBookings.filter((b) => b.status === "received").length,
+      exited: dayBookings.filter((b) => b.status === "exited").length,
       // Rejected includes both gate rejection and approval rejection
-      rejected: dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected").length,
+      rejected: dayBookings.filter(
+        (b) => b.status === "rejected" || b.approval_status === "rejected"
+      ).length,
     }
   }, [selectedDate, bookingsByDate])
 
@@ -251,7 +211,8 @@ export default function CalendarViewPage() {
   }
 
   const handleDialogSuccess = () => {
-    fetchData(currentMonth)
+    // React Query will automatically refetch after mutations
+    // No manual refetch needed - data stays in sync automatically
   }
 
   // Loading skeleton
@@ -263,8 +224,8 @@ export default function CalendarViewPage() {
             <ArrowLeft className="size-5" />
           </Button>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
-            <p className="text-muted-foreground text-xs mt-0.5">{tStats('pageSubtitle')}</p>
+            <h2 className="text-2xl font-bold tracking-tight">{tStats("pageTitle")}</h2>
+            <p className="text-muted-foreground text-xs mt-0.5">{tStats("pageSubtitle")}</p>
           </div>
         </div>
 
@@ -309,8 +270,10 @@ export default function CalendarViewPage() {
           <ArrowLeft className="size-5" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
-          <p className="text-muted-foreground text-xs mt-0.5 truncate">{tStats('pageSubtitle')}</p>
+          <h2 className="text-2xl font-bold tracking-tight">{tStats("pageTitle")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5 truncate">
+            {tStats("pageSubtitle")}
+          </p>
         </div>
       </div>
 
@@ -324,13 +287,13 @@ export default function CalendarViewPage() {
         />
 
         {/* Key Business Metrics */}
-        <KeyMetricsCards stats={rangeStats} isLoading={statsLoading} />
+        <KeyMetricsCards stats={rangeStats || null} isLoading={statsLoading} />
 
         {/* Capacity KPIs */}
-        <CapacityStatsCards stats={rangeStats} isLoading={statsLoading} />
+        <CapacityStatsCards stats={rangeStats || null} isLoading={statsLoading} />
 
         {/* Performance KPIs */}
-        <PerformanceStatsCards stats={rangeStats} isLoading={statsLoading} />
+        <PerformanceStatsCards stats={rangeStats || null} isLoading={statsLoading} />
 
         {/* Daily Breakdown List */}
         {rangeStats?.daily_stats && rangeStats.daily_stats.length > 0 && (
@@ -350,16 +313,22 @@ export default function CalendarViewPage() {
               {selectedDate && format(selectedDate, "MMMM d, yyyy")}
             </SheetTitle>
             <SheetDescription>
-              {tStats('bookingsOnDay', { count: statusCounts.all })}
+              {tStats("bookingsOnDay", { count: statusCounts.all })}
             </SheetDescription>
           </SheetHeader>
 
           {/* Status Filter Tabs */}
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)} className="mt-4">
+          <Tabs
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+            className="mt-4"
+          >
             <div ref={tabsScrollRef} className="overflow-x-auto -mx-6 px-6 scrollbar-hide">
-              <TabsList className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}>
+              <TabsList
+                className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}
+              >
                 <TabsTrigger value="all" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.all')}
+                  {t("filters.all")}
                   {statusCounts.all > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.all}
@@ -367,7 +336,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="booked" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.booked')}
+                  {t("filters.booked")}
                   {statusCounts.booked > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.booked}
@@ -375,7 +344,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="received" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.received')}
+                  {t("filters.received")}
                   {statusCounts.received > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.received}
@@ -383,7 +352,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="exited" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.exited')}
+                  {t("filters.exited")}
                   {statusCounts.exited > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.exited}
@@ -391,7 +360,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="rejected" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.rejected')}
+                  {t("filters.rejected")}
                   {statusCounts.rejected > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.rejected}
@@ -421,9 +390,8 @@ export default function CalendarViewPage() {
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 {statusFilter !== "all"
-                  ? tStats('noBookingsWithStatus', { status: statusFilter })
-                  : tStats('noBookingsEmpty')
-                }
+                  ? tStats("noBookingsWithStatus", { status: statusFilter })
+                  : tStats("noBookingsEmpty")}
               </div>
             )}
           </div>

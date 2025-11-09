@@ -8,6 +8,7 @@ import { QueryProvider } from "@/components/query-provider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { InstallPrompt } from "@/components/install-prompt";
+import { RefetchIndicator } from "@/components/refetch-indicator";
 import { Toaster } from "@/components/ui/sonner";
 import { isRTL } from "@/lib/utils";
 import "../globals.css";
@@ -83,6 +84,7 @@ export default async function LocaleLayout({
               <AuthProvider>
                 <ServiceWorkerRegister />
                 <InstallPrompt />
+                <RefetchIndicator />
                 <LayoutWrapper>
                   {children}
                 </LayoutWrapper>

@@ -57,7 +57,10 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
   const remainingBoxes = Number(capacity?.remaining_capacity_boxes || 0)
   const limitTons = Number(capacity?.daily_limit_tons || 0)
   const remainingTons = Number(capacity?.remaining_capacity_tons || 0)
-  const usagePercent = Number(capacity?.capacity_used_percent || 0)
+  const totalBookedTons = Number(capacity?.total_booked_tons || 0)
+
+  // Calculate usage percent based on TONS (not boxes) for accurate progress
+  const usagePercent = limitTons > 0 ? (totalBookedTons / limitTons) * 100 : 0
 
   const isWarning = usagePercent >= 80 && usagePercent < 100
   const isDanger = usagePercent >= 100
@@ -110,7 +113,7 @@ export function CapacityCard({ capacity, loading, allowOverride }: CapacityCardP
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <span>{t('usage')}</span>
             <span>
-              {(Number(capacity?.total_booked_boxes || 0)).toLocaleString()} / {(capacity?.daily_limit_boxes || 0).toLocaleString()} {t('boxes')}
+              {formatTons(Number(capacity?.total_booked_tons || 0))} / {formatTons(limitTons)}
             </span>
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">

@@ -13,9 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useExitVehicle } from "@/hooks/use-vehicle-bookings"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { LogOut, Loader2 } from "lucide-react"
 
 interface ExitDialogProps {
@@ -34,10 +33,10 @@ export function ExitDialog({
   const t = useTranslations('vehicleBookings.exitDialog')
   const tCommon = useTranslations('common')
   const [notes, setNotes] = useState("")
-  const [loading, setLoading] = useState(false)
+  const mutation = useExitVehicle()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!mutation.isPending) {
       onOpenChange(newOpen)
       if (!newOpen) {
         // Reset form when closing
@@ -51,18 +50,10 @@ export function ExitDialog({
 
     if (!booking) return
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.exitVehicle(booking.id)
+    await mutation.mutateAsync(booking.id)
 
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error exiting vehicle:", error)
-    } finally {
-      setLoading(false)
-    }
+    handleOpenChange(false)
+    onSuccess()
   }
 
   if (!booking) return null
@@ -134,15 +125,15 @@ export function ExitDialog({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={loading}
+              disabled={mutation.isPending}
             >
               {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={mutation.isPending}
             >
-              {loading ? (
+              {mutation.isPending ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
                   {t('exiting')}

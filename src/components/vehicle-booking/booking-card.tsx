@@ -149,6 +149,10 @@ export function BookingCard({
             <span className="text-xs">
               {booking.status === "exited" && booking.exited_at ? (
                 <>{t('exited')}: <RelativeTime date={booking.exited_at} /></>
+              ) : booking.status === "offloaded" && booking.offloading_completed_at ? (
+                <>{t('offloaded')}: <RelativeTime date={booking.offloading_completed_at} /></>
+              ) : booking.status === "offloading" && booking.offloading_started_at ? (
+                <>{t('offloading')}: <RelativeTime date={booking.offloading_started_at} /></>
               ) : booking.status === "received" && booking.received_at ? (
                 <>{t('received')}: <RelativeTime date={booking.received_at} /></>
               ) : booking.status === "rejected" && booking.rejected_at ? (

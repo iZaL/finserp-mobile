@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,9 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useDeleteVehicleBooking } from "@/hooks/use-vehicle-bookings"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { Trash2, Loader2 } from "lucide-react"
 
 interface DeleteDialogProps {
@@ -31,10 +29,10 @@ export function DeleteDialog({
 }: DeleteDialogProps) {
   const t = useTranslations('vehicleBookings')
   const tCommon = useTranslations('common')
-  const [loading, setLoading] = useState(false)
+  const mutation = useDeleteVehicleBooking()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!mutation.isPending) {
       onOpenChange(newOpen)
     }
   }
@@ -44,18 +42,10 @@ export function DeleteDialog({
 
     if (!booking) return
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.deleteBooking(booking.id)
+    await mutation.mutateAsync(booking.id)
 
-      toast.success(t('deleteSuccess', { vehicle: booking.vehicle_number }))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error deleting vehicle:", error)
-    } finally {
-      setLoading(false)
-    }
+    handleOpenChange(false)
+    onSuccess()
   }
 
   if (!booking) return null
@@ -108,16 +98,16 @@ export function DeleteDialog({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={loading}
+              disabled={mutation.isPending}
             >
               {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
               variant="destructive"
-              disabled={loading}
+              disabled={mutation.isPending}
             >
-              {loading ? (
+              {mutation.isPending ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
                   Deleting...
