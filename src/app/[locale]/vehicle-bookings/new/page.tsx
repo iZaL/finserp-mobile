@@ -187,8 +187,46 @@ export default function NewBookingPage() {
 
       // Redirect to booking dashboard
       router.push('/vehicle-bookings')
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error creating booking:", error)
+      
+      // Handle validation errors
+      const axiosError = error as {
+        isValidationError?: boolean
+        validationErrors?: Record<string, string[]>
+        message?: string
+        response?: {
+          status: number
+          data?: {
+            errors?: Record<string, string[]>
+            message?: string
+          }
+        }
+      }
+
+      if (axiosError.isValidationError && axiosError.validationErrors) {
+        // Show all validation errors
+        const errorMessages: string[] = []
+        Object.entries(axiosError.validationErrors).forEach(([field, messages]) => {
+          const fieldLabel = tValidation(field) || field.replace(/_/g, ' ')
+          const fieldMessages = Array.isArray(messages) ? messages : [messages]
+          errorMessages.push(...fieldMessages.map(msg => `${fieldLabel}: ${msg}`))
+        })
+        
+        if (errorMessages.length > 0) {
+          toast.error(errorMessages.join("\n"), {
+            duration: 6000,
+          })
+        }
+      } else if (axiosError.message) {
+        // Show generic error message
+        toast.error(axiosError.message, {
+          duration: 4000,
+        })
+      } else {
+        // Fallback error message
+        toast.error(tCommon('errors.generic') || "Failed to create booking. Please try again.")
+      }
     } finally {
       setSubmitting(false)
     }

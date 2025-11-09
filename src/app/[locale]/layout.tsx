@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { InstallPrompt } from "@/components/install-prompt";
@@ -72,27 +73,29 @@ export default async function LocaleLayout({
     <html key={locale} lang={locale} dir={dir} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <AuthProvider>
-              <ServiceWorkerRegister />
-              <InstallPrompt />
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
-              <Toaster
-                toastOptions={{
-                  classNames: {
-                    toast: "z-[99999] bg-card text-card-foreground border-border shadow-xl",
-                  },
-                }}
-              />
-            </AuthProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <AuthProvider>
+                <ServiceWorkerRegister />
+                <InstallPrompt />
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+                <Toaster
+                  toastOptions={{
+                    classNames: {
+                      toast: "z-[99999] bg-card text-card-foreground border-border shadow-xl",
+                    },
+                  }}
+                />
+              </AuthProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

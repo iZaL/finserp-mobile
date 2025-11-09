@@ -128,12 +128,28 @@ export const fishPurchaseService = {
 
   // Get suppliers with bank details
   getSuppliers: async (
-    config?: { signal?: AbortSignal }
+    options?: {
+      signal?: AbortSignal;
+      limit?: number;
+      search?: string;
+      selectedSupplierId?: number;
+    }
   ): Promise<Contact[]> => {
-    const response = await api.get<ApiResponse<Contact[]>>(
-      `/fish-purchases/suppliers`,
-      config
-    );
+    const params = new URLSearchParams();
+    if (options?.limit) {
+      params.append('limit', options.limit.toString());
+    }
+    if (options?.search) {
+      params.append('search', options.search);
+    }
+    if (options?.selectedSupplierId) {
+      params.append('selected_supplier_id', options.selectedSupplierId.toString());
+    }
+
+    const url = `/fish-purchases/suppliers${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await api.get<ApiResponse<Contact[]>>(url, {
+      signal: options?.signal,
+    });
     return response.data.data || [];
   },
 

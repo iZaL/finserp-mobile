@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/user-menu"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ModeToggle } from "@/components/mode-toggle"
 import { AppSidebar } from "@/components/app-sidebar"
+import { OfflineIndicator } from "@/components/offline-indicator"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { useTranslations, useLocale } from "next-intl"
@@ -30,6 +31,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
     <SidebarProvider defaultOpen={true}>
       <AppSidebar />
       <SidebarInset>
+        <OfflineIndicator />
         <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 z-40">
           <div className={`flex flex-1 items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <SidebarTrigger className="-ms-1 md:flex hidden" />

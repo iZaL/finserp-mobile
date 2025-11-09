@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Plus, Search, Package, Loader2 } from "lucide-react";
+import { Plus, Search, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useFishPurchases } from "@/hooks/use-fish-purchases";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { FishPurchaseStatus } from "@/types/fish-purchase";
 import { cn } from "@/lib/utils";
 
@@ -18,9 +20,12 @@ export default function FishPurchasesPage() {
   const t = useTranslations("fishPurchases");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | FishPurchaseStatus>("all");
+  
+  // Debounce search query to avoid excessive API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  const { data, loading } = useFishPurchases({
-    search: searchQuery,
+  const { data, isLoading, error } = useFishPurchases({
+    search: debouncedSearchQuery,
     status: statusFilter,
     per_page: 20,
   });
@@ -82,15 +87,47 @@ export default function FishPurchasesPage() {
         </Tabs>
       </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="size-8 animate-spin text-primary" />
+      {/* Loading State with Skeleton */}
+      {isLoading && (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
+                  <Skeleton className="h-6 w-24" />
+                </div>
+                <div className="grid grid-cols-3 gap-4 pt-3 border-t">
+                  <Skeleton className="h-12" />
+                  <Skeleton className="h-12" />
+                  <Skeleton className="h-12" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
+      {/* Error State */}
+      {error && !isLoading && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-sm text-destructive mb-4">
+              {t("errors.fetchFailed") || "Failed to load fish purchases"}
+            </p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Empty State */}
-      {!loading && data?.data.length === 0 && (
+      {!isLoading && !error && data?.data.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="size-12 text-muted-foreground mb-4" />
@@ -107,7 +144,7 @@ export default function FishPurchasesPage() {
       )}
 
       {/* Purchase Cards */}
-      {!loading && data && data.data.length > 0 && (
+      {!isLoading && !error && data && data.data.length > 0 && (
         <div className="space-y-4">
           {data.data.map((purchase) => (
             <Card
@@ -121,7 +158,7 @@ export default function FishPurchasesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{purchase.bill_number}</h3>
                       <Badge className={cn("text-xs", getStatusColor(purchase.status))}>
-                        {t(`status.${purchase.status}`)}
+                        {t(`status.${purchase.status || "null"}`)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">

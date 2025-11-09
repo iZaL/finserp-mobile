@@ -719,7 +719,8 @@
       "approved": "موافق عليه",
       "paid": "مدفوع",
       "closed": "مغلق",
-      "rejected": "مرفوض"
+      "rejected": "مرفوض",
+      "null": "غير معروف"
     },
     "steps": {
       "supplier": "المورد",

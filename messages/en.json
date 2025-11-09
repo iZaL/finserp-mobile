@@ -715,7 +715,8 @@
       "approved": "Approved",
       "paid": "Paid",
       "closed": "Closed",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "null": "Unknown"
     },
     "steps": {
       "supplier": "Supplier",

@@ -22,7 +22,8 @@ interface FinancialSummaryProps {
 export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryProps) {
   const t = useTranslations("fishPurchases.payment");
   const [showAddPayment, setShowAddPayment] = useState(false);
-  const { addPayment, loading: addingPayment } = useAddFishPurchasePayment();
+  const addPaymentMutation = useAddFishPurchasePayment();
+  const addingPayment = addPaymentMutation.isPending;
 
   // Calculate payment progress
   const totalAmount = purchase.total_amount || 0;
@@ -36,7 +37,10 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
 
   const handleAddPayment = async (data: AdvancePaymentRequest) => {
     try {
-      await addPayment(purchase.id, data);
+      await addPaymentMutation.mutateAsync({
+        id: purchase.id,
+        data,
+      });
       setShowAddPayment(false);
       // Call the callback to refresh purchase data
       onPaymentAdded();

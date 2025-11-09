@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Check, ChevronsUpDown, User, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Check, ChevronsUpDown, User, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -27,15 +28,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { fishPurchaseService } from "@/lib/services/fish-purchase";
+import { fishPurchaseKeys } from "@/lib/query-keys";
+import { useDebounce } from "@/hooks/use-debounce";
 import type { Contact } from "@/types/shared";
 
 interface SupplierSelectorProps {
   suppliers: Contact[];
   selectedSupplierId?: number;
-  onSelect: (supplier: Contact | null) => void;
-  onSupplierAdded?: (supplier: Contact) => void;
+  onSelect: (supplier: Contact | null) => void | Promise<void>;
+  onAddSupplier?: (data: { name: string; phone: string }) => Promise<Contact>;
   disabled?: boolean;
 }
 
@@ -43,7 +45,7 @@ export function SupplierSelector({
   suppliers,
   selectedSupplierId,
   onSelect,
-  onSupplierAdded,
+  onAddSupplier,
   disabled = false,
 }: SupplierSelectorProps) {
   const t = useTranslations("fishPurchases.supplier");
@@ -52,40 +54,103 @@ export function SupplierSelector({
   const [addingSupplier, setAddingSupplier] = useState(false);
   const [newSupplierName, setNewSupplierName] = useState("");
   const [newSupplierPhone, setNewSupplierPhone] = useState("");
+  const [newlyCreatedSupplier, setNewlyCreatedSupplier] = useState<Contact | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Debounce search query for API calls
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  
+  // Fetch suppliers when searching (only if search query is provided)
+  const { data: searchResults, isLoading: isSearching } = useQuery({
+    queryKey: fishPurchaseKeys.suppliers({
+      search: debouncedSearch,
+      selectedSupplierId: selectedSupplierId,
+    }),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getSuppliers({
+        signal,
+        search: debouncedSearch,
+        selectedSupplierId: selectedSupplierId,
+      });
+    },
+    enabled: debouncedSearch.length > 0, // Only fetch when there's a search query
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+  
+  // Use search results if searching, otherwise use initial suppliers
+  const displayedSuppliers = useMemo(() => {
+    if (debouncedSearch.length > 0 && searchResults) {
+      return searchResults;
+    }
+    return suppliers;
+  }, [suppliers, searchResults, debouncedSearch]);
 
   const selectedSupplier = useMemo(
-    () => suppliers.find((s) => s.id === selectedSupplierId),
-    [suppliers, selectedSupplierId]
+    () => {
+      if (!selectedSupplierId) return undefined;
+      // First check if it's the newly created supplier
+      if (newlyCreatedSupplier && newlyCreatedSupplier.id === selectedSupplierId) {
+        return newlyCreatedSupplier;
+      }
+      // Then check the displayed suppliers (includes search results)
+      return displayedSuppliers.find((s) => s.id === selectedSupplierId) 
+        || suppliers.find((s) => s.id === selectedSupplierId); // Fallback to initial suppliers
+    },
+    [suppliers, displayedSuppliers, selectedSupplierId, newlyCreatedSupplier]
   );
+
+  // Clear newly created supplier state once it's in the suppliers array
+  useEffect(() => {
+    if (newlyCreatedSupplier && suppliers.some((s) => s.id === newlyCreatedSupplier.id)) {
+      setNewlyCreatedSupplier(null);
+    }
+  }, [suppliers, newlyCreatedSupplier]);
+  
+  // Clear search when popover closes
+  useEffect(() => {
+    if (!open) {
+      setSearchQuery("");
+    }
+  }, [open]);
 
   const handleAddSupplier = async () => {
     if (!newSupplierName.trim() || !newSupplierPhone.trim()) {
-      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!onAddSupplier) {
+      console.error("onAddSupplier callback is required");
       return;
     }
 
     setAddingSupplier(true);
     try {
-      const newSupplier = await fishPurchaseService.createSupplier({
+      const newSupplier = await onAddSupplier({
         name: newSupplierName.trim(),
         phone: newSupplierPhone.trim(),
       });
       
-      toast.success("Supplier added successfully");
+      // Store the newly created supplier in local state
+      // This ensures it's available immediately even if not in suppliers array yet
+      setNewlyCreatedSupplier(newSupplier);
+      
+      // Auto-select the newly created supplier immediately (before closing dialogs)
+      // This will update the form with the supplier's details and trigger validation
+      // We do this first to ensure selection happens before any state updates
+      await onSelect(newSupplier);
+      
+      // Close dialog and reset form after selection
       setShowAddDialog(false);
       setNewSupplierName("");
       setNewSupplierPhone("");
+      setOpen(false);
+      setSearchQuery(""); // Clear search when adding new supplier
       
-      // Notify parent to refresh suppliers list
-      if (onSupplierAdded) {
-        onSupplierAdded(newSupplier);
-      }
-      
-      // Auto-select the newly created supplier
-      onSelect(newSupplier);
+      // The newlyCreatedSupplier state will be cleared automatically
+      // by the useEffect when the supplier appears in the suppliers array
     } catch (error) {
       console.error("Failed to create supplier:", error);
-      toast.error("Failed to add supplier");
+      // Error toast is handled by the parent handler
     } finally {
       setAddingSupplier(false);
     }
@@ -121,27 +186,39 @@ export function SupplierSelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-        <Command>
-          <CommandInput placeholder={t("search")} />
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder={t("search")} 
+            value={searchQuery}
+            onValueChange={setSearchQuery}
+          />
           <CommandList>
-            <CommandEmpty>
-              <div className="text-center p-4">
-                <p className="text-sm text-muted-foreground mb-2">{t("notFound")}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setOpen(false);
-                    setShowAddDialog(true);
-                  }}
-                >
-                  <Plus className="size-4 mr-2" />
-                  {t("addNew")}
-                </Button>
+            {isSearching && (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
               </div>
-            </CommandEmpty>
-            <CommandGroup>
-              {suppliers.map((supplier) => (
+            )}
+            {!isSearching && displayedSuppliers.length === 0 && (
+              <CommandEmpty>
+                <div className="text-center p-4">
+                  <p className="text-sm text-muted-foreground mb-2">{t("notFound")}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setOpen(false);
+                      setShowAddDialog(true);
+                    }}
+                  >
+                    <Plus className="size-4 mr-2" />
+                    {t("addNew")}
+                  </Button>
+                </div>
+              </CommandEmpty>
+            )}
+            {!isSearching && displayedSuppliers.length > 0 && (
+              <CommandGroup>
+                {displayedSuppliers.map((supplier) => (
                 <CommandItem
                   key={supplier.id}
                   value={`${supplier.name} ${supplier.phone || ""}`}
@@ -173,8 +250,9 @@ export function SupplierSelector({
                     )}
                   </div>
                 </CommandItem>
-              ))}
-            </CommandGroup>
+                ))}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
         <div className="p-2 border-t">

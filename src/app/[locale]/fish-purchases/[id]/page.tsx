@@ -27,8 +27,9 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
   const { id } = use(params);
   const router = useRouter();
   const t = useTranslations("fishPurchases");
-  const { data: purchase, loading, refresh } = useFishPurchase(parseInt(id));
-  const { deletePurchase, loading: deleting } = useDeleteFishPurchase();
+  const { data: purchase, isLoading: loading, refetch } = useFishPurchase(parseInt(id));
+  const deleteMutation = useDeleteFishPurchase();
+  const deleting = deleteMutation.isPending;
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const getStatusColor = (status: FishPurchaseStatus) => {
@@ -52,7 +53,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
 
   const handleDelete = async () => {
     try {
-      await deletePurchase(parseInt(id));
+      await deleteMutation.mutateAsync(parseInt(id));
       router.push("/fish-purchases");
       toast.success(t("deleteSuccess"));
     } catch {
@@ -91,7 +92,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold">{purchase.bill_number}</h1>
               <Badge className={cn("text-xs", getStatusColor(purchase.status))}>
-                {t(`status.${purchase.status}`)}
+                {t(`status.${purchase.status || "null"}`)}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -254,7 +255,7 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
       {purchase.bill && (
         <FinancialSummary
           purchase={purchase}
-          onPaymentAdded={refresh}
+          onPaymentAdded={() => refetch()}
         />
       )}
 
