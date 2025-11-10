@@ -667,9 +667,9 @@ export function BookingDetailsDrawer({
                         {/* Vertical line with duration */}
                         {!isLast && (
                           <>
-                            <div className="absolute left-[13px] top-7 bottom-0 w-[2px] bg-border -mb-2.5" />
+                            <div className="absolute start-[13px] top-7 bottom-0 w-[2px] bg-border -mb-2.5" />
                             {duration && (
-                              <div className="absolute left-[2px] top-[calc(50%+0.5rem)] text-[9px] font-medium text-muted-foreground bg-background px-1 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
+                              <div className="absolute start-[2px] top-[calc(50%+0.5rem)] text-[9px] font-medium text-muted-foreground bg-background px-1 py-0.5 rounded border border-border whitespace-nowrap shadow-sm">
                                 {duration}
                               </div>
                             )}
