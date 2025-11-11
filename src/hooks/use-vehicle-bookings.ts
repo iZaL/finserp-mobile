@@ -18,10 +18,10 @@ import { toast } from "sonner"
 
 /**
  * Hook to fetch paginated vehicle bookings with filters
- * Uses placeholderData to keep previous data while fetching for smooth transitions
  *
  * Real-time updates:
- * - Refetches every 30 seconds when tab is active
+ * - Optimistic updates provide instant UI feedback on mutations
+ * - Background refetch every 60 seconds for eventual consistency
  * - Stops polling when tab is inactive (saves battery/bandwidth)
  * - Shows cached data immediately, updates in background
  */
@@ -31,9 +31,9 @@ export function useVehicleBookings(filters?: BookingFilters) {
     queryFn: async ({ signal }) => {
       return vehicleBookingService.getBookings(filters, { signal })
     },
-    // Removed placeholderData to allow optimistic updates to show immediately
-    // The cache will be updated instantly by mutations, no need to hold old data
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for real-time updates
+    // Reduced from 30s to 60s since optimistic updates provide instant feedback
+    // Background refetch ensures eventual consistency with server
+    refetchInterval: 60 * 1000, // Refetch every 60 seconds
     refetchIntervalInBackground: false, // Stop polling when tab is inactive (save battery)
   })
 }
@@ -42,8 +42,8 @@ export function useVehicleBookings(filters?: BookingFilters) {
  * Hook to fetch single vehicle booking by ID
  *
  * Real-time updates:
- * - Refetches every 15 seconds when viewing details
- * - Critical for tracking status changes (received, offloading, exited)
+ * - Optimistic updates provide instant status changes
+ * - Background refetch every 60 seconds for eventual consistency
  */
 export function useVehicleBooking(id: number | null) {
   return useQuery({
@@ -53,7 +53,8 @@ export function useVehicleBooking(id: number | null) {
       return vehicleBookingService.getBooking(id)
     },
     enabled: !!id,
-    refetchInterval: 15 * 1000, // Refetch every 15 seconds for real-time status tracking
+    // Reduced from 15s to 60s since optimistic updates provide instant feedback
+    refetchInterval: 60 * 1000, // Refetch every 60 seconds
     refetchIntervalInBackground: false, // Stop when not viewing
   })
 }
@@ -69,7 +70,7 @@ export function useBookingActivities(id: number | null) {
       return vehicleBookingService.getBookingActivities(id, { signal })
     },
     enabled: !!id,
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds to see new activities
+    refetchInterval: 60 * 1000, // Refetch every 60 seconds
     refetchIntervalInBackground: false,
   })
 }
@@ -85,7 +86,7 @@ export function useBookingStats(date?: string) {
     queryFn: async ({ signal }) => {
       return vehicleBookingService.getStats(date, { signal })
     },
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds for real-time stats
+    refetchInterval: 60 * 1000, // Refetch every 60 seconds
     refetchIntervalInBackground: false,
   })
 }
@@ -116,7 +117,7 @@ export function useDailyCapacity(date?: string) {
     queryFn: async ({ signal }) => {
       return vehicleBookingService.getDailyCapacity(date, { signal })
     },
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds - capacity is critical
+    refetchInterval: 60 * 1000, // Refetch every 60 seconds
     refetchIntervalInBackground: false,
   })
 }
@@ -216,6 +217,7 @@ export function useVehicleBookingDashboard(filters?: BookingFilters) {
 
 /**
  * Hook to create a new vehicle booking
+ * Refetches list immediately to show the new booking
  */
 export function useCreateVehicleBooking() {
   const queryClient = useQueryClient()
@@ -224,14 +226,13 @@ export function useCreateVehicleBooking() {
     mutationFn: async (data: CreateBookingRequest) => {
       return vehicleBookingService.createBooking(data)
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch bookings list
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      // Invalidate capacity and stats
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Add the new booking to cache
-      queryClient.setQueryData(vehicleBookingKeys.detail(data.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
+
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
+
       toast.success("Vehicle booking created successfully")
     },
     onError: (error: Error) => {
@@ -311,7 +312,7 @@ export function useDeleteVehicleBooking() {
 
 /**
  * Hook to receive a vehicle
- * Uses immediate refetch for instant UI updates
+ * Refetches list immediately for instant UI update
  */
 export function useReceiveVehicle() {
   const queryClient = useQueryClient()
@@ -320,25 +321,12 @@ export function useReceiveVehicle() {
     mutationFn: async ({ id, data }: { id: number; data: ReceiveBookingRequest }) => {
       return vehicleBookingService.receiveVehicle(id, data)
     },
-    onSuccess: async (data, variables) => {
-      // Update with real server data
-      queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      // Immediately refetch all active queries to show updated data instantly
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.dailyCapacity(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Vehicle received successfully")
     },
@@ -350,7 +338,7 @@ export function useReceiveVehicle() {
 
 /**
  * Hook to reject a vehicle
- * Uses immediate refetch for instant UI updates
+ * Refetches list immediately for instant UI update
  */
 export function useRejectVehicle() {
   const queryClient = useQueryClient()
@@ -359,23 +347,12 @@ export function useRejectVehicle() {
     mutationFn: async ({ id, data }: { id: number; data: RejectBookingRequest }) => {
       return vehicleBookingService.rejectVehicle(id, data)
     },
-    onSuccess: async (data, variables) => {
-      queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.dailyCapacity(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Vehicle rejected successfully")
     },
@@ -387,7 +364,7 @@ export function useRejectVehicle() {
 
 /**
  * Hook to exit a vehicle
- * Uses immediate refetch for instant UI updates
+ * Refetches list immediately for instant UI update
  */
 export function useExitVehicle() {
   const queryClient = useQueryClient()
@@ -396,23 +373,12 @@ export function useExitVehicle() {
     mutationFn: async (id: number) => {
       return vehicleBookingService.exitVehicle(id)
     },
-    onSuccess: async (data, id) => {
-      queryClient.setQueryData(vehicleBookingKeys.detail(id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.dailyCapacity(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Vehicle exited successfully")
     },
@@ -461,6 +427,7 @@ export function useUnreceiveVehicle() {
 
 /**
  * Hook to start offloading
+ * Refetches list immediately for instant UI update
  */
 export function useStartOffloading() {
   const queryClient = useQueryClient()
@@ -469,19 +436,12 @@ export function useStartOffloading() {
     mutationFn: async ({ id, data }: { id: number; data?: StartOffloadingRequest }) => {
       return vehicleBookingService.startOffloading(id, data)
     },
-    onSuccess: async (data, variables) => {
-      queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Offloading started successfully")
     },
@@ -493,6 +453,7 @@ export function useStartOffloading() {
 
 /**
  * Hook to complete offloading
+ * Refetches list immediately for instant UI update
  */
 export function useCompleteOffloading() {
   const queryClient = useQueryClient()
@@ -501,19 +462,12 @@ export function useCompleteOffloading() {
     mutationFn: async ({ id, data }: { id: number; data: CompleteOffloadingRequest }) => {
       return vehicleBookingService.completeOffloading(id, data)
     },
-    onSuccess: async (data, variables) => {
-      queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Offloading completed successfully")
     },
@@ -525,6 +479,7 @@ export function useCompleteOffloading() {
 
 /**
  * Hook to approve vehicle booking
+ * Refetches list immediately for instant UI update
  */
 export function useApproveVehicle() {
   const queryClient = useQueryClient()
@@ -533,23 +488,12 @@ export function useApproveVehicle() {
     mutationFn: async ({ id, data }: { id: number; data?: ApproveBookingRequest }) => {
       return vehicleBookingService.approveVehicle(id, data)
     },
-    onSuccess: async (data, variables) => {
-      queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
+    onSuccess: async () => {
+      // Invalidate ALL caches to force fresh server fetch
+      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
 
-      await Promise.all([
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.lists(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.dailyCapacity(),
-          type: 'active'
-        }),
-        queryClient.refetchQueries({
-          queryKey: vehicleBookingKeys.stats(),
-          type: 'active'
-        })
-      ])
+      // Wait for refetch to complete
+      await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.lists() })
 
       toast.success("Vehicle approved successfully")
     },

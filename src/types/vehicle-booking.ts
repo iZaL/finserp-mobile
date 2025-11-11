@@ -307,6 +307,7 @@ export interface RangeStats {
   total_vehicles: number
   total_boxes: number
   total_tons: number
+  total_tons_offloaded?: number
   completed_vehicles: number
   rejected_vehicles: number
 

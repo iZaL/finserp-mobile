@@ -16,10 +16,8 @@ import {
 import type { VehicleBooking } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
-import { KeyMetricsCards } from "@/components/vehicle-booking/key-metrics-cards"
-import { CapacityStatsCards } from "@/components/vehicle-booking/capacity-stats-cards"
-import { PerformanceStatsCards } from "@/components/vehicle-booking/performance-stats-cards"
-import { DailyStatsList } from "@/components/vehicle-booking/daily-stats-list"
+import { Card, CardContent } from "@/components/ui/card"
+import { Truck, Weight } from "lucide-react"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
@@ -29,7 +27,7 @@ import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
-import { format, startOfMonth, endOfMonth, isSameMonth } from "date-fns"
+import { format, startOfMonth, endOfMonth } from "date-fns"
 import { useVehicleBookings, useRangeStats } from "@/hooks/use-vehicle-bookings"
 
 export default function CalendarViewPage() {
@@ -39,8 +37,8 @@ export default function CalendarViewPage() {
   const isRTL = locale === "ar"
   const router = useRouter()
   const tabsScrollRef = useRef<HTMLDivElement>(null)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const currentMonth = new Date()
+  const selectedDate = null
   const [sheetOpen, setSheetOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<
     "all" | "booked" | "received" | "exited" | "rejected"
@@ -83,24 +81,11 @@ export default function CalendarViewPage() {
     isLoading: statsLoading,
   } = useRangeStats(statsFrom, statsTo, true)
 
-  const bookings = bookingsData?.data || []
   const loading = bookingsLoading
 
   const handleStatsDatetimeChange = (from: string, to: string) => {
     setStatsDatetimeFrom(from)
     setStatsDatetimeTo(to)
-  }
-
-  const handleStatsDayClick = (date: string) => {
-    const clickedDate = new Date(date)
-    setSelectedDate(clickedDate)
-    setStatusFilter("all")
-    setSheetOpen(true)
-
-    // Update current month if clicked date is in a different month
-    if (!isSameMonth(clickedDate, currentMonth)) {
-      setCurrentMonth(clickedDate)
-    }
   }
 
   // Set initial scroll position for RTL
@@ -112,6 +97,7 @@ export default function CalendarViewPage() {
 
   // Memoized: Group bookings by date
   const bookingsByDate = useMemo(() => {
+    const bookings = bookingsData?.data || []
     const grouped: Record<string, VehicleBooking[]> = {}
     bookings.forEach((booking) => {
       const date = format(new Date(booking.entry_date), "yyyy-MM-dd")
@@ -121,7 +107,7 @@ export default function CalendarViewPage() {
       grouped[date].push(booking)
     })
     return grouped
-  }, [bookings])
+  }, [bookingsData?.data])
 
   // Memoized: Get bookings for selected date with status filter
   const selectedDateBookings = useMemo(() => {
@@ -286,23 +272,56 @@ export default function CalendarViewPage() {
           onDatetimeChange={handleStatsDatetimeChange}
         />
 
-        {/* Key Business Metrics */}
-        <KeyMetricsCards stats={rangeStats || null} isLoading={statsLoading} />
+        {/* Simplified Metrics */}
+        {statsLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+          </div>
+        ) : rangeStats ? (
+          <div className="grid grid-cols-2 gap-3">
+            {/* Total Vehicles Offloaded */}
+            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("completedVehicles")}
+                    </p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                      {rangeStats.completed_vehicles.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-2">
+                    <Truck className="size-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Capacity KPIs */}
-        <CapacityStatsCards stats={rangeStats || null} isLoading={statsLoading} />
-
-        {/* Performance KPIs */}
-        <PerformanceStatsCards stats={rangeStats || null} isLoading={statsLoading} />
-
-        {/* Daily Breakdown List */}
-        {rangeStats?.daily_stats && rangeStats.daily_stats.length > 0 && (
-          <DailyStatsList
-            dailyStats={rangeStats.daily_stats}
-            locale={locale}
-            onDayClick={handleStatsDayClick}
-          />
-        )}
+            {/* Total Tons Offloaded */}
+            <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("totalTons")}
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                      {(rangeStats.total_tons_offloaded ?? 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 p-2">
+                    <Weight className="size-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
       </div>
 
       {/* Day Bookings Sheet */}

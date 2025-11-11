@@ -4,24 +4,27 @@ import { QueryClient } from "@tanstack/react-query"
  * QueryClient configuration optimized for real-time mobile PWA with offline support
  *
  * Key optimizations:
- * - SHORT staleTime (0) - Data refetches on mount for real-time updates
+ * - AGGRESSIVE staleTime (0) - Always refetch on mount for guaranteed fresh data
  * - Aggressive gcTime (24 hrs) - Keeps data cached for offline use and instant navigation
  * - Smart retry logic - Handles network issues gracefully
  * - offlineFirst mode - App works seamlessly offline
  * - Background refetching - Keeps data fresh without blocking UI
+ * - Optimistic updates - UI updates instantly on mutations, background refetch for consistency
  *
  * Strategy:
  * - Show cached data INSTANTLY on navigation (gcTime keeps it available)
- * - Refetch in BACKGROUND to get latest data (staleTime: 0 means always refetch)
- * - User sees old data immediately, then it updates seamlessly in background
+ * - ALWAYS refetch in BACKGROUND on mount (staleTime: 0 ensures fresh data)
+ * - Optimistic updates on mutations provide instant feedback
+ * - Background refetch after mutations ensures eventual consistency with server
+ * - This prevents showing stale optimistic updates after page refresh
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Data is ALWAYS considered stale (0ms)
-      // This means we ALWAYS refetch in the background to get latest data
-      // BUT we still show cached data immediately while refetching
-      staleTime: 0, // Always refetch for real-time data
+      // Data is ALWAYS considered stale (refetch on every mount/refresh)
+      // This ensures page refresh shows real server data, not stale optimistic updates
+      // Combined with optimistic updates: instant feedback during actions + fresh data on refresh
+      staleTime: 0, // Always refetch for guaranteed accuracy
 
       // Cache data for 24 hours (even when stale)
       // This ensures:
@@ -46,8 +49,9 @@ export const queryClient = new QueryClient({
       // Ensures data is fresh after coming back online
       refetchOnReconnect: true,
 
-      // Always refetch on mount (because staleTime is 0)
+      // Always refetch on mount (staleTime: 0 means data is always stale)
       // Shows cached data immediately, then refetches in background
+      // This guarantees fresh data after page refresh
       refetchOnMount: true,
 
       // Network mode: prefer cache, fallback to network
