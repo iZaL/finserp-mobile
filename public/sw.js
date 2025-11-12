@@ -1,8 +1,10 @@
 // Service Worker for Push Notifications and Offline Support
 // Compatible with Next.js 15 - No dependencies required
 
-const CACHE_NAME = "finserp-cache-v1";
-const API_CACHE_NAME = "finserp-api-cache-v1";
+// Dynamic cache versioning - updated on each build
+const CACHE_VERSION = "__CACHE_VERSION__"; // Will be replaced during build
+const CACHE_NAME = `finserp-cache-${CACHE_VERSION}`;
+const API_CACHE_NAME = `finserp-api-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
 const API_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 

@@ -102,6 +102,24 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: getImageRemotePatterns(),
   },
+  // Add headers for service worker cache control
+  async headers() {
+    return [
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
