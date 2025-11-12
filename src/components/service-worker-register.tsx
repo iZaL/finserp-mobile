@@ -13,7 +13,7 @@ import { useEffect, useRef } from "react";
  * - Periodic update checks every 30 minutes
  */
 export function ServiceWorkerRegister() {
-  const updateCheckIntervalRef = useRef<NodeJS.Timeout>();
+  const updateCheckIntervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (

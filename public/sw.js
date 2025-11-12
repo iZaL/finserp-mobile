@@ -2,7 +2,7 @@
 // Compatible with Next.js 15 - No dependencies required
 
 // Dynamic cache versioning - updated on each build
-const CACHE_VERSION = "__CACHE_VERSION__"; // Will be replaced during build
+const CACHE_VERSION = "1762912671789"; // Will be replaced during build
 const CACHE_NAME = `finserp-cache-${CACHE_VERSION}`;
 const API_CACHE_NAME = `finserp-api-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
