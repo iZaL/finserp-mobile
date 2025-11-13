@@ -456,6 +456,8 @@
       "pageSubtitle": "View booking history and performance",
       "completedVehicles": "Vehicles Offloaded",
       "totalTons": "Tons Offloaded",
+      "tonsPerHour": "Tons Per Hour",
+      "avgProcessingTime": "Avg Processing Time",
       "bookingsOnDay": "{count, plural, =1 {1 booking} other {# bookings}} on this day",
       "noBookingsWithStatus": "No {status} bookings",
       "noBookingsEmpty": "No bookings"
