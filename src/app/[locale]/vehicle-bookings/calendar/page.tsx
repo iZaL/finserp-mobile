@@ -27,7 +27,7 @@ import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
-import { format, startOfMonth, endOfMonth } from "date-fns"
+import { format } from "date-fns"
 import { useVehicleBookings, useRangeStats } from "@/hooks/use-vehicle-bookings"
 
 export default function CalendarViewPage() {
@@ -37,20 +37,21 @@ export default function CalendarViewPage() {
   const isRTL = locale === "ar"
   const router = useRouter()
   const tabsScrollRef = useRef<HTMLDivElement>(null)
-  const currentMonth = new Date()
-  const selectedDate = null
   const [sheetOpen, setSheetOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<
     "all" | "booked" | "received" | "exited" | "rejected"
   >("all")
 
-  // Stats state
-  const [statsDatetimeFrom, setStatsDatetimeFrom] = useState(
-    format(startOfMonth(new Date()), "yyyy-MM-dd'T'00:00")
-  )
-  const [statsDatetimeTo, setStatsDatetimeTo] = useState(
-    format(endOfMonth(new Date()), "yyyy-MM-dd'T'23:59")
-  )
+  // Stats state - Default to 8:00 AM today to 8:00 AM next day (24-hour period)
+  const [statsDatetimeFrom, setStatsDatetimeFrom] = useState(() => {
+    const today = new Date()
+    return format(today, "yyyy-MM-dd'T'08:00")
+  })
+  const [statsDatetimeTo, setStatsDatetimeTo] = useState(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return format(tomorrow, "yyyy-MM-dd'T'08:00")
+  })
 
   // Dialog states
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
@@ -63,14 +64,15 @@ export default function CalendarViewPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
-  // React Query hooks - All data fetching is now cached and optimized
+  // React Query hooks - Fetch bookings for the selected date range
+  // Backend automatically filters by offloading_completed_at when date range is provided
   const {
     data: bookingsData,
     isLoading: bookingsLoading,
   } = useVehicleBookings({
-    date_from: format(startOfMonth(currentMonth), "yyyy-MM-dd"),
-    date_to: format(endOfMonth(currentMonth), "yyyy-MM-dd"),
-    per_page: 1000, // Get all for the month
+    start_date: statsDatetimeFrom.replace('T', ' ') + ':00',
+    end_date: statsDatetimeTo.replace('T', ' ') + ':59',
+    per_page: 1000, // Get all for the range
   })
 
   // Convert stats datetime to backend format and fetch
@@ -130,7 +132,7 @@ export default function CalendarViewPage() {
     }
 
     return dayBookings.filter((b) => b.status === statusFilter)
-  }, [selectedDate, bookingsByDate, statusFilter])
+  }, [bookingsByDate, statusFilter])
 
   // Memoized: Get status counts for selected date
   const statusCounts = useMemo(() => {
@@ -153,7 +155,7 @@ export default function CalendarViewPage() {
         (b) => b.status === "rejected" || b.approval_status === "rejected"
       ).length,
     }
-  }, [selectedDate, bookingsByDate])
+  }, [bookingsByDate])
 
   // Action handlers
   const handleReceive = (booking: VehicleBooking) => {

@@ -60,14 +60,17 @@ export function CompleteOffloadingSheet({
     }
 
     setError("")
+
+    // Call onSubmit - parent will handle closing the dialog after mutation completes
     onSubmit(booking, {
       actual_box_count: boxCount,
       notes: notes.trim() || undefined,
     })
 
+    // Reset form state but DON'T close dialog yet - parent will close it
     setActualBoxCount("")
     setNotes("")
-    onOpenChange(false)
+    // Remove: onOpenChange(false) - parent handles this in mutation callback
   }
 
   const handleClose = () => {

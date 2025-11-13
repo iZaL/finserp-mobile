@@ -44,20 +44,23 @@ export function ApproveDialog({
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!booking) return
 
-    await mutation.mutateAsync({
+    mutation.mutate({
       id: booking.id,
       data: {
         notes: notes.trim() || undefined,
       },
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
     })
-
-    handleOpenChange(false)
-    onSuccess()
   }
 
   if (!booking) return null

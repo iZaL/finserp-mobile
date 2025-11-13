@@ -57,65 +57,19 @@ export async function prefetchVehicleBookingDashboard(queryClient: QueryClient) 
 
 /**
  * Prefetch fish purchase form data
+ * OPTIMIZED: Uses single API call instead of 6 separate calls
  * Call this when user is likely to create/edit a fish purchase
  * (e.g., from fish purchases list page, or when clicking "New Purchase")
  */
 export async function prefetchFishPurchaseFormData(queryClient: QueryClient) {
-  await Promise.all([
-    // Prefetch fish species
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.species(),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getFishSpecies({ signal })
-      },
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    }),
-
-    // Prefetch suppliers
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.suppliers({ limit: 5 }),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getSuppliers({ signal, limit: 5 })
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }),
-
-    // Prefetch locations
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.locations(),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getLocations({ signal })
-      },
-      staleTime: 10 * 60 * 1000, // 10 minutes
-    }),
-
-    // Prefetch banks
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.banks(),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getBanks({ signal })
-      },
-      staleTime: 30 * 60 * 1000, // 30 minutes
-    }),
-
-    // Prefetch agents
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.agents(),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getAgents({ signal })
-      },
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    }),
-
-    // Prefetch settings
-    queryClient.prefetchQuery({
-      queryKey: fishPurchaseKeys.settings(),
-      queryFn: async ({ signal }) => {
-        return fishPurchaseService.getSettings({ signal })
-      },
-      staleTime: 1 * 60 * 1000, // 1 minute
-    }),
-  ])
+  // Use the optimized combined endpoint - reduces 6 requests to 1
+  await queryClient.prefetchQuery({
+    queryKey: fishPurchaseKeys.formData(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getFormData({ signal })
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }
 
 /**

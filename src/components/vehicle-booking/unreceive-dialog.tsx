@@ -37,15 +37,18 @@ export function UnreceiveDialog({
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!booking) return
 
-    await mutation.mutateAsync(booking.id)
-
-    handleOpenChange(false)
-    onSuccess()
+    mutation.mutate(booking.id, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
+    })
   }
 
   if (!booking) return null

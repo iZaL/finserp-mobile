@@ -36,20 +36,22 @@ export function ReceiveDialog({
     }
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!booking) return
 
-    try {
-      await receiveMutation.mutateAsync({
-        id: booking.id,
-        data: {},
-      })
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      // Error is already handled by the mutation hook with toast
-      console.error("Error receiving vehicle:", error)
-    }
+    receiveMutation.mutate({
+      id: booking.id,
+      data: {},
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      },
+      onError: (error) => {
+        console.error("Error receiving vehicle:", error)
+      }
+    })
   }
 
   if (!booking) return null

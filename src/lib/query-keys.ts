@@ -23,6 +23,7 @@ export const fishPurchaseKeys = {
   banks: () => [...fishPurchaseKeys.all, "banks"] as const,
   agents: () => [...fishPurchaseKeys.all, "agents"] as const,
   settings: () => [...fishPurchaseKeys.all, "settings"] as const,
+  formData: () => [...fishPurchaseKeys.all, "form-data"] as const,
   vehicleBooking: (id: number) =>
     [...fishPurchaseKeys.all, "vehicle-booking", id] as const,
 }

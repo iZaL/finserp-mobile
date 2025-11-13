@@ -1,5 +1,6 @@
 "use client"
 
+import { memo, useCallback } from "react"
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical, Fish, FileText } from "lucide-react"
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { RelativeTime } from "@/components/relative-time"
+import { getVehicleStatusColor } from "@/lib/utils/status-colors"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 
 interface BookingCardProps {
@@ -31,7 +33,7 @@ interface BookingCardProps {
   onSelectionChange?: (booking: VehicleBooking, selected: boolean) => void
 }
 
-export function BookingCard({
+const BookingCardComponent = ({
   booking,
   onReceive,
   onReject,
@@ -46,33 +48,14 @@ export function BookingCard({
   onClick,
   isSelected = false,
   onSelectionChange,
-}: BookingCardProps) {
+}: BookingCardProps) => {
   const router = useRouter()
   const t = useTranslations('vehicleBookings.bookingCard')
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "booked":
-        return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-      case "received":
-        return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-      case "offloading":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-      case "offloaded":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      case "exited":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-      case "rejected":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-      default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
-    }
-  }
-
-  const handleAction = (e: React.MouseEvent, action: () => void) => {
+  const handleAction = useCallback((e: React.MouseEvent, action: () => void) => {
     e.stopPropagation()
     action()
-  }
+  }, [])
 
 
   return (
@@ -120,9 +103,7 @@ export function BookingCard({
         </div>
         <div className="flex flex-col gap-1 items-end">
           <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-              booking.status
-            )}`}
+            className={`px-2 py-1 text-xs font-medium rounded-full ${getVehicleStatusColor(booking.status)}`}
           >
             {t(booking.status)}
           </span>
@@ -442,3 +423,7 @@ export function BookingCard({
     </div>
   )
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when props actually change
+export const BookingCard = memo(BookingCardComponent)

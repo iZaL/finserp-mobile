@@ -87,8 +87,8 @@ export function useFishPurchaseForm(options: UseFishPurchaseFormOptions = {}) {
 
   const { watch, setValue, getValues, formState, trigger } = form
   const formData = watch()
-  const selectedSupplierId = formData.contact_id
 
+  // Fetch all form data in a single optimized request
   const {
     fishSpecies,
     suppliers,
@@ -96,9 +96,7 @@ export function useFishPurchaseForm(options: UseFishPurchaseFormOptions = {}) {
     agents,
     settings,
     loading: dataLoading,
-  } = useFishPurchaseFormData({
-    selectedSupplierId,
-  })
+  } = useFishPurchaseFormData()
 
   // Helper to batch update multiple form fields at once
   const batchSetValue = useCallback(

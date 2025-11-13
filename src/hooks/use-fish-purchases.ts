@@ -63,11 +63,20 @@ export function useCreateFishPurchase() {
       }
       return fishPurchaseService.createFishPurchase(data)
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch fish purchases list
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
-      // Add the new purchase to cache
+    onSuccess: async (data) => {
+      // 1. Add the new purchase to cache immediately
       queryClient.setQueryData(fishPurchaseKeys.detail(data.id), data)
+
+      // 2. Invalidate ALL related caches
+      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active'
+      })
+
+      // 4. Show success after refetch
       toast.success("Fish purchase created successfully")
     },
     onError: (error: Error) => {
@@ -125,11 +134,24 @@ export function useUpdateFishPurchase() {
 
       return { previousPurchase }
     },
-    onSuccess: (data, variables) => {
-      // Update cache with server response
+    onSuccess: async (data, variables) => {
+      // 1. Update cache with server response
       queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
-      // Invalidate list to ensure consistency
+
+      // 2. Invalidate ALL related caches
       queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active'
+      })
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.detail(variables.id),
+        type: 'active'
+      })
+
+      // 4. Show success after refetch
       toast.success("Fish purchase updated successfully")
     },
     onError: (error: Error, variables, context) => {
@@ -239,11 +261,24 @@ export function useUpdateFishPurchaseStatus() {
       }
       return fishPurchaseService.updateStatus(id, data)
     },
-    onSuccess: (data, variables) => {
-      // Update cache
+    onSuccess: async (data, variables) => {
+      // 1. Update cache with server response
       queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
-      // Invalidate list
+
+      // 2. Invalidate ALL related caches
       queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active'
+      })
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.detail(variables.id),
+        type: 'active'
+      })
+
+      // 4. Show success after refetch
       toast.success(`Fish purchase ${variables.data.status} successfully`)
     },
     onError: (error: Error) => {
@@ -282,9 +317,24 @@ export function useAddFishPurchasePayment() {
       }
       return fishPurchaseService.addPayment(id, data)
     },
-    onSuccess: (data, variables) => {
-      // Update cache
+    onSuccess: async (data, variables) => {
+      // 1. Update cache with server response
       queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
+
+      // 2. Invalidate ALL related caches
+      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active'
+      })
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.detail(variables.id),
+        type: 'active'
+      })
+
+      // 4. Show success after refetch
       toast.success("Payment added successfully")
     },
     onError: (error: Error) => {

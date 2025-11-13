@@ -36,13 +36,16 @@ export function StartOffloadingDialog({
     }
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!booking) return
 
-    await mutation.mutateAsync({ id: booking.id })
-
-    handleOpenChange(false)
-    onSuccess()
+    mutation.mutate({ id: booking.id }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
+    })
   }
 
   if (!booking) return null

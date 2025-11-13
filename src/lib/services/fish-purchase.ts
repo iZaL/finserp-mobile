@@ -216,6 +216,31 @@ export const fishPurchaseService = {
     return response.data.data!;
   },
 
+  // Get all form data in a single request (optimized - replaces 6 separate calls)
+  getFormData: async (
+    config?: { signal?: AbortSignal }
+  ): Promise<{
+    fish_species: FishSpecies[];
+    suppliers: Contact[];
+    locations: Address[];
+    banks: Bank[];
+    agents: Contact[];
+    settings: FishPurchaseSettings;
+  }> => {
+    const response = await api.get<ApiResponse<{
+      fish_species: FishSpecies[];
+      suppliers: Contact[];
+      locations: Address[];
+      banks: Bank[];
+      agents: Contact[];
+      settings: FishPurchaseSettings;
+    }>>(
+      `/fish-purchases/form-data`,
+      config
+    );
+    return response.data.data!;
+  },
+
   // Get vehicle booking data for pre-populating form
   getVehicleBookingData: async (vehicleBookingId: number): Promise<{
     vehicle_number: string;

@@ -7,6 +7,7 @@ import { useMemo } from "react"
 /**
  * Hook to fetch fish species list
  * Caches data with React Query for offline support
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useFishSpecies() {
   return useQuery({
@@ -20,6 +21,7 @@ export function useFishSpecies() {
 
 /**
  * Hook to fetch suppliers (fish suppliers with bank details)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useSuppliers(options?: {
   limit?: number;
@@ -70,6 +72,7 @@ export function useCreateSupplier() {
 
 /**
  * Hook to fetch fish landing sites (locations)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useLocations() {
   return useQuery({
@@ -106,6 +109,7 @@ export function useCreateLocation() {
 
 /**
  * Hook to fetch banks list
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useBanks() {
   return useQuery({
@@ -119,6 +123,7 @@ export function useBanks() {
 
 /**
  * Hook to fetch agents list
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useAgents() {
   return useQuery({
@@ -132,6 +137,7 @@ export function useAgents() {
 
 /**
  * Hook to fetch fish purchase settings (bill number, defaults)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useFishPurchaseSettings() {
   return useQuery({
@@ -145,55 +151,25 @@ export function useFishPurchaseSettings() {
 
 /**
  * Combined hook to fetch all required data for fish purchase form
+ * OPTIMIZED: Uses a single API call instead of 6 separate calls
  * Use this in the create/edit form pages for convenience
  */
-export function useFishPurchaseFormData(options?: {
-  selectedSupplierId?: number;
-}) {
-  const fishSpeciesQuery = useFishSpecies()
-  const suppliersQuery = useSuppliers({
-    limit: 5, // Show only 5 suppliers initially
-    selectedSupplierId: options?.selectedSupplierId,
+export function useFishPurchaseFormData() {
+  const query = useQuery({
+    queryKey: fishPurchaseKeys.formData(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getFormData({ signal })
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
-  const locationsQuery = useLocations()
-  const banksQuery = useBanks()
-  const agentsQuery = useAgents()
-  const settingsQuery = useFishPurchaseSettings()
 
   // Memoize array creations to ensure stable references
-  const fishSpecies = useMemo(() => fishSpeciesQuery.data || [], [fishSpeciesQuery.data])
-  const suppliers = useMemo(() => suppliersQuery.data || [], [suppliersQuery.data])
-  const locations = useMemo(() => locationsQuery.data || [], [locationsQuery.data])
-  const banks = useMemo(() => banksQuery.data || [], [banksQuery.data])
-  const agents = useMemo(() => agentsQuery.data || [], [agentsQuery.data])
-  const settings = settingsQuery.data
-
-  const loading =
-    fishSpeciesQuery.isLoading ||
-    suppliersQuery.isLoading ||
-    locationsQuery.isLoading ||
-    banksQuery.isLoading ||
-    agentsQuery.isLoading ||
-    settingsQuery.isLoading
-
-  const error =
-    fishSpeciesQuery.error ||
-    suppliersQuery.error ||
-    locationsQuery.error ||
-    banksQuery.error ||
-    agentsQuery.error ||
-    settingsQuery.error
-
-  const refresh = useMemo(() => {
-    return () => {
-      fishSpeciesQuery.refetch()
-      suppliersQuery.refetch()
-      locationsQuery.refetch()
-      banksQuery.refetch()
-      agentsQuery.refetch()
-      settingsQuery.refetch()
-    }
-  }, [fishSpeciesQuery, suppliersQuery, locationsQuery, banksQuery, agentsQuery, settingsQuery])
+  const fishSpecies = useMemo(() => query.data?.fish_species || [], [query.data?.fish_species])
+  const suppliers = useMemo(() => query.data?.suppliers || [], [query.data?.suppliers])
+  const locations = useMemo(() => query.data?.locations || [], [query.data?.locations])
+  const banks = useMemo(() => query.data?.banks || [], [query.data?.banks])
+  const agents = useMemo(() => query.data?.agents || [], [query.data?.agents])
+  const settings = query.data?.settings
 
   return {
     fishSpecies,
@@ -202,8 +178,8 @@ export function useFishPurchaseFormData(options?: {
     banks,
     agents,
     settings,
-    loading,
-    error,
-    refresh,
+    loading: query.isLoading,
+    error: query.error,
+    refresh: query.refetch,
   }
 }

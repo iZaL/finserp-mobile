@@ -51,14 +51,17 @@ export default function FishPurchaseDetailsPage({ params }: { params: Promise<{ 
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(parseInt(id));
-      router.push("/fish-purchases");
-      toast.success(t("deleteSuccess"));
-    } catch {
-      toast.error(t("deleteError"));
-    }
+  const handleDelete = () => {
+    deleteMutation.mutate(parseInt(id), {
+      onSuccess: () => {
+        // Navigate after mutation AND cache updates complete
+        router.push("/fish-purchases");
+        toast.success(t("deleteSuccess"));
+      },
+      onError: () => {
+        toast.error(t("deleteError"));
+      }
+    });
   };
 
   if (loading) {

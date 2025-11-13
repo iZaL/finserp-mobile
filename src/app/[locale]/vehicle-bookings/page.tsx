@@ -30,6 +30,7 @@ import { EditDrawer } from "@/components/vehicle-booking/edit-drawer"
 import { FilePreviewModal } from "@/components/vehicle-booking/FilePreviewModal"
 import { VehicleBookingGuard } from "@/components/permission-guard"
 import { usePermissions } from "@/lib/stores/permission-store"
+import { useDialogManager } from "@/hooks/use-dialog-manager"
 import {
   useVehicleBookingDashboard,
   useBulkAction,
@@ -52,19 +53,8 @@ export default function VehicleBookingsPage() {
   const [timeRangeFilter] = useState<BookingFilters["date_filter"]>("current")
   const [selectedBookings, setSelectedBookings] = useState<Set<number>>(new Set())
 
-  // Dialog states
-  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
-  const [exitDialogOpen, setExitDialogOpen] = useState(false)
-  const [unreceiveDialogOpen, setUnreceiveDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [approveDialogOpen, setApproveDialogOpen] = useState(false)
-  const [rejectApprovalDialogOpen, setRejectApprovalDialogOpen] = useState(false)
-  const [startOffloadingOpen, setStartOffloadingOpen] = useState(false)
-  const [completeOffloadingOpen, setCompleteOffloadingOpen] = useState(false)
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
+  // Consolidated dialog management
+  const { openDialog, closeDialog, isOpen, selectedItem: selectedBooking } = useDialogManager<VehicleBooking>()
   const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null)
 
   // React Query hooks - All data fetching is now cached and optimized
@@ -98,68 +88,62 @@ export default function VehicleBookingsPage() {
 
   // Action handlers
   const handleReceive = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setReceiveDialogOpen(true)
+    openDialog('receive', booking)
   }
 
   const handleReject = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setRejectDialogOpen(true)
+    openDialog('reject', booking)
   }
 
   const handleExit = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setExitDialogOpen(true)
+    openDialog('exit', booking)
   }
 
   const handleUnreceive = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setUnreceiveDialogOpen(true)
+    openDialog('unreceive', booking)
   }
 
   const handleEdit = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setEditDialogOpen(true)
+    openDialog('edit', booking)
   }
 
   const handleDelete = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setDeleteDialogOpen(true)
+    openDialog('delete', booking)
   }
 
   const handleApprove = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setApproveDialogOpen(true)
+    openDialog('approve', booking)
   }
 
   const handleRejectApproval = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setRejectApprovalDialogOpen(true)
+    openDialog('rejectApproval', booking)
   }
 
   const handleStartOffloading = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setStartOffloadingOpen(true)
+    openDialog('startOffloading', booking)
   }
 
   const handleCompleteOffloading = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setCompleteOffloadingOpen(true)
+    openDialog('completeOffloading', booking)
   }
 
-  const handleCompleteOffloadingSubmit = async (
+  const handleCompleteOffloadingSubmit = (
     booking: VehicleBooking,
     data: CompleteOffloadingRequest
   ) => {
-    await completeOffloadingMutation.mutateAsync({
+    completeOffloadingMutation.mutate({
       id: booking.id,
       data,
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        closeDialog()
+      }
     })
   }
 
   const handleViewDetails = (booking: VehicleBooking) => {
-    setSelectedBooking(booking)
-    setDetailsDialogOpen(true)
+    openDialog('details', booking)
   }
 
   const handleDialogSuccess = () => {
@@ -167,9 +151,10 @@ export default function VehicleBookingsPage() {
     // No manual refetch needed - data stays in sync automatically
   }
 
-  const handleBookingUpdate = (updatedBooking: VehicleBooking) => {
-    setSelectedBooking(updatedBooking)
-    // Note: React Query cache is already updated by mutation hooks
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleBookingUpdate = (_updatedBooking: VehicleBooking) => {
+    // Note: React Query cache is automatically updated by mutation hooks
+    // No need to manually update state - the selectedItem will reflect the latest cached data
   }
 
   const handleSelectionChange = (booking: VehicleBooking, selected: boolean) => {
@@ -182,31 +167,43 @@ export default function VehicleBookingsPage() {
     setSelectedBookings(newSelection)
   }
 
-  const handleBulkReceive = async () => {
-    await bulkActionMutation.mutateAsync({
+  const handleBulkReceive = () => {
+    const count = selectedBookings.size
+    bulkActionMutation.mutate({
       vehicle_ids: Array.from(selectedBookings),
       action: "receive",
+    }, {
+      onSuccess: () => {
+        toast.success(`Successfully received ${count} vehicle(s)`)
+        setSelectedBookings(new Set())
+      }
     })
-    toast.success(`Successfully received ${selectedBookings.size} vehicle(s)`)
-    setSelectedBookings(new Set())
   }
 
-  const handleBulkReject = async () => {
-    await bulkActionMutation.mutateAsync({
+  const handleBulkReject = () => {
+    const count = selectedBookings.size
+    bulkActionMutation.mutate({
       vehicle_ids: Array.from(selectedBookings),
       action: "reject",
+    }, {
+      onSuccess: () => {
+        toast.success(`Successfully rejected ${count} vehicle(s)`)
+        setSelectedBookings(new Set())
+      }
     })
-    toast.success(`Successfully rejected ${selectedBookings.size} vehicle(s)`)
-    setSelectedBookings(new Set())
   }
 
-  const handleBulkExit = async () => {
-    await bulkActionMutation.mutateAsync({
+  const handleBulkExit = () => {
+    const count = selectedBookings.size
+    bulkActionMutation.mutate({
       vehicle_ids: Array.from(selectedBookings),
       action: "exit",
+    }, {
+      onSuccess: () => {
+        toast.success(`Successfully exited ${count} vehicle(s)`)
+        setSelectedBookings(new Set())
+      }
     })
-    toast.success(`Successfully exited ${selectedBookings.size} vehicle(s)`)
-    setSelectedBookings(new Set())
   }
 
   // Memoized filtered bookings for performance
@@ -767,72 +764,72 @@ export default function VehicleBookingsPage() {
         {/* Dialogs */}
         <ReceiveDialog
           booking={selectedBooking}
-          open={receiveDialogOpen}
-          onOpenChange={setReceiveDialogOpen}
+          open={isOpen('receive')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <RejectDialog
           booking={selectedBooking}
-          open={rejectDialogOpen}
-          onOpenChange={setRejectDialogOpen}
+          open={isOpen('reject')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <ExitDialog
           booking={selectedBooking}
-          open={exitDialogOpen}
-          onOpenChange={setExitDialogOpen}
+          open={isOpen('exit')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <UnreceiveDialog
           booking={selectedBooking}
-          open={unreceiveDialogOpen}
-          onOpenChange={setUnreceiveDialogOpen}
+          open={isOpen('unreceive')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <DeleteDialog
           booking={selectedBooking}
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
+          open={isOpen('delete')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <ApproveDialog
           booking={selectedBooking}
-          open={approveDialogOpen}
-          onOpenChange={setApproveDialogOpen}
+          open={isOpen('approve')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <RejectApprovalDialog
           booking={selectedBooking}
-          open={rejectApprovalDialogOpen}
-          onOpenChange={setRejectApprovalDialogOpen}
+          open={isOpen('rejectApproval')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <StartOffloadingDialog
           booking={selectedBooking}
-          open={startOffloadingOpen}
-          onOpenChange={setStartOffloadingOpen}
+          open={isOpen('startOffloading')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 
         <CompleteOffloadingSheet
           booking={selectedBooking}
-          open={completeOffloadingOpen}
-          onOpenChange={setCompleteOffloadingOpen}
+          open={isOpen('completeOffloading')}
+          onOpenChange={() => closeDialog()}
           onSubmit={handleCompleteOffloadingSubmit}
           loading={completeOffloadingMutation.isPending}
         />
 
         <BookingDetailsDrawer
           booking={selectedBooking}
-          open={detailsDialogOpen}
-          onOpenChange={setDetailsDialogOpen}
+          open={isOpen('details')}
+          onOpenChange={() => closeDialog()}
           onExit={handleExit}
           onUnreceive={handleUnreceive}
           onReject={handleReject}
@@ -842,8 +839,8 @@ export default function VehicleBookingsPage() {
 
         <EditDrawer
           booking={selectedBooking}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
+          open={isOpen('edit')}
+          onOpenChange={() => closeDialog()}
           onSuccess={handleDialogSuccess}
         />
 

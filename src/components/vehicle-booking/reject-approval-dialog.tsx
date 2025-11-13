@@ -53,15 +53,18 @@ export function RejectApprovalDialog({
       return
     }
 
-    await mutation.mutateAsync({
+    mutation.mutate({
       id: booking.id,
       data: {
         notes: notes.trim(),
       },
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
     })
-
-    handleOpenChange(false)
-    onSuccess()
   }
 
   if (!booking) return null

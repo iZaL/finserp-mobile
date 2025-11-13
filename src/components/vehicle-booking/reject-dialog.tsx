@@ -56,7 +56,7 @@ export function RejectDialog({
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!booking) return
@@ -65,16 +65,19 @@ export function RejectDialog({
       return
     }
 
-    await mutation.mutateAsync({
+    mutation.mutate({
       id: booking.id,
       data: {
         rejection_reason: rejectionReason,
         rejection_notes: rejectionNotes.trim() || undefined,
       },
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
     })
-
-    handleOpenChange(false)
-    onSuccess()
   }
 
   if (!booking) return null
