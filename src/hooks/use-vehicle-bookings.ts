@@ -21,20 +21,24 @@ import { toast } from "sonner"
  *
  * Real-time updates:
  * - Optimistic updates provide instant UI feedback on mutations
- * - Background refetch every 60 seconds for eventual consistency
+ * - No caching for date-filtered queries (calendar view)
+ * - Background refetch for non-date-filtered queries (dashboard)
  * - Stops polling when tab is inactive (saves battery/bandwidth)
- * - Shows cached data immediately, updates in background
  */
 export function useVehicleBookings(filters?: BookingFilters) {
+  // Disable caching and polling for date-range queries (calendar view)
+  const hasDateFilter = filters?.date_from || filters?.date_to
+
   return useQuery({
     queryKey: vehicleBookingKeys.list(filters),
     queryFn: async ({ signal }) => {
       return vehicleBookingService.getBookings(filters, { signal })
     },
-    // Reduced from 30s to 60s since optimistic updates provide instant feedback
-    // Background refetch ensures eventual consistency with server
-    refetchInterval: 60 * 1000, // Refetch every 60 seconds
-    refetchIntervalInBackground: false, // Stop polling when tab is inactive (save battery)
+    // Disable polling for calendar queries with date filters
+    refetchInterval: hasDateFilter ? false : 60 * 1000,
+    refetchIntervalInBackground: false,
+    // No caching for date-filtered queries - always fetch fresh data
+    staleTime: hasDateFilter ? 0 : undefined,
   })
 }
 
@@ -93,6 +97,7 @@ export function useBookingStats(date?: string) {
 
 /**
  * Hook to fetch range statistics
+ * No caching - always fetch fresh data when dates change
  */
 export function useRangeStats(dateFrom: string, dateTo: string, enabled = true) {
   return useQuery({
@@ -101,7 +106,7 @@ export function useRangeStats(dateFrom: string, dateTo: string, enabled = true) 
       return vehicleBookingService.getRangeStats(dateFrom, dateTo, { signal })
     },
     enabled,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    // Remove staleTime to disable caching - always fetch fresh data
     placeholderData: keepPreviousData,
   })
 }
@@ -311,6 +316,8 @@ export function useDeleteVehicleBooking() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -345,6 +352,8 @@ export function useReceiveVehicle() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for currently active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -378,6 +387,8 @@ export function useRejectVehicle() {
       // Invalidate ALL related caches (marks them as stale for next mount)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for currently active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -412,6 +423,8 @@ export function useExitVehicle() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for currently active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -446,6 +459,8 @@ export function useUnreceiveVehicle() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for currently active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -549,6 +564,8 @@ export function useRejectApproval() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for currently active queries to refetch before showing success
       queryClient.refetchQueries({
@@ -579,6 +596,8 @@ export function useBulkAction() {
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
+      // Invalidate all range stats queries (partial match)
+      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
 
       // Wait for active queries to refetch before showing success
       queryClient.refetchQueries({

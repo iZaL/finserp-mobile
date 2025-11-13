@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -29,6 +29,7 @@ import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
 import { format } from "date-fns"
 import { useVehicleBookings, useRangeStats } from "@/hooks/use-vehicle-bookings"
+import { toast } from "sonner"
 
 export default function CalendarViewPage() {
   const t = useTranslations("vehicleBookings")
@@ -66,10 +67,13 @@ export default function CalendarViewPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   // React Query hooks - Fetch bookings for the selected date range
-  // Backend automatically filters by offloading_completed_at when date range is provided
+  // Note: This fetches ALL bookings, not filtered by offloading_completed_at
+  // The range stats below use offloading_completed_at for filtering
   const {
     data: bookingsData,
     isLoading: bookingsLoading,
+    refetch: refetchBookings,
+    isFetching: isFetchingBookings,
   } = useVehicleBookings({
     date_from: statsDatetimeFrom.replace('T', ' ') + ':00',
     date_to: statsDatetimeTo.replace('T', ' ') + ':59',
@@ -82,13 +86,25 @@ export default function CalendarViewPage() {
   const {
     data: rangeStats,
     isLoading: statsLoading,
+    refetch: refetchStats,
+    isFetching: isFetchingStats,
   } = useRangeStats(statsFrom, statsTo, true)
 
   const loading = bookingsLoading
+  const isRefreshing = isFetchingBookings || isFetchingStats
 
   const handleStatsDatetimeChange = (from: string, to: string) => {
     setStatsDatetimeFrom(from)
     setStatsDatetimeTo(to)
+  }
+
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([refetchBookings(), refetchStats()])
+      toast.success("Data refreshed successfully")
+    } catch (error) {
+      toast.error("Failed to refresh data")
+    }
   }
 
   // Set initial scroll position for RTL
@@ -264,6 +280,15 @@ export default function CalendarViewPage() {
             {tStats("pageSubtitle")}
           </p>
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="shrink-0"
+        >
+          <RefreshCw className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/* Range Stats Section */}
