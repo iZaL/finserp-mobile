@@ -85,16 +85,16 @@
 
 .react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
+  background-color: #10b981 !important;
+  color: white !important;
   border-radius: 0.375rem !important;
-  font-weight: 600;
+  font-weight: 700;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
 .react-datepicker__day--selected:hover,
 .react-datepicker__day--keyboard-selected:hover {
-  background-color: hsl(var(--primary)) !important;
-  opacity: 0.9;
+  background-color: #059669 !important;
 }
 
 .react-datepicker__day--outside-month {
@@ -184,14 +184,13 @@
 }
 
 .react-datepicker__time-list-item--selected {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
+  background-color: #10b981 !important;
+  color: white !important;
   font-weight: 700 !important;
 }
 
 .react-datepicker__time-list-item--selected:hover {
-  background-color: hsl(var(--primary)) !important;
-  opacity: 0.9;
+  background-color: #059669 !important;
 }
 
 .react-datepicker__time-list-item--disabled {
@@ -266,4 +265,77 @@
 
 .react-datepicker__input-container input {
   width: 100%;
+}
+
+/* Mobile responsive - Make calendar more compact to fit side-by-side with time */
+@media (max-width: 640px) {
+  .react-datepicker {
+    font-size: 0.75rem;
+  }
+
+  /* Compact header */
+  .react-datepicker__header {
+    padding-top: 0.5rem;
+  }
+
+  .react-datepicker__current-month {
+    font-size: 0.75rem;
+    padding-bottom: 0.25rem;
+  }
+
+  /* Compact navigation arrows */
+  .react-datepicker__navigation {
+    top: 0.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .react-datepicker__navigation-icon::before {
+    width: 5px;
+    height: 5px;
+  }
+
+  /* Compact day names and days */
+  .react-datepicker__day-name {
+    width: 1.75rem;
+    line-height: 1.75rem;
+    font-size: 0.625rem;
+    margin: 0.1rem;
+  }
+
+  .react-datepicker__day {
+    width: 1.75rem;
+    line-height: 1.75rem;
+    font-size: 0.75rem;
+    margin: 0.1rem;
+  }
+
+  /* Compact month container */
+  .react-datepicker__month {
+    margin: 0.25rem;
+  }
+
+  /* Compact time container */
+  .react-datepicker__time-container {
+    width: 90px;
+  }
+
+  .react-datepicker__time-box {
+    width: 90px;
+  }
+
+  .react-datepicker-time__header {
+    font-size: 0.75rem;
+    padding: 0.5rem 0 0.25rem;
+  }
+
+  /* Compact time list */
+  .react-datepicker__time-list {
+    max-height: 200px !important;
+  }
+
+  .react-datepicker__time-list-item {
+    padding: 0.375rem 0.5rem !important;
+    font-size: 0.75rem;
+  }
 }
