@@ -36,20 +36,24 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
   const recentPayments = purchase.bill?.payments?.slice(0, 3) || [];
   const hasMorePayments = (purchase.bill?.payments?.length || 0) > 3;
 
-  const handleAddPayment = (data: AdvancePaymentRequest) => {
-    addPaymentMutation.mutate({
-      id: purchase.id,
-      data,
-    }, {
-      onSuccess: () => {
-        // Close dialog after mutation AND cache updates complete
-        setShowAddPayment(false);
-        onPaymentAdded();
-      },
-      onError: (error) => {
-        console.error("Failed to add payment:", error);
-        // Error toast is already shown by the hook
-      }
+  const handleAddPayment = async (data: AdvancePaymentRequest): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      addPaymentMutation.mutate({
+        id: purchase.id,
+        data,
+      }, {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          setShowAddPayment(false);
+          onPaymentAdded();
+          resolve();
+        },
+        onError: (error) => {
+          console.error("Failed to add payment:", error);
+          // Error toast is already shown by the hook
+          reject(error);
+        }
+      });
     });
   };
 

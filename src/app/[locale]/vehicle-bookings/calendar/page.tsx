@@ -63,6 +63,7 @@ export default function CalendarViewPage() {
   const [rejectApprovalDialogOpen, setRejectApprovalDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   // React Query hooks - Fetch bookings for the selected date range
   // Backend automatically filters by offloading_completed_at when date range is provided
