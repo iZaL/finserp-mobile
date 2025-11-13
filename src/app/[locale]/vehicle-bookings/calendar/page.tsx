@@ -70,8 +70,8 @@ export default function CalendarViewPage() {
     data: bookingsData,
     isLoading: bookingsLoading,
   } = useVehicleBookings({
-    start_date: statsDatetimeFrom.replace('T', ' ') + ':00',
-    end_date: statsDatetimeTo.replace('T', ' ') + ':59',
+    date_from: statsDatetimeFrom.replace('T', ' ') + ':00',
+    date_to: statsDatetimeTo.replace('T', ' ') + ':59',
     per_page: 1000, // Get all for the range
   })
 
