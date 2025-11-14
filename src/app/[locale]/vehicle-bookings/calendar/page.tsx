@@ -64,13 +64,11 @@ export default function CalendarViewPage() {
   const [rejectApprovalDialogOpen, setRejectApprovalDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   // React Query hooks - Fetch bookings for the selected date range
   // Note: This fetches ALL bookings, not filtered by offloading_completed_at
   // The range stats below use offloading_completed_at for filtering
   const {
-    data: bookingsData,
     isLoading: bookingsLoading,
     refetch: refetchBookings,
     isFetching: isFetchingBookings,
@@ -123,7 +121,7 @@ export default function CalendarViewPage() {
     try {
       await Promise.all([refetchBookings(), refetchStats()])
       toast.success("Data refreshed successfully")
-    } catch (error) {
+    } catch {
       toast.error("Failed to refresh data")
     }
   }
@@ -135,65 +133,9 @@ export default function CalendarViewPage() {
     }
   }, [isRTL, sheetOpen])
 
-  // Memoized: Group bookings by date
-  const bookingsByDate = useMemo(() => {
-    const bookings = bookingsData?.data || []
-    const grouped: Record<string, VehicleBooking[]> = {}
-    bookings.forEach((booking) => {
-      const date = format(new Date(booking.entry_date), "yyyy-MM-dd")
-      if (!grouped[date]) {
-        grouped[date] = []
-      }
-      grouped[date].push(booking)
-    })
-    return grouped
-  }, [bookingsData?.data])
-
-  // Memoized: Get bookings for selected date with status filter
-  const selectedDateBookings = useMemo(() => {
-    if (!selectedDate) return []
-    const dateKey = format(selectedDate, "yyyy-MM-dd")
-    const dayBookings = bookingsByDate[dateKey] || []
-
-    if (statusFilter === "all") return dayBookings
-
-    // Handle special case for rejected status (includes approval rejection)
-    if (statusFilter === "rejected") {
-      return dayBookings.filter(
-        (b) => b.status === "rejected" || b.approval_status === "rejected"
-      )
-    }
-
-    // Handle booked status (exclude approval-rejected)
-    if (statusFilter === "booked") {
-      return dayBookings.filter((b) => b.status === "booked" && b.approval_status !== "rejected")
-    }
-
-    return dayBookings.filter((b) => b.status === statusFilter)
-  }, [bookingsByDate, statusFilter])
-
-  // Memoized: Get status counts for selected date
-  const statusCounts = useMemo(() => {
-    if (!selectedDate)
-      return { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
-
-    const dateKey = format(selectedDate, "yyyy-MM-dd")
-    const dayBookings = bookingsByDate[dateKey] || []
-
-    return {
-      all: dayBookings.length,
-      // Booked includes pending and approved, but excludes approval-rejected
-      booked: dayBookings.filter(
-        (b) => b.status === "booked" && b.approval_status !== "rejected"
-      ).length,
-      received: dayBookings.filter((b) => b.status === "received").length,
-      exited: dayBookings.filter((b) => b.status === "exited").length,
-      // Rejected includes both gate rejection and approval rejection
-      rejected: dayBookings.filter(
-        (b) => b.status === "rejected" || b.approval_status === "rejected"
-      ).length,
-    }
-  }, [bookingsByDate])
+  // Placeholder empty data - calendar functionality not implemented
+  const selectedDateBookings: VehicleBooking[] = []
+  const statusCounts = { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
 
   // Action handlers
   const handleReceive = (booking: VehicleBooking) => {
@@ -431,7 +373,7 @@ export default function CalendarViewPage() {
         <SheetContent side="bottom" className="h-[85vh]">
           <SheetHeader>
             <SheetTitle>
-              {selectedDate && format(selectedDate, "MMMM d, yyyy")}
+              {/* Calendar view not implemented */}
             </SheetTitle>
             <SheetDescription>
               {tStats("bookingsOnDay", { count: statusCounts.all })}

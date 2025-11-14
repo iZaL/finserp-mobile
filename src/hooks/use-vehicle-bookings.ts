@@ -232,16 +232,15 @@ export function useCreateVehicleBooking() {
       return vehicleBookingService.createBooking(data)
     },
     onSuccess: () => {
-      // Invalidate ALL caches to force fresh server fetch
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
-
-      
-      
-
       toast.success("Vehicle booking created successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to create vehicle booking")
+    },
+    // Use onSettled to invalidate - runs after success/error
+    // Returning the promise keeps mutation in pending state until refetch completes
+    onSettled: async () => {
+      return await queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
     },
   })
 }
@@ -278,17 +277,6 @@ export function useUpdateVehicleBooking() {
     onSuccess: (data, variables) => {
       // Update cache with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
-
-      // Invalidate related caches
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.activities(variables.id) })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle booking updated successfully")
     },
     onError: (error: Error, variables, context) => {
@@ -297,6 +285,13 @@ export function useUpdateVehicleBooking() {
         queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), context.previousBooking)
       }
       toast.error(error.message || "Failed to update vehicle booking")
+    },
+    onSettled: async (data, error, variables) => {
+      // Invalidate related caches - returning promise keeps mutation pending until refetch completes
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.activities(variables.id) })
+      ])
     },
   })
 }
@@ -312,23 +307,19 @@ export function useDeleteVehicleBooking() {
       return vehicleBookingService.deleteBooking(id)
     },
     onSuccess: () => {
-      // Invalidate related caches
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle booking deleted successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete vehicle booking")
+    },
+    onSettled: async () => {
+      // Invalidate related caches - returning promise keeps mutation pending
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -347,24 +338,19 @@ export function useReceiveVehicle() {
     onSuccess: (updatedBooking, { id }) => {
       // Update detail cache immediately with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
-
-      // Invalidate ALL related caches (marks them as stale for next mount)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for currently active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle received successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to receive vehicle")
+    },
+    onSettled: async () => {
+      // Invalidate related caches - returning promise keeps mutation pending
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -383,23 +369,17 @@ export function useRejectVehicle() {
     onSuccess: (updatedBooking, { id }) => {
       // Update detail cache immediately with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
-
-      // Invalidate ALL related caches (marks them as stale for next mount)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for currently active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle rejected successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to reject vehicle")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -418,24 +398,18 @@ export function useExitVehicle() {
     onSuccess: (updatedBooking, id) => {
       // Update detail cache immediately with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
-
-      // Invalidate ALL related caches (marks them as stale for next mount)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for currently active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle exited successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to exit vehicle")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -454,24 +428,18 @@ export function useUnreceiveVehicle() {
     onSuccess: (data, id) => {
       // Update detail cache immediately with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(id), data)
-
-      // Invalidate ALL related caches (marks them as stale for next mount)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for currently active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Vehicle unreceived successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to unreceive vehicle")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -487,13 +455,20 @@ export function useStartOffloading() {
     mutationFn: async ({ id, data }: { id: number; data?: StartOffloadingRequest }) => {
       return vehicleBookingService.startOffloading(id, data)
     },
-    onSuccess: () => {
-      // Synchronous invalidation - React Query handles refetch automatically
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
+    onSuccess: (updatedBooking, { id }) => {
+      // Update detail cache immediately with server response
+      queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
       toast.success("Offloading started successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to start offloading")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -509,13 +484,20 @@ export function useCompleteOffloading() {
     mutationFn: async ({ id, data }: { id: number; data: CompleteOffloadingRequest }) => {
       return vehicleBookingService.completeOffloading(id, data)
     },
-    onSuccess: () => {
-      // Synchronous invalidation - React Query handles refetch automatically
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
+    onSuccess: (updatedBooking, { id }) => {
+      // Update detail cache immediately with server response
+      queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
       toast.success("Offloading completed successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to complete offloading")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -531,17 +513,21 @@ export function useApproveVehicle() {
     mutationFn: async ({ id, data }: { id: number; data?: ApproveBookingRequest }) => {
       return vehicleBookingService.approveVehicle(id, data)
     },
-    onSuccess: () => {
-      // Invalidate ALL caches to force fresh server fetch
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
-
-      
-      
-
+    onSuccess: (updatedBooking, { id }) => {
+      // Update detail cache immediately with server response
+      queryClient.setQueryData(vehicleBookingKeys.detail(id), updatedBooking)
       toast.success("Vehicle approved successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to approve vehicle")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -559,24 +545,18 @@ export function useRejectApproval() {
     onSuccess: (data, variables) => {
       // Update detail cache immediately with server response
       queryClient.setQueryData(vehicleBookingKeys.detail(variables.id), data)
-
-      // Invalidate ALL related caches (marks them as stale for next mount)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for currently active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Approval rejected successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to reject approval")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -592,23 +572,18 @@ export function useBulkAction() {
       return vehicleBookingService.bulkAction(data)
     },
     onSuccess: () => {
-      // Invalidate all related queries after bulk action
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() })
-      // Invalidate all range stats queries (partial match)
-      queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.lists(),
-        type: 'active'
-      })
-
       toast.success("Bulk action completed successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to perform bulk action")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.stats() }),
+        queryClient.invalidateQueries({ queryKey: [...vehicleBookingKeys.all, "range-stats"] })
+      ])
     },
   })
 }
@@ -624,18 +599,13 @@ export function useUpdateDailyLimit() {
     },
     onSuccess: (data, variables) => {
       queryClient.setQueryData(vehicleBookingKeys.dailyCapacity(variables.date), data)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.dailyCapacity(),
-        type: 'active'
-      })
-
       toast.success("Daily limit updated successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update daily limit")
+    },
+    onSettled: async () => {
+      return await queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
     },
   })
 }
@@ -652,19 +622,16 @@ export function useUploadMedia() {
     },
     onSuccess: (data, variables) => {
       queryClient.setQueryData(vehicleBookingKeys.detail(variables.vehicleId), data)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.billsGallery(),
-        type: 'active'
-      })
-
       toast.success("Media uploaded successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to upload media")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })
+      ])
     },
   })
 }
@@ -681,19 +648,16 @@ export function useDeleteMedia() {
     },
     onSuccess: (data) => {
       queryClient.setQueryData(vehicleBookingKeys.detail(data.id), data)
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })
-
-      // Wait for active queries to refetch before showing success
-      queryClient.refetchQueries({
-        queryKey: vehicleBookingKeys.billsGallery(),
-        type: 'active'
-      })
-
       toast.success("Media deleted successfully")
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to delete media")
+    },
+    onSettled: async () => {
+      return await Promise.all([
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })
+      ])
     },
   })
 }

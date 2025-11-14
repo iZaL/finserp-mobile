@@ -603,8 +603,7 @@ export default function VehicleBookingsPage() {
                 </div>
               ))}
             </>
-          ) : filteredBookings.length === 0 &&
-            !(statusFilter === "received" && vehiclesInsideFactory.length > 0) ? (
+          ) : filteredBookings.length === 0 && vehiclesInsideFactory.length === 0 ? (
             <div className="rounded-xl border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 shadow-sm p-12 text-center">
               <div className="rounded-full bg-slate-200/50 dark:bg-slate-700/50 size-16 mx-auto mb-4 flex items-center justify-center">
                 <Truck className="size-8 text-slate-400 dark:text-slate-500" />
@@ -617,6 +616,25 @@ export default function VehicleBookingsPage() {
                   <p className="text-sm text-slate-500 dark:text-slate-400">
                     {t("noResultsDescription")}
                   </p>
+                </>
+              ) : bookings.length === 0 ? (
+                // Show "No bookings found" only when there are NO bookings at all
+                <>
+                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
+                    {t("noBookingsFound")}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    {t("noBookingsDescription")}
+                  </p>
+                  {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
+                    <Button
+                      onClick={() => router.push("/vehicle-bookings/new")}
+                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                    >
+                      <Plus className="size-4 mr-2" />
+                      {t("createBooking")}
+                    </Button>
+                  )}
                 </>
               ) : statusFilter === "pending" ? (
                 <>
@@ -664,22 +682,14 @@ export default function VehicleBookingsPage() {
                   </p>
                 </>
               ) : (
+                // Fallback for "All" tab when there are bookings but none match the current view
                 <>
                   <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noBookingsFound")}
+                    {t("noResultsFound")}
                   </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                    {t("noBookingsDescription")}
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {t("noResultsDescription")}
                   </p>
-                  {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
-                    <Button
-                      onClick={() => router.push("/vehicle-bookings/new")}
-                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                    >
-                      <Plus className="size-4 mr-2" />
-                      {t("createBooking")}
-                    </Button>
-                  )}
                 </>
               )}
             </div>
