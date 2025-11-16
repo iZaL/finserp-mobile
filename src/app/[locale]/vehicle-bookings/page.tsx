@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
@@ -207,112 +207,101 @@ export default function VehicleBookingsPage() {
   }
 
   // Memoized filtered bookings for performance
-  const filteredBookings = useMemo(
-    () =>
-      bookings.filter((booking) => {
-        // Apply status filter - make categories mutually exclusive
-        if (statusFilter !== "all") {
-          if (statusFilter === "pending") {
-            if (!booking.is_pending_approval) return false
-          } else if (statusFilter === "booked") {
-            if (
-              booking.status !== "booked" ||
-              booking.is_pending_approval ||
-              booking.approval_status === "rejected"
-            )
-              return false
-          } else if (statusFilter === "rejected") {
-            if (booking.status !== "rejected" && booking.approval_status !== "rejected")
-              return false
-          } else if (statusFilter === "exited") {
-            // Show both offloaded and exited vehicles in the exited tab
-            if (booking.status !== "exited" && booking.status !== "offloaded") return false
-          } else {
-            // For received and other statuses, just check status
-            if (booking.status !== statusFilter) return false
-          }
-        }
-
-        // Exclude received/offloading vehicles (they're shown in "Currently Offloading" section)
-        // But allow offloaded vehicles when exited filter is active
-        if (statusFilter === "exited") {
-          // When exited filter is active, only exclude received and offloading
-          if (booking.status === "received" || booking.status === "offloading") return false
-        } else {
-          // For other filters, exclude received/offloading/offloaded (they're shown in "Currently Offloading" section)
-          if (
-            booking.status === "received" ||
-            booking.status === "offloading" ||
-            booking.status === "offloaded"
-          )
-            return false
-        }
-
-        // Apply search filter (if search query is empty, show all)
-        if (!searchQuery.trim()) {
-          return true
-        }
-
-        return (
-          booking.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (booking.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (booking.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (booking.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (booking.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+  const filteredBookings = bookings.filter((booking) => {
+    // Apply status filter - make categories mutually exclusive
+    if (statusFilter !== "all") {
+      if (statusFilter === "pending") {
+        if (!booking.is_pending_approval) return false
+      } else if (statusFilter === "booked") {
+        if (
+          booking.status !== "booked" ||
+          booking.is_pending_approval ||
+          booking.approval_status === "rejected"
         )
-      }),
-    [bookings, statusFilter, searchQuery]
-  )
-
-  // Memoized vehicles inside factory for performance
-  const vehiclesInsideFactory = useMemo(
-    () =>
-      bookings.filter((b) => {
-        // Status filter
-        if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded")
           return false
+      } else if (statusFilter === "rejected") {
+        if (booking.status !== "rejected" && booking.approval_status !== "rejected")
+          return false
+      } else if (statusFilter === "exited") {
+        // Show both offloaded and exited vehicles in the exited tab
+        if (booking.status !== "exited" && booking.status !== "offloaded") return false
+      } else {
+        // For received and other statuses, just check status
+        if (booking.status !== statusFilter) return false
+      }
+    }
 
-        // Apply search filter
-        if (!searchQuery.trim()) return true
+    // Exclude received/offloading vehicles (they're shown in "Currently Offloading" section)
+    // But allow offloaded vehicles when exited filter is active
+    if (statusFilter === "exited") {
+      // When exited filter is active, only exclude received and offloading
+      if (booking.status === "received" || booking.status === "offloading") return false
+    } else {
+      // For other filters, exclude received/offloading/offloaded (they're shown in "Currently Offloading" section)
+      if (
+        booking.status === "received" ||
+        booking.status === "offloading" ||
+        booking.status === "offloaded"
+      )
+        return false
+    }
 
-        return (
-          b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-          (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-        )
-      }),
-    [bookings, searchQuery]
-  )
+    // Apply search filter (if search query is empty, show all)
+    if (!searchQuery.trim()) {
+      return true
+    }
 
-  // Memoized status counts for performance
-  const statusCounts = useMemo(
-    () => ({
-      // Bookings waiting for approval
-      pending: bookings.filter((b) => b.is_pending_approval).length,
+    return (
+      booking.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (booking.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (booking.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (booking.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (booking.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+    )
+  })
 
-      // Bookings that are approved and waiting to be received (exclude pending and approval-rejected)
-      booked: bookings.filter(
-        (b) =>
-          b.status === "booked" && !b.is_pending_approval && b.approval_status !== "rejected"
-      ).length,
+  // Vehicles inside factory
+  const vehiclesInsideFactory = bookings.filter((b) => {
+    // Status filter
+    if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded")
+      return false
 
-      // Bookings currently in factory being offloaded (received + offloading + offloaded)
-      received: bookings.filter(
-        (b) => b.status === "received" || b.status === "offloading" || b.status === "offloaded"
-      ).length,
+    // Apply search filter
+    if (!searchQuery.trim()) return true
 
-      // Bookings that finished offloading and exited (or offloaded but not exited yet)
-      exited: bookings.filter((b) => b.status === "exited" || b.status === "offloaded").length,
+    return (
+      b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+    )
+  })
 
-      // Bookings rejected at gate OR rejected at approval stage
-      rejected: bookings.filter(
-        (b) => b.status === "rejected" || b.approval_status === "rejected"
-      ).length,
-    }),
-    [bookings]
-  )
+  // Status counts
+  const statusCounts = {
+    // Bookings waiting for approval
+    pending: bookings.filter((b) => b.is_pending_approval).length,
+
+    // Bookings that are approved and waiting to be received (exclude pending and approval-rejected)
+    booked: bookings.filter(
+      (b) =>
+        b.status === "booked" && !b.is_pending_approval && b.approval_status !== "rejected"
+    ).length,
+
+    // Bookings currently in factory being offloaded (received + offloading + offloaded)
+    received: bookings.filter(
+      (b) => b.status === "received" || b.status === "offloading" || b.status === "offloaded"
+    ).length,
+
+    // Bookings that finished offloading and exited (or offloaded but not exited yet)
+    exited: bookings.filter((b) => b.status === "exited" || b.status === "offloaded").length,
+
+    // Bookings rejected at gate OR rejected at approval stage
+    rejected: bookings.filter(
+      (b) => b.status === "rejected" || b.approval_status === "rejected"
+    ).length,
+  }
 
   return (
     <VehicleBookingGuard>
