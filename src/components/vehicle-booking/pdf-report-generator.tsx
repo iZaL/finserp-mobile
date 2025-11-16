@@ -20,7 +20,7 @@ import { downloadFile } from "@/lib/utils/file-download"
 import { toast } from "sonner"
 
 interface PdfReportGeneratorProps {
-  stats: RangeStats | null
+  stats: RangeStats | undefined
   dateRange: {
     from: string
     to: string

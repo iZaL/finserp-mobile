@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import type { RangeStats } from "@/types/vehicle-booking"
 
 interface PerformanceStatsCardsProps {
-  stats: RangeStats | null
+  stats: RangeStats | undefined
   isLoading?: boolean
 }
 
