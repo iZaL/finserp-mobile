@@ -332,4 +332,43 @@ export const vehicleBookingService = {
     )
     return response.data
   },
+
+  // Export reports
+  exportReportPdf: async (
+    dateFrom: string,
+    dateTo: string,
+    status: string = 'all'
+  ): Promise<Blob> => {
+    const params = new URLSearchParams({
+      start_date: dateFrom,
+      end_date: dateTo,
+      status,
+      format: 'pdf'
+    })
+
+    const response = await api.get(
+      `/fish-purchase-vehicles/reports/export-pdf?${params.toString()}`,
+      { responseType: 'blob' }
+    )
+    return response.data
+  },
+
+  exportReportExcel: async (
+    dateFrom: string,
+    dateTo: string,
+    status: string = 'all'
+  ): Promise<Blob> => {
+    const params = new URLSearchParams({
+      start_date: dateFrom,
+      end_date: dateTo,
+      status,
+      format: 'excel'
+    })
+
+    const response = await api.get(
+      `/fish-purchase-vehicles/reports/export-excel?${params.toString()}`,
+      { responseType: 'blob' }
+    )
+    return response.data
+  },
 }

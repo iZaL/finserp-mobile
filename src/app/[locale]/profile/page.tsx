@@ -65,6 +65,13 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
+  // Sync notification preferences when user changes
+  useEffect(() => {
+    if (user?.notification_preferences) {
+      setNotificationPreferences(user.notification_preferences)
+    }
+  }, [user?.notification_preferences])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
