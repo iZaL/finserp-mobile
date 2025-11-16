@@ -16,6 +16,12 @@ import {
 import type { VehicleBooking } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
+import { KeyMetricsCards } from "@/components/vehicle-booking/key-metrics-cards"
+import { CapacityStatsCards } from "@/components/vehicle-booking/capacity-stats-cards"
+import { PerformanceStatsCards } from "@/components/vehicle-booking/performance-stats-cards"
+import { AdvancedStatsCards } from "@/components/vehicle-booking/advanced-stats-cards"
+import { PdfReportGenerator } from "@/components/vehicle-booking/pdf-report-generator"
+import { DailyStatsList } from "@/components/vehicle-booking/daily-stats-list"
 import { Card, CardContent } from "@/components/ui/card"
 import { Truck, Weight, TrendingUp, Clock } from "lucide-react"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
@@ -263,6 +269,36 @@ export default function CalendarViewPage() {
           onDatetimeChange={handleStatsDatetimeChange}
         />
 
+        {/* Key Business Metrics */}
+        <KeyMetricsCards stats={rangeStats} isLoading={statsLoading} />
+
+        {/* Capacity KPIs */}
+        <CapacityStatsCards stats={rangeStats} isLoading={statsLoading} />
+
+        {/* Performance KPIs */}
+        <PerformanceStatsCards stats={rangeStats} isLoading={statsLoading} />
+
+        {/* Advanced Stats (Collapsible) */}
+        <AdvancedStatsCards stats={rangeStats} isLoading={statsLoading} />
+
+        {/* PDF Report Generation */}
+        <PdfReportGenerator
+          stats={rangeStats}
+          dateRange={{
+            from: statsDatetimeFrom.split('T')[0],
+            to: statsDatetimeTo.split('T')[0]
+          }}
+          isLoading={statsLoading}
+        />
+
+        {/* Daily Breakdown List */}
+        {rangeStats?.daily_stats && rangeStats.daily_stats.length > 0 && (
+          <DailyStatsList
+            dailyStats={rangeStats.daily_stats}
+            locale={locale}
+            onDayClick={handleStatsDayClick}
+          />
+        )}
         {/* Simplified Metrics */}
         {statsLoading ? (
           <div className="grid grid-cols-2 gap-3">

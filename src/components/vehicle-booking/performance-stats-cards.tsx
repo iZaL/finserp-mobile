@@ -53,7 +53,11 @@ export function PerformanceStatsCards({ stats, isLoading }: PerformanceStatsCard
         title={t("waitTimes")}
         value={formatHours(stats.avg_wait_time_hours)}
         subtitle={
-          stats.avg_processing_time_hours
+          stats.avg_offloading_time_hours
+            ? t("offloadingTime", {
+                time: formatHours(stats.avg_offloading_time_hours),
+              })
+            : stats.avg_processing_time_hours
             ? t("processingTime", {
                 time: formatHours(stats.avg_processing_time_hours),
               })
