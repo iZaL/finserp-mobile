@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Plus, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
 import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useCreateVehicleBooking } from "@/hooks/use-vehicle-bookings"
 import axios from "axios"
 import type { DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
 import { toast } from "sonner"
@@ -33,6 +34,7 @@ export default function NewBookingPage() {
   const tValidation = useTranslations('vehicleBookings.validation')
   const vehicleNumberRef = useRef<HTMLInputElement>(null)
   const permissions = usePermissions()
+  const createMutation = useCreateVehicleBooking()
 
   // Form state
   const [vehicleNumber, setVehicleNumber] = useState("")
@@ -147,7 +149,7 @@ export default function NewBookingPage() {
   }
 
   // Handle submit
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) return
@@ -162,36 +164,78 @@ export default function NewBookingPage() {
       return
     }
 
-    await submitForm()
+    submitForm()
   }
 
-  const submitForm = async () => {
-    try {
-      setSubmitting(true)
+  const submitForm = () => {
+    setSubmitting(true)
 
-      const bookingData = {
-        vehicle_number: vehicleNumber.trim().toUpperCase(),
-        box_count: parseInt(boxCount),
-        box_weight_kg: parseFloat(boxWeightKg),
-        driver_name: driverName.trim() || undefined,
-        driver_phone: driverPhone.trim() || undefined,
-        supplier_name: supplierName.trim() || undefined,
-        supplier_phone: supplierPhone.trim() || undefined,
-        notes: notes.trim() || undefined,
-        allow_override: allowOverride,
-      }
-
-      await vehicleBookingService.createBooking(bookingData)
-
-      toast.success(t('vehicleAdded', { number: vehicleNumber }))
-
-      // Redirect to booking dashboard
-      router.push('/vehicle-bookings')
-    } catch (error) {
-      console.error("Error creating booking:", error)
-    } finally {
-      setSubmitting(false)
+    const bookingData = {
+      vehicle_number: vehicleNumber.trim().toUpperCase(),
+      box_count: parseInt(boxCount),
+      box_weight_kg: parseFloat(boxWeightKg),
+      driver_name: driverName.trim() || undefined,
+      driver_phone: driverPhone.trim() || undefined,
+      supplier_name: supplierName.trim() || undefined,
+      supplier_phone: supplierPhone.trim() || undefined,
+      notes: notes.trim() || undefined,
+      allow_override: allowOverride,
     }
+
+    createMutation.mutate(bookingData, {
+      onSuccess: () => {
+        // Show custom success message with vehicle number
+        toast.success(t('vehicleAdded', { number: vehicleNumber }))
+
+        // Redirect to booking dashboard (data will be fresh due to cache invalidation)
+        router.push('/vehicle-bookings')
+
+        setSubmitting(false)
+      },
+      onError: (error: unknown) => {
+        console.error("Error creating booking:", error)
+
+        // Handle validation errors
+        const axiosError = error as {
+          isValidationError?: boolean
+          validationErrors?: Record<string, string[]>
+          message?: string
+          response?: {
+            status: number
+            data?: {
+              errors?: Record<string, string[]>
+              message?: string
+            }
+          }
+        }
+
+        if (axiosError.isValidationError && axiosError.validationErrors) {
+          // Show all validation errors
+          const errorMessages: string[] = []
+          Object.entries(axiosError.validationErrors).forEach(([field, messages]) => {
+            const fieldLabel = tValidation(field) || field.replace(/_/g, ' ')
+            const fieldMessages = Array.isArray(messages) ? messages : [messages]
+            errorMessages.push(...fieldMessages.map(msg => `${fieldLabel}: ${msg}`))
+          })
+
+          if (errorMessages.length > 0) {
+            toast.error(errorMessages.join("\n"), {
+              duration: 6000,
+            })
+          }
+        } else if (axiosError.message) {
+          // Show generic error message
+          toast.error(axiosError.message, {
+            duration: 4000,
+          })
+        } else {
+          // Fallback error message
+          toast.error(tCommon('errors.generic') || "Failed to create booking. Please try again.")
+        }
+
+        setSubmitting(false)
+      },
+    })
   }
 
   const handleCapacityProceed = () => {

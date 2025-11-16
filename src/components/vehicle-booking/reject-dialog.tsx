@@ -20,10 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useRejectVehicle } from "@/hooks/use-vehicle-bookings"
 import type { VehicleBooking } from "@/types/vehicle-booking"
 import { REJECTION_REASONS } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { XCircle, Loader2 } from "lucide-react"
 
 interface RejectDialogProps {
@@ -41,14 +40,13 @@ export function RejectDialog({
 }: RejectDialogProps) {
   const t = useTranslations('vehicleBookings.rejectDialog')
   const tCommon = useTranslations('common')
-  const tValidation = useTranslations('vehicleBookings.validation')
   const tReasons = useTranslations('vehicleBookings.rejectionReasons')
   const [rejectionReason, setRejectionReason] = useState("")
   const [rejectionNotes, setRejectionNotes] = useState("")
-  const [loading, setLoading] = useState(false)
+  const mutation = useRejectVehicle()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!mutation.isPending) {
       onOpenChange(newOpen)
       if (!newOpen) {
         // Reset form when closing
@@ -58,31 +56,28 @@ export function RejectDialog({
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!booking) return
 
     if (!rejectionReason) {
-      toast.error(tValidation('rejectionReasonRequired'))
       return
     }
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.rejectVehicle(booking.id, {
+    mutation.mutate({
+      id: booking.id,
+      data: {
         rejection_reason: rejectionReason,
         rejection_notes: rejectionNotes.trim() || undefined,
-      })
-
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error rejecting vehicle:", error)
-    } finally {
-      setLoading(false)
-    }
+      },
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
+    })
   }
 
   if (!booking) return null
@@ -173,16 +168,16 @@ export function RejectDialog({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={loading}
+              disabled={mutation.isPending}
             >
               {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
               variant="destructive"
-              disabled={loading || !rejectionReason || (rejectionReason === "Other" && !rejectionNotes.trim())}
+              disabled={mutation.isPending || !rejectionReason || (rejectionReason === "Other" && !rejectionNotes.trim())}
             >
-              {loading ? (
+              {mutation.isPending ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
                   {t('rejecting')}

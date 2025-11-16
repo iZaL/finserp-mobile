@@ -4,9 +4,11 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { LayoutWrapper } from "@/components/layout-wrapper";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { InstallPrompt } from "@/components/install-prompt";
+import { RefetchIndicator } from "@/components/refetch-indicator";
 import { Toaster } from "@/components/ui/sonner";
 import { isRTL } from "@/lib/utils";
 import "../globals.css";
@@ -72,27 +74,41 @@ export default async function LocaleLayout({
     <html key={locale} lang={locale} dir={dir} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <AuthProvider>
-              <ServiceWorkerRegister />
-              <InstallPrompt />
-              <LayoutWrapper>
-                {children}
-              </LayoutWrapper>
-              <Toaster
-                toastOptions={{
-                  classNames: {
-                    toast: "z-[99999] bg-card text-card-foreground border-border shadow-xl",
-                  },
-                }}
-              />
-            </AuthProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <AuthProvider>
+                <ServiceWorkerRegister />
+                <InstallPrompt />
+                <RefetchIndicator />
+                <LayoutWrapper>
+                  {children}
+                </LayoutWrapper>
+                <Toaster
+                  position="top-center"
+                  offset="80px"
+                  closeButton
+                  toastOptions={{
+                    classNames: {
+                      toast: "z-[99999] shadow-xl border",
+                      success: "!bg-emerald-50 dark:!bg-emerald-950/50 !text-emerald-900 dark:!text-emerald-100 !border-emerald-200 dark:!border-emerald-800",
+                      error: "!bg-red-50 dark:!bg-red-950/50 !text-red-900 dark:!text-red-100 !border-red-200 dark:!border-red-800",
+                      warning: "!bg-amber-50 dark:!bg-amber-950/50 !text-amber-900 dark:!text-amber-100 !border-amber-200 dark:!border-amber-800",
+                      info: "!bg-blue-50 dark:!bg-blue-950/50 !text-blue-900 dark:!text-blue-100 !border-blue-200 dark:!border-blue-800",
+                      default: "!bg-card !text-card-foreground !border-border",
+                      actionButton: "!bg-primary !text-primary-foreground hover:!bg-primary/90",
+                      cancelButton: "!bg-muted !text-muted-foreground hover:!bg-muted/80",
+                      closeButton: "!bg-transparent hover:!bg-black/5 dark:hover:!bg-white/5 !text-current !border-current/20",
+                    },
+                  }}
+                />
+              </AuthProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

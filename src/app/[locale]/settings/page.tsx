@@ -17,11 +17,12 @@ import {
 import { Settings2, Package, ChevronRight, Loader2, TrendingUp, Power, CheckCircle, Shield } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useUpdateControlSettings } from "@/hooks/use-vehicle-bookings"
 import axios from "axios"
 
 export default function SettingsPage() {
   const t = useTranslations()
+  const updateControlSettings = useUpdateControlSettings()
   const [boxLimit, setBoxLimit] = useState<number>(5000)
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
@@ -186,44 +187,46 @@ export default function SettingsPage() {
     settingName: "vehicle_booking_enabled" | "require_vehicle_booking_approval" | "allow_vehicle_booking_override",
     newValue: boolean
   ) => {
-    try {
-      setIsUpdatingSettings(settingName)
+    setIsUpdatingSettings(settingName)
 
-      const updateData = {
-        [settingName]: newValue
-      }
-
-      await vehicleBookingService.updateControlSettings(updateData)
-
-      // Update local state
-      if (settingName === "vehicle_booking_enabled") {
-        setVehicleBookingEnabled(newValue)
-        toast.success(
-          newValue
-            ? t("settings.vehicleBooking.systemEnabledSuccess")
-            : t("settings.vehicleBooking.systemDisabledSuccess")
-        )
-      } else if (settingName === "require_vehicle_booking_approval") {
-        setRequireApproval(newValue)
-        toast.success(
-          newValue
-            ? t("settings.vehicleBooking.approvalEnabledSuccess")
-            : t("settings.vehicleBooking.approvalDisabledSuccess")
-        )
-      } else if (settingName === "allow_vehicle_booking_override") {
-        setAllowOverride(newValue)
-        toast.success(
-          newValue
-            ? t("settings.vehicleBooking.overrideEnabledSuccess")
-            : t("settings.vehicleBooking.overrideDisabledSuccess")
-        )
-      }
-    } catch (error) {
-      console.error(`Failed to update ${settingName}:`, error)
-      toast.error(t("settings.vehicleBooking.updateError"))
-    } finally {
-      setIsUpdatingSettings(null)
+    const updateData = {
+      [settingName]: newValue
     }
+
+    updateControlSettings.mutate(updateData, {
+      onSuccess: () => {
+        // Update local state for immediate UI feedback
+        if (settingName === "vehicle_booking_enabled") {
+          setVehicleBookingEnabled(newValue)
+          toast.success(
+            newValue
+              ? t("settings.vehicleBooking.systemEnabledSuccess")
+              : t("settings.vehicleBooking.systemDisabledSuccess")
+          )
+        } else if (settingName === "require_vehicle_booking_approval") {
+          setRequireApproval(newValue)
+          toast.success(
+            newValue
+              ? t("settings.vehicleBooking.approvalEnabledSuccess")
+              : t("settings.vehicleBooking.approvalDisabledSuccess")
+          )
+        } else if (settingName === "allow_vehicle_booking_override") {
+          setAllowOverride(newValue)
+          toast.success(
+            newValue
+              ? t("settings.vehicleBooking.overrideEnabledSuccess")
+              : t("settings.vehicleBooking.overrideDisabledSuccess")
+          )
+        }
+      },
+      onError: (error) => {
+        console.error(`Failed to update ${settingName}:`, error)
+        toast.error(t("settings.vehicleBooking.updateError"))
+      },
+      onSettled: () => {
+        setIsUpdatingSettings(null)
+      }
+    })
   }
 
   return (

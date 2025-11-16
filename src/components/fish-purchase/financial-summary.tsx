@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { getPaymentStatusColor } from "@/lib/utils/status-colors";
 import type { FishPurchase } from "@/types/fish-purchase";
 import type { Payment } from "@/types/payment";
 import { AddAdvancePaymentDialog } from "./add-advance-payment-dialog";
@@ -22,7 +23,8 @@ interface FinancialSummaryProps {
 export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryProps) {
   const t = useTranslations("fishPurchases.payment");
   const [showAddPayment, setShowAddPayment] = useState(false);
-  const { addPayment, loading: addingPayment } = useAddFishPurchasePayment();
+  const addPaymentMutation = useAddFishPurchasePayment();
+  const addingPayment = addPaymentMutation.isPending;
 
   // Calculate payment progress
   const totalAmount = purchase.total_amount || 0;
@@ -34,35 +36,31 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
   const recentPayments = purchase.bill?.payments?.slice(0, 3) || [];
   const hasMorePayments = (purchase.bill?.payments?.length || 0) > 3;
 
-  const handleAddPayment = async (data: AdvancePaymentRequest) => {
-    try {
-      await addPayment(purchase.id, data);
-      setShowAddPayment(false);
-      // Call the callback to refresh purchase data
-      onPaymentAdded();
-    } catch (error) {
-      console.error("Failed to add payment:", error);
-      // Error toast is already shown by the hook
-    }
-  };
-
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "success":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
-      case "pending":
-        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-      case "failed":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
-      default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400";
-    }
+  const handleAddPayment = async (data: AdvancePaymentRequest): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      addPaymentMutation.mutate({
+        id: purchase.id,
+        data,
+      }, {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          setShowAddPayment(false);
+          onPaymentAdded();
+          resolve();
+        },
+        onError: (error) => {
+          console.error("Failed to add payment:", error);
+          // Error toast is already shown by the hook
+          reject(error);
+        }
+      });
+    });
   };
 
   const getPaymentStatusBadge = () => {
     if (balanceAmount === 0) {
       return (
-        <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        <Badge className={getPaymentStatusColor("paid")}>
           {t("status.paid")}
         </Badge>
       );
@@ -70,7 +68,7 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
 
     if (advancePaid > 0 && purchase.advance_payment_info?.has_pending) {
       return (
-        <Badge className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+        <Badge className={getPaymentStatusColor("pending")}>
           {t("status.pending")}
         </Badge>
       );
@@ -78,7 +76,7 @@ export function FinancialSummary({ purchase, onPaymentAdded }: FinancialSummaryP
 
     if (advancePaid > 0) {
       return (
-        <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+        <Badge className={getPaymentStatusColor("partial")}>
           {t("status.partial")}
         </Badge>
       );

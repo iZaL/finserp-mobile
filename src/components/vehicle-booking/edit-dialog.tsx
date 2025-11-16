@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useUpdateVehicleBooking } from "@/hooks/use-vehicle-bookings"
 import { toast } from "sonner"
 
 interface EditDialogProps {
@@ -34,6 +34,7 @@ export function EditDialog({
 }: EditDialogProps) {
   const t = useTranslations('vehicleBookings.editDialog')
   const tCommon = useTranslations('common')
+  const updateMutation = useUpdateVehicleBooking()
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -96,31 +97,38 @@ export function EditDialog({
 
     setIsSubmitting(true)
 
-    try {
-      await vehicleBookingService.updateBooking(booking.id, {
-        vehicle_number: formData.vehicle_number,
-        box_count: formData.box_count,
-        box_weight_kg: formData.box_weight_kg,
-        driver_name: formData.driver_name || undefined,
-        driver_phone: formData.driver_phone || undefined,
-        supplier_name: formData.supplier_name || undefined,
-        supplier_phone: formData.supplier_phone || undefined,
-        notes: formData.notes || undefined,
-      })
-
-      toast.success(t('success', { vehicle: formData.vehicle_number }))
-      onOpenChange(false)
-      onSuccess()
-    } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'errors' in error) {
-        setErrors(error.errors as Record<string, string>)
-      } else {
-        const errorMessage = error instanceof Error ? error.message : t('error')
-        toast.error(errorMessage)
+    updateMutation.mutate(
+      {
+        id: booking.id,
+        data: {
+          vehicle_number: formData.vehicle_number,
+          box_count: formData.box_count,
+          box_weight_kg: formData.box_weight_kg,
+          driver_name: formData.driver_name || undefined,
+          driver_phone: formData.driver_phone || undefined,
+          supplier_name: formData.supplier_name || undefined,
+          supplier_phone: formData.supplier_phone || undefined,
+          notes: formData.notes || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('success', { vehicle: formData.vehicle_number }))
+          onOpenChange(false)
+          onSuccess()
+          setIsSubmitting(false)
+        },
+        onError: (error: unknown) => {
+          if (error && typeof error === 'object' && 'errors' in error) {
+            setErrors(error.errors as Record<string, string>)
+          } else {
+            const errorMessage = error instanceof Error ? error.message : t('error')
+            toast.error(errorMessage)
+          }
+          setIsSubmitting(false)
+        },
       }
-    } finally {
-      setIsSubmitting(false)
-    }
+    )
   }
 
   if (!booking) return null

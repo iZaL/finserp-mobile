@@ -26,8 +26,8 @@
     "viewBookings": "View Bookings",
     "newBooking": "New Booking",
     "addNewBooking": "Add a new vehicle booking",
-    "statistics": "Statistics",
-    "viewStatistics": "View booking analytics",
+    "statistics": "History",
+    "viewStatistics": "View booking history",
     "vehicleBills": "Vehicle Bills",
     "manageBills": "Browse and manage bill attachments"
   },
@@ -452,8 +452,12 @@
       "dailyBreakdown": "Daily Breakdown",
       "bookings": "bookings",
       "wait": "Wait",
-      "pageTitle": "Booking Statistics",
-      "pageSubtitle": "View booking history and analytics",
+      "pageTitle": "Booking History",
+      "pageSubtitle": "View booking history and performance",
+      "completedVehicles": "Vehicles Offloaded",
+      "totalTons": "Tons Offloaded",
+      "tonsPerHour": "Tons Per Hour",
+      "avgProcessingTime": "Avg Processing Time",
       "bookingsOnDay": "{count, plural, =1 {1 booking} other {# bookings}} on this day",
       "noBookingsWithStatus": "No {status} bookings",
       "noBookingsEmpty": "No bookings"
@@ -715,7 +719,8 @@
       "approved": "Approved",
       "paid": "Paid",
       "closed": "Closed",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "null": "Unknown"
     },
     "steps": {
       "supplier": "Supplier",

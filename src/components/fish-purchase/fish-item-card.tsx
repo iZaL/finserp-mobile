@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useTranslations } from "next-intl";
 import {
   ChevronDown,
@@ -40,7 +40,7 @@ interface FishItemCardProps {
   canRemove?: boolean;
 }
 
-export function FishItemCard({
+const FishItemCardComponent = ({
   item,
   index,
   fishSpecies,
@@ -50,7 +50,7 @@ export function FishItemCard({
   onRemove,
   errors = {},
   canRemove = true,
-}: FishItemCardProps) {
+}: FishItemCardProps) => {
   const t = useTranslations("fishPurchases.items");
   const [boxWeights, setBoxWeights] = useState<number[]>(item.box_weights || []);
 
@@ -77,27 +77,28 @@ export function FishItemCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boxWeights, item.rate, item.box_count]);
 
-  const handleFieldChange = (field: keyof FishPurchaseItem, value: string | number | number[] | undefined) => {
+  const handleFieldChange = useCallback((field: keyof FishPurchaseItem, value: string | number | number[] | undefined) => {
     onUpdate({ ...item, [field]: value });
-  };
+  }, [item, onUpdate]);
 
-  const handleAddBoxWeight = () => {
+  const handleAddBoxWeight = useCallback(() => {
     setBoxWeights([...boxWeights, 0]);
-  };
+  }, [boxWeights]);
 
-  const handleRemoveBoxWeight = (weightIndex: number) => {
+  const handleRemoveBoxWeight = useCallback((weightIndex: number) => {
     const newWeights = boxWeights.filter((_, i) => i !== weightIndex);
     setBoxWeights(newWeights);
-  };
+  }, [boxWeights]);
 
-  const handleBoxWeightChange = (weightIndex: number, value: string) => {
+  const handleBoxWeightChange = useCallback((weightIndex: number, value: string) => {
     const newWeights = [...boxWeights];
     newWeights[weightIndex] = parseFloat(value) || 0;
     setBoxWeights(newWeights);
-  };
+  }, [boxWeights]);
 
-  const selectedSpecies = fishSpecies.find(
-    (s) => s.id === item.fish_species_id
+  const selectedSpecies = useMemo(
+    () => fishSpecies.find((s) => s.id === item.fish_species_id),
+    [fishSpecies, item.fish_species_id]
   );
 
   return (
@@ -350,3 +351,7 @@ export function FishItemCard({
     </Card>
   );
 }
+
+// Memoize component to prevent unnecessary re-renders
+// Only re-render when props actually change
+export const FishItemCard = memo(FishItemCardComponent);

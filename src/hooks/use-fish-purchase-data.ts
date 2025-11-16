@@ -1,374 +1,185 @@
-import { useState, useEffect, useCallback } from "react";
-import { fishPurchaseService } from "@/lib/services/fish-purchase";
-import type {
-  FishSpecies,
-  FishPurchaseSettings,
-} from "@/types/fish-purchase";
-import type { Contact, Address, Bank } from "@/types/shared";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { fishPurchaseService } from "@/lib/services/fish-purchase"
+import { fishPurchaseKeys } from "@/lib/query-keys"
+import { toast } from "sonner"
+import { useMemo } from "react"
 
 /**
  * Hook to fetch fish species list
- * Caches data to avoid unnecessary refetches
+ * Caches data with React Query for offline support
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useFishSpecies() {
-  const [data, setData] = useState<FishSpecies[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchSpecies = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getFishSpecies({ signal });
-      setData(result);
-
-      // Cache in localStorage for offline support
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fish_species", JSON.stringify(result));
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-
-        // Try to load from cache on error
-        if (typeof window !== "undefined") {
-          const cached = localStorage.getItem("fish_species");
-          if (cached) {
-            setData(JSON.parse(cached));
-            toast.warning("Showing cached fish species data");
-          } else {
-            toast.error("Failed to fetch fish species");
-          }
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    // Try to load from cache immediately for better UX
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("fish_species");
-      if (cached) {
-        setData(JSON.parse(cached));
-        setLoading(false);
-      }
-    }
-
-    // Then fetch fresh data
-    fetchSpecies(controller.signal);
-
-    return () => controller.abort();
-  }, [fetchSpecies]);
-
-  const refresh = () => fetchSpecies();
-
-  return { data, loading, error, refresh };
+  return useQuery({
+    queryKey: fishPurchaseKeys.species(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getFishSpecies({ signal })
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - species don't change often
+  })
 }
 
 /**
  * Hook to fetch suppliers (fish suppliers with bank details)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
-export function useSuppliers() {
-  const [data, setData] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+export function useSuppliers(options?: {
+  limit?: number;
+  search?: string;
+  selectedSupplierId?: number;
+}) {
+  return useQuery({
+    queryKey: fishPurchaseKeys.suppliers(options),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getSuppliers({
+        signal,
+        limit: options?.limit,
+        search: options?.search,
+        selectedSupplierId: options?.selectedSupplierId,
+      })
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
 
-  const fetchSuppliers = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getSuppliers({ signal });
-      setData(result);
+/**
+ * Hook to create a new supplier
+ */
+export function useCreateSupplier() {
+  const queryClient = useQueryClient()
 
-      // Cache in localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fish_suppliers", JSON.stringify(result));
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-
-        // Try to load from cache on error
-        if (typeof window !== "undefined") {
-          const cached = localStorage.getItem("fish_suppliers");
-          if (cached) {
-            setData(JSON.parse(cached));
-            toast.warning("Showing cached suppliers data");
-          } else {
-            toast.error("Failed to fetch suppliers");
-          }
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    // Load from cache immediately
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("fish_suppliers");
-      if (cached) {
-        setData(JSON.parse(cached));
-        setLoading(false);
-      }
-    }
-
-    fetchSuppliers(controller.signal);
-
-    return () => controller.abort();
-  }, [fetchSuppliers]);
-
-  const refresh = () => fetchSuppliers();
-
-  return { data, loading, error, refresh };
+  return useMutation({
+    mutationFn: async (data: {
+      name: string
+      phone: string
+      bank_id?: number
+      account_number?: string
+    }) => {
+      return fishPurchaseService.createSupplier(data)
+    },
+    onSuccess: () => {
+      // Invalidate suppliers list
+      queryClient.invalidateQueries({
+        queryKey: fishPurchaseKeys.suppliers(),
+      })
+      toast.success("Supplier created successfully")
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create supplier")
+    },
+  })
 }
 
 /**
  * Hook to fetch fish landing sites (locations)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useLocations() {
-  const [data, setData] = useState<Address[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  return useQuery({
+    queryKey: fishPurchaseKeys.locations(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getLocations({ signal })
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes - locations don't change often
+  })
+}
 
-  const fetchLocations = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getLocations({ signal });
-      setData(result);
+/**
+ * Hook to create a new location
+ */
+export function useCreateLocation() {
+  const queryClient = useQueryClient()
 
-      // Cache in localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fish_locations", JSON.stringify(result));
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-
-        // Try to load from cache on error
-        if (typeof window !== "undefined") {
-          const cached = localStorage.getItem("fish_locations");
-          if (cached) {
-            setData(JSON.parse(cached));
-            toast.warning("Showing cached locations data");
-          } else {
-            toast.error("Failed to fetch locations");
-          }
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    // Load from cache immediately
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("fish_locations");
-      if (cached) {
-        setData(JSON.parse(cached));
-        setLoading(false);
-      }
-    }
-
-    fetchLocations(controller.signal);
-
-    return () => controller.abort();
-  }, [fetchLocations]);
-
-  const refresh = () => fetchLocations();
-
-  return { data, loading, error, refresh };
+  return useMutation({
+    mutationFn: async (data: { name: string; city?: string }) => {
+      return fishPurchaseService.createLocation(data)
+    },
+    onSuccess: () => {
+      // Invalidate locations list
+      queryClient.invalidateQueries({
+        queryKey: fishPurchaseKeys.locations(),
+      })
+      toast.success("Location created successfully")
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to create location")
+    },
+  })
 }
 
 /**
  * Hook to fetch banks list
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useBanks() {
-  const [data, setData] = useState<Bank[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchBanks = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getBanks({ signal });
-      setData(result);
-
-      // Cache in localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fish_banks", JSON.stringify(result));
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-
-        // Try to load from cache on error
-        if (typeof window !== "undefined") {
-          const cached = localStorage.getItem("fish_banks");
-          if (cached) {
-            setData(JSON.parse(cached));
-            toast.warning("Showing cached banks data");
-          } else {
-            toast.error("Failed to fetch banks");
-          }
-        }
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    // Load from cache immediately
-    if (typeof window !== "undefined") {
-      const cached = localStorage.getItem("fish_banks");
-      if (cached) {
-        setData(JSON.parse(cached));
-        setLoading(false);
-      }
-    }
-
-    fetchBanks(controller.signal);
-
-    return () => controller.abort();
-  }, [fetchBanks]);
-
-  const refresh = () => fetchBanks();
-
-  return { data, loading, error, refresh };
+  return useQuery({
+    queryKey: fishPurchaseKeys.banks(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getBanks({ signal })
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes - banks rarely change
+  })
 }
 
 /**
  * Hook to fetch agents list
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useAgents() {
-  const [data, setData] = useState<Contact[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchAgents = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getAgents({ signal });
-      setData(result);
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-        toast.error("Failed to fetch agents");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchAgents(controller.signal);
-    return () => controller.abort();
-  }, [fetchAgents]);
-
-  const refresh = () => fetchAgents();
-
-  return { data, loading, error, refresh };
+  return useQuery({
+    queryKey: fishPurchaseKeys.agents(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getAgents({ signal })
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }
 
 /**
  * Hook to fetch fish purchase settings (bill number, defaults)
+ * @deprecated Use useFishPurchaseFormData() instead for better performance (single request)
  */
 export function useFishPurchaseSettings() {
-  const [data, setData] = useState<FishPurchaseSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  const fetchSettings = useCallback(async (signal?: AbortSignal) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await fishPurchaseService.getSettings({ signal });
-      setData(result);
-    } catch (err) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        setError(err);
-        toast.error("Failed to fetch settings");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetchSettings(controller.signal);
-    return () => controller.abort();
-  }, [fetchSettings]);
-
-  const refresh = () => fetchSettings();
-
-  return { data, loading, error, refresh };
+  return useQuery({
+    queryKey: fishPurchaseKeys.settings(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getSettings({ signal })
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute - settings might change
+  })
 }
 
 /**
  * Combined hook to fetch all required data for fish purchase form
+ * OPTIMIZED: Uses a single API call instead of 6 separate calls
  * Use this in the create/edit form pages for convenience
  */
 export function useFishPurchaseFormData() {
-  const fishSpecies = useFishSpecies();
-  const suppliers = useSuppliers();
-  const locations = useLocations();
-  const banks = useBanks();
-  const agents = useAgents();
-  const settings = useFishPurchaseSettings();
+  const query = useQuery({
+    queryKey: fishPurchaseKeys.formData(),
+    queryFn: async ({ signal }) => {
+      return fishPurchaseService.getFormData({ signal })
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 
-  const loading =
-    fishSpecies.loading ||
-    suppliers.loading ||
-    locations.loading ||
-    banks.loading ||
-    agents.loading ||
-    settings.loading;
-
-  const error =
-    fishSpecies.error ||
-    suppliers.error ||
-    locations.error ||
-    banks.error ||
-    agents.error ||
-    settings.error;
-
-  const refresh = () => {
-    fishSpecies.refresh();
-    suppliers.refresh();
-    locations.refresh();
-    banks.refresh();
-    agents.refresh();
-    settings.refresh();
-  };
+  // Memoize array creations to ensure stable references
+  const fishSpecies = useMemo(() => query.data?.fish_species || [], [query.data?.fish_species])
+  const suppliers = useMemo(() => query.data?.suppliers || [], [query.data?.suppliers])
+  const locations = useMemo(() => query.data?.locations || [], [query.data?.locations])
+  const banks = useMemo(() => query.data?.banks || [], [query.data?.banks])
+  const agents = useMemo(() => query.data?.agents || [], [query.data?.agents])
+  const settings = query.data?.settings
 
   return {
-    fishSpecies: fishSpecies.data,
-    suppliers: suppliers.data,
-    locations: locations.data,
-    banks: banks.data,
-    agents: agents.data,
-    settings: settings.data,
-    loading,
-    error,
-    refresh,
-  };
+    fishSpecies,
+    suppliers,
+    locations,
+    banks,
+    agents,
+    settings,
+    loading: query.isLoading,
+    error: query.error,
+    refresh: query.refetch,
+  }
 }

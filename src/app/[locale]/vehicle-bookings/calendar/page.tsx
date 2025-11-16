@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
-import {
-  ArrowLeft
-} from "lucide-react"
+import { ArrowLeft, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,15 +13,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import axios from "axios"
-import type { VehicleBooking, RangeStats } from "@/types/vehicle-booking"
+import type { VehicleBooking } from "@/types/vehicle-booking"
 import { BookingCard } from "@/components/vehicle-booking/booking-card"
 import { StatsDateFilter } from "@/components/vehicle-booking/stats-date-filter"
-import { KeyMetricsCards } from "@/components/vehicle-booking/key-metrics-cards"
-import { CapacityStatsCards } from "@/components/vehicle-booking/capacity-stats-cards"
-import { PerformanceStatsCards } from "@/components/vehicle-booking/performance-stats-cards"
-import { DailyStatsList } from "@/components/vehicle-booking/daily-stats-list"
+import { Card, CardContent } from "@/components/ui/card"
+import { Truck, Weight, TrendingUp, Clock } from "lucide-react"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
@@ -33,31 +27,32 @@ import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
 import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
 import { EditDialog } from "@/components/vehicle-booking/edit-dialog"
 import { useRouter } from "@/i18n/navigation"
-import { format, startOfMonth, endOfMonth, isSameMonth } from "date-fns"
+import { format } from "date-fns"
+import { useVehicleBookings, useRangeStats } from "@/hooks/use-vehicle-bookings"
+import { toast } from "sonner"
 
 export default function CalendarViewPage() {
-  const t = useTranslations('vehicleBookings')
-  const tStats = useTranslations('vehicleBookings.rangeStats')
+  const t = useTranslations("vehicleBookings")
+  const tStats = useTranslations("vehicleBookings.rangeStats")
   const locale = useLocale()
   const isRTL = locale === "ar"
   const router = useRouter()
   const tabsScrollRef = useRef<HTMLDivElement>(null)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [bookings, setBookings] = useState<VehicleBooking[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<"all" | "booked" | "received" | "exited" | "rejected">("all")
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "booked" | "received" | "exited" | "rejected"
+  >("all")
 
-  // Stats state
-  const [rangeStats, setRangeStats] = useState<RangeStats | null>(null)
-  const [statsLoading, setStatsLoading] = useState(false)
-  const [statsDatetimeFrom, setStatsDatetimeFrom] = useState(
-    format(startOfMonth(new Date()), "yyyy-MM-dd'T'00:00")
-  )
-  const [statsDatetimeTo, setStatsDatetimeTo] = useState(
-    format(endOfMonth(new Date()), "yyyy-MM-dd'T'23:59")
-  )
+  // Stats state - Default to 8:00 AM today to 8:00 AM next day (24-hour period)
+  const [statsDatetimeFrom, setStatsDatetimeFrom] = useState(() => {
+    const today = new Date()
+    return format(today, "yyyy-MM-dd'T'08:00")
+  })
+  const [statsDatetimeTo, setStatsDatetimeTo] = useState(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return format(tomorrow, "yyyy-MM-dd'T'08:00")
+  })
 
   // Dialog states
   const [receiveDialogOpen, setReceiveDialogOpen] = useState(false)
@@ -70,83 +65,64 @@ export default function CalendarViewPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [selectedBooking, setSelectedBooking] = useState<VehicleBooking | null>(null)
 
-  // Fetch bookings for the current month
-  const fetchData = async (month: Date, signal?: AbortSignal) => {
-    try {
-      setLoading(true)
-      const start = format(startOfMonth(month), "yyyy-MM-dd")
-      const end = format(endOfMonth(month), "yyyy-MM-dd")
+  // React Query hooks - Fetch bookings for the selected date range
+  // Note: This fetches ALL bookings, not filtered by offloading_completed_at
+  // The range stats below use offloading_completed_at for filtering
+  const {
+    isLoading: bookingsLoading,
+    refetch: refetchBookings,
+    isFetching: isFetchingBookings,
+  } = useVehicleBookings({
+    date_from: statsDatetimeFrom.replace('T', ' ') + ':00',
+    date_to: statsDatetimeTo.replace('T', ' ') + ':59',
+    per_page: 1000, // Get all for the range
+  })
 
-      const bookingsResponse = await vehicleBookingService.getBookings({
-        date_from: start,
-        date_to: end,
-        per_page: 1000, // Get all for the month
-      }, { signal })
+  // Convert stats datetime to backend format and fetch
+  const statsFrom = statsDatetimeFrom.replace("T", " ") + ":00"
+  const statsTo = statsDatetimeTo.replace("T", " ") + ":59"
+  const {
+    data: rangeStats,
+    isLoading: statsLoading,
+    refetch: refetchStats,
+    isFetching: isFetchingStats,
+  } = useRangeStats(statsFrom, statsTo, true)
 
-      setBookings(bookingsResponse.data)
-    } catch (error: unknown) {
-      if (!axios.isCancel(error)) {
-        console.error("Error fetching data:", error)
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false)
-      }
-    }
-  }
+  const loading = bookingsLoading
+  const isRefreshing = isFetchingBookings || isFetchingStats
 
-  useEffect(() => {
-    const abortController = new AbortController()
-    fetchData(currentMonth, abortController.signal)
+  // Calculate tons per hour
+  const tonsPerHour = useMemo(() => {
+    if (!rangeStats || !rangeStats.total_tons_offloaded) return 0
 
-    return () => {
-      abortController.abort()
-    }
-  }, [currentMonth])
+    // Parse date range
+    const startDate = new Date(statsFrom)
+    const endDate = new Date(statsTo)
+    const now = new Date()
 
-  // Fetch range stats
-  const fetchRangeStats = async (datetimeFrom: string, datetimeTo: string, signal?: AbortSignal) => {
-    try {
-      setStatsLoading(true)
-      // Convert from "2025-01-10T09:00" to "2025-01-10 09:00:00"
-      const from = datetimeFrom.replace('T', ' ') + ':00'
-      const to = datetimeTo.replace('T', ' ') + ':59'
-      const stats = await vehicleBookingService.getRangeStats(from, to, { signal })
-      setRangeStats(stats)
-    } catch (error: unknown) {
-      if (!axios.isCancel(error)) {
-        console.error("Error fetching range stats:", error)
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setStatsLoading(false)
-      }
-    }
-  }
+    // If end date is in the future, cap it to current time
+    const effectiveEndDate = endDate > now ? now : endDate
 
-  useEffect(() => {
-    const abortController = new AbortController()
-    fetchRangeStats(statsDatetimeFrom, statsDatetimeTo, abortController.signal)
+    // Calculate hours elapsed
+    const hoursElapsed = (effectiveEndDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
 
-    return () => {
-      abortController.abort()
-    }
-  }, [statsDatetimeFrom, statsDatetimeTo])
+    // Avoid division by zero
+    if (hoursElapsed <= 0) return 0
+
+    return rangeStats.total_tons_offloaded / hoursElapsed
+  }, [rangeStats, statsFrom, statsTo])
 
   const handleStatsDatetimeChange = (from: string, to: string) => {
     setStatsDatetimeFrom(from)
     setStatsDatetimeTo(to)
   }
 
-  const handleStatsDayClick = (date: string) => {
-    const clickedDate = new Date(date)
-    setSelectedDate(clickedDate)
-    setStatusFilter("all")
-    setSheetOpen(true)
-
-    // Update current month if clicked date is in a different month
-    if (!isSameMonth(clickedDate, currentMonth)) {
-      setCurrentMonth(clickedDate)
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([refetchBookings(), refetchStats()])
+      toast.success("Data refreshed successfully")
+    } catch {
+      toast.error("Failed to refresh data")
     }
   }
 
@@ -157,57 +133,9 @@ export default function CalendarViewPage() {
     }
   }, [isRTL, sheetOpen])
 
-  // Group bookings by date
-  const bookingsByDate = useMemo(() => {
-    const grouped: Record<string, VehicleBooking[]> = {}
-    bookings.forEach((booking) => {
-      const date = format(new Date(booking.entry_date), "yyyy-MM-dd")
-      if (!grouped[date]) {
-        grouped[date] = []
-      }
-      grouped[date].push(booking)
-    })
-    return grouped
-  }, [bookings])
-
-  // Get bookings for selected date with status filter
-  const selectedDateBookings = useMemo(() => {
-    if (!selectedDate) return []
-    const dateKey = format(selectedDate, "yyyy-MM-dd")
-    const dayBookings = bookingsByDate[dateKey] || []
-
-    if (statusFilter === "all") return dayBookings
-
-    // Handle special case for rejected status (includes approval rejection)
-    if (statusFilter === "rejected") {
-      return dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected")
-    }
-
-    // Handle booked status (exclude approval-rejected)
-    if (statusFilter === "booked") {
-      return dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected")
-    }
-
-    return dayBookings.filter(b => b.status === statusFilter)
-  }, [selectedDate, bookingsByDate, statusFilter])
-
-  // Get status counts for selected date
-  const statusCounts = useMemo(() => {
-    if (!selectedDate) return { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
-
-    const dateKey = format(selectedDate, "yyyy-MM-dd")
-    const dayBookings = bookingsByDate[dateKey] || []
-
-    return {
-      all: dayBookings.length,
-      // Booked includes pending and approved, but excludes approval-rejected
-      booked: dayBookings.filter(b => b.status === "booked" && b.approval_status !== "rejected").length,
-      received: dayBookings.filter(b => b.status === "received").length,
-      exited: dayBookings.filter(b => b.status === "exited").length,
-      // Rejected includes both gate rejection and approval rejection
-      rejected: dayBookings.filter(b => b.status === "rejected" || b.approval_status === "rejected").length,
-    }
-  }, [selectedDate, bookingsByDate])
+  // Placeholder empty data - calendar functionality not implemented
+  const selectedDateBookings: VehicleBooking[] = []
+  const statusCounts = { all: 0, booked: 0, received: 0, exited: 0, rejected: 0 }
 
   // Action handlers
   const handleReceive = (booking: VehicleBooking) => {
@@ -251,7 +179,8 @@ export default function CalendarViewPage() {
   }
 
   const handleDialogSuccess = () => {
-    fetchData(currentMonth)
+    // React Query will automatically refetch after mutations
+    // No manual refetch needed - data stays in sync automatically
   }
 
   // Loading skeleton
@@ -263,8 +192,8 @@ export default function CalendarViewPage() {
             <ArrowLeft className="size-5" />
           </Button>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
-            <p className="text-muted-foreground text-xs mt-0.5">{tStats('pageSubtitle')}</p>
+            <h2 className="text-2xl font-bold tracking-tight">{tStats("pageTitle")}</h2>
+            <p className="text-muted-foreground text-xs mt-0.5">{tStats("pageSubtitle")}</p>
           </div>
         </div>
 
@@ -309,9 +238,20 @@ export default function CalendarViewPage() {
           <ArrowLeft className="size-5" />
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold tracking-tight">{tStats('pageTitle')}</h2>
-          <p className="text-muted-foreground text-xs mt-0.5 truncate">{tStats('pageSubtitle')}</p>
+          <h2 className="text-2xl font-bold tracking-tight">{tStats("pageTitle")}</h2>
+          <p className="text-muted-foreground text-xs mt-0.5 truncate">
+            {tStats("pageSubtitle")}
+          </p>
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="shrink-0"
+        >
+          <RefreshCw className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/* Range Stats Section */}
@@ -323,23 +263,109 @@ export default function CalendarViewPage() {
           onDatetimeChange={handleStatsDatetimeChange}
         />
 
-        {/* Key Business Metrics */}
-        <KeyMetricsCards stats={rangeStats} isLoading={statsLoading} />
+        {/* Simplified Metrics */}
+        {statsLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+            <div className="h-28 bg-muted animate-pulse rounded-lg" />
+          </div>
+        ) : rangeStats ? (
+          <div className="grid grid-cols-2 gap-3">
+            {/* Total Vehicles Offloaded */}
+            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("completedVehicles")}
+                    </p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                      {rangeStats.completed_vehicles.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-2">
+                    <Truck className="size-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Capacity KPIs */}
-        <CapacityStatsCards stats={rangeStats} isLoading={statsLoading} />
+            {/* Total Tons Offloaded */}
+            <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("totalTons")}
+                    </p>
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                      {(rangeStats.total_tons_offloaded ?? 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 p-2">
+                    <Weight className="size-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Performance KPIs */}
-        <PerformanceStatsCards stats={rangeStats} isLoading={statsLoading} />
+            {/* Tons Per Hour */}
+            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("tonsPerHour")}
+                    </p>
+                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
+                      {tonsPerHour.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2">
+                    <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Daily Breakdown List */}
-        {rangeStats?.daily_stats && rangeStats.daily_stats.length > 0 && (
-          <DailyStatsList
-            dailyStats={rangeStats.daily_stats}
-            locale={locale}
-            onDayClick={handleStatsDayClick}
-          />
-        )}
+            {/* Average Processing Time (Received to Exited) */}
+            <Card className="border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/50 dark:to-background">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {tStats("avgProcessingTime")}
+                    </p>
+                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
+                      {rangeStats.avg_processing_time_hours !== null
+                        ? rangeStats.avg_processing_time_hours.toLocaleString(undefined, {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1,
+                          })
+                        : "N/A"}
+                      {rangeStats.avg_processing_time_hours !== null && (
+                        <span className="text-sm font-normal text-muted-foreground ml-1">
+                          {tStats("hrs")}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-purple-100 dark:bg-purple-900/50 p-2">
+                    <Clock className="size-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
       </div>
 
       {/* Day Bookings Sheet */}
@@ -347,19 +373,25 @@ export default function CalendarViewPage() {
         <SheetContent side="bottom" className="h-[85vh]">
           <SheetHeader>
             <SheetTitle>
-              {selectedDate && format(selectedDate, "MMMM d, yyyy")}
+              {/* Calendar view not implemented */}
             </SheetTitle>
             <SheetDescription>
-              {tStats('bookingsOnDay', { count: statusCounts.all })}
+              {tStats("bookingsOnDay", { count: statusCounts.all })}
             </SheetDescription>
           </SheetHeader>
 
           {/* Status Filter Tabs */}
-          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)} className="mt-4">
+          <Tabs
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+            className="mt-4"
+          >
             <div ref={tabsScrollRef} className="overflow-x-auto -mx-6 px-6 scrollbar-hide">
-              <TabsList className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}>
+              <TabsList
+                className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}
+              >
                 <TabsTrigger value="all" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.all')}
+                  {t("filters.all")}
                   {statusCounts.all > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.all}
@@ -367,7 +399,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="booked" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.booked')}
+                  {t("filters.booked")}
                   {statusCounts.booked > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.booked}
@@ -375,7 +407,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="received" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.received')}
+                  {t("filters.received")}
                   {statusCounts.received > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.received}
@@ -383,7 +415,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="exited" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.exited')}
+                  {t("filters.exited")}
                   {statusCounts.exited > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.exited}
@@ -391,7 +423,7 @@ export default function CalendarViewPage() {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="rejected" className="text-xs px-3 py-2 whitespace-nowrap">
-                  {t('filters.rejected')}
+                  {t("filters.rejected")}
                   {statusCounts.rejected > 0 && (
                     <Badge variant="secondary" className="ms-1 h-5 px-1.5 text-[10px]">
                       {statusCounts.rejected}
@@ -421,9 +453,8 @@ export default function CalendarViewPage() {
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 {statusFilter !== "all"
-                  ? tStats('noBookingsWithStatus', { status: statusFilter })
-                  : tStats('noBookingsEmpty')
-                }
+                  ? tStats("noBookingsWithStatus", { status: statusFilter })
+                  : tStats("noBookingsEmpty")}
               </div>
             )}
           </div>

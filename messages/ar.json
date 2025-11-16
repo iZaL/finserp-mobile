@@ -26,8 +26,8 @@
     "viewBookings": "عرض الحجوزات",
     "newBooking": "حجز جديد",
     "addNewBooking": "إضافة حجز سيارة جديد",
-    "statistics": "الإحصائيات",
-    "viewStatistics": "عرض تحليلات الحجوزات",
+    "statistics": "السجل",
+    "viewStatistics": "عرض سجل الحجوزات",
     "vehicleBills": "فواتير السيارات",
     "manageBills": "تصفح وإدارة مرفقات الفواتير"
   },
@@ -456,8 +456,12 @@
       "dailyBreakdown": "التفصيل اليومي",
       "bookings": "حجوزات",
       "wait": "انتظار",
-      "pageTitle": "إحصائيات الحجوزات",
-      "pageSubtitle": "عرض سجل الحجوزات والتحليلات",
+      "pageTitle": "سجل الحجوزات",
+      "pageSubtitle": "عرض سجل الحجوزات والأداء",
+      "completedVehicles": "السيارات المفرغة",
+      "totalTons": "الأطنان المفرغة",
+      "tonsPerHour": "طن في الساعة",
+      "avgProcessingTime": "متوسط وقت المعالجة",
       "bookingsOnDay": "{count, plural, =1 {حجز واحد} other {# حجوزات}} في هذا اليوم",
       "noBookingsWithStatus": "لا توجد حجوزات {status}",
       "noBookingsEmpty": "لا توجد حجوزات"
@@ -719,7 +723,8 @@
       "approved": "موافق عليه",
       "paid": "مدفوع",
       "closed": "مغلق",
-      "rejected": "مرفوض"
+      "rejected": "مرفوض",
+      "null": "غير معروف"
     },
     "steps": {
       "supplier": "المورد",

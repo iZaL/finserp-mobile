@@ -13,9 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
+import { useRejectApproval } from "@/hooks/use-vehicle-bookings"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { XCircle, Loader2 } from "lucide-react"
 
 interface RejectApprovalDialogProps {
@@ -33,12 +32,11 @@ export function RejectApprovalDialog({
 }: RejectApprovalDialogProps) {
   const t = useTranslations('vehicleBookings.rejectApprovalDialog')
   const tCommon = useTranslations('common')
-  const tValidation = useTranslations('vehicleBookings.validation')
   const [notes, setNotes] = useState("")
-  const [loading, setLoading] = useState(false)
+  const mutation = useRejectApproval()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!mutation.isPending) {
       onOpenChange(newOpen)
       if (!newOpen) {
         setNotes("")
@@ -52,25 +50,21 @@ export function RejectApprovalDialog({
     if (!booking) return
 
     if (!notes.trim()) {
-      toast.error(tValidation('rejectionReasonRequired'))
       return
     }
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.rejectApproval(booking.id, {
+    mutation.mutate({
+      id: booking.id,
+      data: {
         notes: notes.trim(),
-      })
-
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error rejecting approval:", error)
-      toast.error(t('error'))
-    } finally {
-      setLoading(false)
-    }
+      },
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      }
+    })
   }
 
   if (!booking) return null
@@ -149,16 +143,16 @@ export function RejectApprovalDialog({
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={loading}
+              disabled={mutation.isPending}
             >
               {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
-              disabled={loading || !notes.trim()}
+              disabled={mutation.isPending || !notes.trim()}
               variant="destructive"
             >
-              {loading ? (
+              {mutation.isPending ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
                   {t('rejecting')}

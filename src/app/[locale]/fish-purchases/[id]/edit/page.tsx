@@ -1,10 +1,8 @@
-"use client";
+"use client"
 
-import { use, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { use, useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import {
   User,
   FileText,
@@ -14,105 +12,74 @@ import {
   ChevronRight,
   Check,
   Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { ProgressSteps } from "@/components/fish-purchase/progress-steps";
-import { SupplierSelector } from "@/components/fish-purchase/supplier-selector";
-import { PurchaseDetailsForm } from "@/components/fish-purchase/purchase-details-form";
-import { FishItemList } from "@/components/fish-purchase/fish-item-list";
-import { PurchaseSummary } from "@/components/fish-purchase/purchase-summary";
-import { useFishPurchaseFormData } from "@/hooks/use-fish-purchase-data";
-import { useFishPurchase, useUpdateFishPurchase } from "@/hooks/use-fish-purchases";
-import { fishPurchaseFormSchema, type FishPurchaseFormData } from "@/lib/validation/fish-purchase";
-import { fishPurchaseService } from "@/lib/services/fish-purchase";
-import type { FishPurchaseFormStep } from "@/types/fish-purchase";
-import type { Contact, Address } from "@/types/shared";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
+import { ProgressSteps } from "@/components/fish-purchase/progress-steps"
+import { SupplierSelector } from "@/components/fish-purchase/supplier-selector"
+import { PurchaseDetailsForm } from "@/components/fish-purchase/purchase-details-form"
+import { FishItemList } from "@/components/fish-purchase/fish-item-list"
+import { PurchaseSummary } from "@/components/fish-purchase/purchase-summary"
+import { useFishPurchaseForm } from "@/hooks/use-fish-purchase-form"
+import { useFishPurchase, useUpdateFishPurchase } from "@/hooks/use-fish-purchases"
 
 export default function EditFishPurchasePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const router = useRouter();
-  const t = useTranslations("fishPurchases");
+  const { id } = use(params)
+  const router = useRouter()
+  const t = useTranslations("fishPurchases")
 
   // Load existing purchase data
-  const { data: existingPurchase, loading: loadingPurchase } = useFishPurchase(parseInt(id));
+  const { data: existingPurchase, isLoading: loadingPurchase } = useFishPurchase(parseInt(id))
+
+  const updateMutation = useUpdateFishPurchase()
 
   const {
+    formData,
+    getValues,
+    setValue,
+    batchSetValue,
+    errors,
+    errorMessages,
+    activeStep,
+    locations,
     fishSpecies,
     suppliers,
-    locations: initialLocations,
-    // banks,
     agents,
-    // settings,
-    loading: dataLoading,
-  } = useFishPurchaseFormData();
+    dataLoading,
+    handleAddLocation,
+    handleAddSupplier,
+    handleSelectSupplier,
+    handleNext,
+    handlePrevious,
+    handleStepClick,
+    isStepComplete,
+    transformFormData,
+  } = useFishPurchaseForm({})
 
-  const { updatePurchase, loading: submitting } = useUpdateFishPurchase();
-
-  const [activeStep, setActiveStep] = useState<FishPurchaseFormStep>("supplier");
-  const [locations, setLocations] = useState<Address[]>([]);
-
-  // Initialize form with React Hook Form
-  const {
-    watch,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<FishPurchaseFormData>({
-    resolver: zodResolver(fishPurchaseFormSchema),
-    defaultValues: {
-      contact_id: undefined,
-      contact_name: "",
-      contact_number: "",
-      bank_id: undefined,
-      account_number: "",
-      bill_number: "",
-      vehicle_number: "",
-      driver_name: "",
-      driver_number: "",
-      fish_location_id: 0,
-      date: new Date().toISOString().split("T")[0],
-      items: [
-        {
-          id: 1,
-          fish_species_id: 0,
-          box_count: 0,
-          box_weights: [0],
-          rate: 0,
-          fish_count: "",
-          remarks: "",
-        },
-      ],
-    },
-  });
-
-  const formData = watch();
-
-  // Initialize locations from hook
-  useEffect(() => {
-    if (initialLocations) {
-      setLocations(initialLocations);
-    }
-  }, [initialLocations]);
-
-  // Load existing purchase data into form
+  // Load existing purchase data into form - FIXED: Using batch update
   useEffect(() => {
     if (existingPurchase && fishSpecies.length > 0) {
-      setValue("contact_id", existingPurchase.contact_id);
-      setValue("contact_name", existingPurchase.contact_name);
-      setValue("contact_number", existingPurchase.contact_number);
-      setValue("bank_id", existingPurchase.bank_id);
-      setValue("account_number", existingPurchase.account_number || "");
-      setValue("bill_number", existingPurchase.bill_number);
-      setValue("vehicle_number", existingPurchase.vehicle_number);
-      setValue("driver_name", existingPurchase.driver_name);
-      setValue("driver_number", existingPurchase.driver_number || "");
-      setValue("fish_location_id", existingPurchase.fish_location_id);
-      setValue("date", existingPurchase.date);
-      setValue("agent_id", existingPurchase.agent_id);
+      // Batch update all basic fields at once
+      batchSetValue(
+        {
+          contact_id: existingPurchase.contact_id,
+          contact_name: existingPurchase.contact_name || "",
+          contact_number: existingPurchase.contact_number || "",
+          bank_id: existingPurchase.bank_id,
+          account_number: existingPurchase.account_number || "",
+          bill_number: existingPurchase.bill_number || "",
+          vehicle_number: existingPurchase.vehicle_number || "",
+          driver_name: existingPurchase.driver_name || "",
+          driver_number: existingPurchase.driver_number || "",
+          fish_location_id: existingPurchase.fish_location_id,
+          date: existingPurchase.date || "",
+          agent_id: existingPurchase.agent_id,
+        },
+        { shouldDirty: false }
+      )
 
       // Convert items and OMR rate to BZ
       if (existingPurchase.items) {
@@ -127,155 +94,65 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
           average_box_weight: item.average_box_weight,
           net_weight: item.net_weight,
           net_amount: item.net_amount,
-        }));
-        setValue("items", convertedItems);
+        }))
+        setValue("items", convertedItems, { shouldDirty: false })
       }
     }
-  }, [existingPurchase, fishSpecies, setValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingPurchase?.id, fishSpecies.length, batchSetValue, setValue])
 
-  // Handle adding new location
-  const handleAddLocation = async (data: { name: string; city?: string }): Promise<Address> => {
-    try {
-      const newLocation = await fishPurchaseService.createLocation(data);
-      setLocations(prev => [...prev, newLocation]);
-      toast.success(t("details.addLocationDialog.success") || "Location added successfully");
-      return newLocation;
-    } catch (error) {
-      console.error("Failed to add location:", error);
-      toast.error(t("details.addLocationDialog.error") || "Failed to add location");
-      throw error;
-    }
-  };
+  // Memoized steps to prevent recreation
+  const steps = useMemo(
+    () => [
+      { id: "supplier" as const, label: t("steps.supplier"), icon: User },
+      { id: "details" as const, label: t("steps.details"), icon: FileText },
+      { id: "items" as const, label: t("steps.items"), icon: Package },
+      { id: "review" as const, label: t("steps.review"), icon: ClipboardCheck },
+    ],
+    [t]
+  )
 
-  // Progress steps
-  const steps = [
-    { id: "supplier" as const, label: t("steps.supplier"), icon: User },
-    { id: "details" as const, label: t("steps.details"), icon: FileText },
-    { id: "items" as const, label: t("steps.items"), icon: Package },
-    { id: "review" as const, label: t("steps.review"), icon: ClipboardCheck },
-  ];
-
-  // Check if step is complete
-  const isStepComplete = (stepId: string): boolean => {
-    switch (stepId as FishPurchaseFormStep) {
-      case "supplier":
-        return Boolean(
-          formData.contact_name &&
-          formData.contact_name.length >= 2 &&
-          formData.contact_number &&
-          formData.contact_number.length >= 8
-        );
-      case "details":
-        return Boolean(
-          formData.bill_number &&
-          formData.vehicle_number &&
-          formData.driver_name &&
-          formData.fish_location_id &&
-          formData.fish_location_id > 0
-        );
-      case "items":
-        return Boolean(
-          formData.items &&
-            formData.items.length > 0 &&
-            formData.items.every(
-              (item) =>
-                item.fish_species_id &&
-                item.rate &&
-                item.box_count &&
-                item.box_weights.length > 0
-            )
-        );
-      default:
-        return false;
-    }
-  };
-
-  // Handle supplier selection
-  const handleSelectSupplier = (supplier: Contact | null) => {
-    if (!supplier) {
-      setValue("contact_id", undefined);
-      return;
-    }
-
-    setValue("contact_id", supplier.id);
-    setValue("contact_name", supplier.name);
-    setValue("contact_number", supplier.phone || "");
-    setValue("bank_id", supplier.bank_account?.bank_id);
-    setValue("account_number", supplier.bank_account?.account_number || "");
-  };
-
-  // Navigation
-  const handleNext = () => {
-    const currentIndex = steps.findIndex((s) => s.id === activeStep);
-    if (currentIndex < steps.length - 1) {
-      setActiveStep(steps[currentIndex + 1].id);
-    }
-  };
-
-  const handlePrevious = () => {
-    const currentIndex = steps.findIndex((s) => s.id === activeStep);
-    if (currentIndex > 0) {
-      setActiveStep(steps[currentIndex - 1].id);
-    }
-  };
-
-  // Submit
+  // Submit handler
   const handleSubmit = async () => {
     try {
-      const data = getValues();
+      const data = getValues()
+      const requestData = transformFormData(data)
 
-      // Transform items to match API request structure
-      const requestData = {
-        ...data,
-        items: data.items.map((item) => ({
-          ...(item.id && typeof item.id === 'number' ? { id: item.id } : {}), // Include id only if it's a number
-          fish_species_id: item.fish_species_id,
-          box_count: item.box_count,
-          box_weights: item.box_weights,
-          rate: item.rate / 1000, // Convert BZ to OMR (1 OMR = 1000 BZ)
-          fish_count: item.fish_count,
-          remarks: item.remarks,
-        })),
-      };
+      const result = await updateMutation.mutateAsync({
+        id: parseInt(id),
+        data: requestData,
+      })
 
-      const result = await updatePurchase(parseInt(id), requestData);
-
-      toast.success(t("updateSuccess") || "Fish purchase updated successfully");
-      router.push(`/fish-purchases/${result.id}`);
+      toast.success(t("updateSuccess") || "Fish purchase updated successfully")
+      router.push(`/fish-purchases/${result.id}`)
     } catch (error) {
-      console.error("Failed to update fish purchase:", error);
-      toast.error(t("updateError") || "Failed to update fish purchase");
+      console.error("Failed to update fish purchase:", error)
+      toast.error(t("updateError") || "Failed to update fish purchase")
     }
-  };
+  }
 
   if (loadingPurchase || dataLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="size-8 animate-spin text-primary" />
       </div>
-    );
+    )
   }
 
   if (!existingPurchase) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <p className="text-muted-foreground mb-4">{t("notFound")}</p>
-        <Button onClick={() => router.push("/fish-purchases")}>
-          {t("backToList")}
-        </Button>
+        <Button onClick={() => router.push("/fish-purchases")}>{t("backToList")}</Button>
       </div>
-    );
+    )
   }
 
   return (
     <div className="container max-w-4xl mx-auto p-4 pb-32">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ChevronLeft className="size-5" />
         </Button>
         <div>
@@ -289,7 +166,7 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
         steps={steps}
         activeStep={activeStep}
         isStepComplete={isStepComplete}
-        onStepClick={(stepId) => setActiveStep(stepId as FishPurchaseFormStep)}
+        onStepClick={handleStepClick}
       />
 
       {/* Step Content */}
@@ -306,6 +183,7 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
                   suppliers={suppliers}
                   selectedSupplierId={formData.contact_id}
                   onSelect={handleSelectSupplier}
+                  onAddSupplier={handleAddSupplier}
                 />
               </div>
 
@@ -327,7 +205,7 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
                   </Label>
                   <Input
                     id="contact_name"
-                    value={formData.contact_name}
+                    value={formData.contact_name || ""}
                     onChange={(e) => setValue("contact_name", e.target.value)}
                     placeholder={t("supplier.namePlaceholder")}
                   />
@@ -342,7 +220,7 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
                   </Label>
                   <Input
                     id="contact_number"
-                    value={formData.contact_number}
+                    value={formData.contact_number || ""}
                     onChange={(e) => setValue("contact_number", e.target.value)}
                     placeholder={t("supplier.phonePlaceholder")}
                   />
@@ -361,15 +239,12 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
             formData={formData}
             onChange={(data) => {
               Object.entries(data).forEach(([key, value]) => {
-                setValue(key as keyof FishPurchaseFormData, value);
-              });
+                setValue(key as keyof typeof formData, value)
+              })
             }}
             locations={locations}
             agents={agents}
-            errors={Object.entries(errors).reduce((acc, [key, value]) => ({
-              ...acc,
-              [key]: value?.message || String(value)
-            }), {} as Record<string, string>)}
+            errors={errorMessages}
             onAddLocation={handleAddLocation}
           />
         )}
@@ -439,11 +314,11 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
           ) : (
             <Button
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={updateMutation.isPending}
               className="ml-auto"
               size="lg"
             >
-              {submitting ? (
+              {updateMutation.isPending ? (
                 <>
                   <Loader2 className="size-4 mr-1 animate-spin" />
                   {t("buttons.updating") || "Updating..."}
@@ -459,5 +334,6 @@ export default function EditFishPurchasePage({ params }: { params: Promise<{ id:
         </div>
       </div>
     </div>
-  );
+  )
 }
+

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,10 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
 import type { VehicleBooking } from "@/types/vehicle-booking"
-import { toast } from "sonner"
 import { CheckCircle, Loader2, Truck } from "lucide-react"
+import { useReceiveVehicle } from "@/hooks/use-vehicle-bookings"
 
 interface ReceiveDialogProps {
   booking: VehicleBooking | null
@@ -29,32 +27,31 @@ export function ReceiveDialog({
   onOpenChange,
   onSuccess,
 }: ReceiveDialogProps) {
-  const t = useTranslations('vehicleBookings.receiveDialog')
   const tCommon = useTranslations('common')
-  const [loading, setLoading] = useState(false)
+  const receiveMutation = useReceiveVehicle()
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!loading) {
+    if (!receiveMutation.isPending) {
       onOpenChange(newOpen)
     }
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!booking) return
 
-    try {
-      setLoading(true)
-      await vehicleBookingService.receiveVehicle(booking.id, {})
-
-      toast.success(t('success', { vehicle: booking.vehicle_number }))
-      handleOpenChange(false)
-      onSuccess()
-    } catch (error) {
-      console.error("Error receiving vehicle:", error)
-      toast.error('Failed to receive vehicle')
-    } finally {
-      setLoading(false)
-    }
+    receiveMutation.mutate({
+      id: booking.id,
+      data: {},
+    }, {
+      onSuccess: () => {
+        // Close dialog after mutation AND cache updates complete
+        handleOpenChange(false)
+        onSuccess()
+      },
+      onError: (error) => {
+        console.error("Error receiving vehicle:", error)
+      }
+    })
   }
 
   if (!booking) return null
@@ -100,16 +97,16 @@ export function ReceiveDialog({
           <Button
             variant="outline"
             onClick={() => handleOpenChange(false)}
-            disabled={loading}
+            disabled={receiveMutation.isPending}
           >
             {tCommon('cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={receiveMutation.isPending}
             className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
           >
-            {loading ? (
+            {receiveMutation.isPending ? (
               <>
                 <Loader2 className="size-4 mr-2 animate-spin" />
                 Receiving...
