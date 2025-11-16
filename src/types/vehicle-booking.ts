@@ -95,6 +95,8 @@ export interface BookingStats {
   total_vehicles: number
   booked_vehicles: number
   received_vehicles: number
+  offloading_vehicles?: number
+  offloaded_vehicles?: number
   exited_vehicles: number
   rejected_vehicles: number
   total_boxes: number
@@ -112,6 +114,8 @@ export interface BookingStats {
   avg_wait_time_hours: number
   avg_factory_time_hours: number
   avg_queue_time_minutes: number
+  avg_offloading_time_minutes?: number
+  avg_exit_wait_time_minutes?: number
   yesterday_change_percentage: number
   template_accuracy_percentage: number
   overdue_count: number
@@ -119,6 +123,9 @@ export interface BookingStats {
   rejection_rate_percentage: number
   avg_processing_time_hours: number
   total_tons_processed: number
+  peak_hour?: string
+  busiest_supplier?: string
+  box_variance_percentage?: number
 }
 
 export interface DailyCapacity {
@@ -294,6 +301,8 @@ export interface DailyStats {
   status_breakdown: {
     booked: number
     received: number
+    offloading: number
+    offloaded: number
     exited: number
     rejected: number
   }
@@ -324,9 +333,16 @@ export interface RangeStats {
   // Performance metrics
   avg_wait_time_hours: number | null
   avg_processing_time_hours: number | null
+  avg_offloading_time_hours: number | null
+  avg_exit_wait_time_hours: number | null
   avg_total_cycle_hours: number | null
   completion_rate_percent: number
   rejection_rate_percent: number
+
+  // Advanced metrics
+  peak_hour?: string
+  busiest_supplier?: string
+  box_variance_percentage?: number
 
   // Daily breakdown (for list/chart)
   daily_stats: DailyStats[]

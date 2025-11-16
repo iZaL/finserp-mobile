@@ -80,22 +80,32 @@ export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyS
               {/* Status Breakdown */}
               <div className="flex items-center gap-2 ml-auto">
                 {day.status_breakdown.exited > 0 && (
-                  <span className="text-green-600">
+                  <span className="text-green-600" title="Exited">
                     ✓ {day.status_breakdown.exited}
                   </span>
                 )}
+                {day.status_breakdown.offloaded > 0 && (
+                  <span className="text-emerald-600" title="Offloaded">
+                    ⚙️ {day.status_breakdown.offloaded}
+                  </span>
+                )}
+                {day.status_breakdown.offloading > 0 && (
+                  <span className="text-orange-600" title="Offloading">
+                    🚛 {day.status_breakdown.offloading}
+                  </span>
+                )}
                 {day.status_breakdown.received > 0 && (
-                  <span className="text-blue-600">
+                  <span className="text-blue-600" title="Received">
                     → {day.status_breakdown.received}
                   </span>
                 )}
                 {day.status_breakdown.booked > 0 && (
-                  <span className="text-amber-600">
+                  <span className="text-amber-600" title="Booked">
                     ⊙ {day.status_breakdown.booked}
                   </span>
                 )}
                 {day.status_breakdown.rejected > 0 && (
-                  <span className="text-red-600">
+                  <span className="text-red-600" title="Rejected">
                     ✗ {day.status_breakdown.rejected}
                   </span>
                 )}
