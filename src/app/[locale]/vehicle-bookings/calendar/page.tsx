@@ -22,8 +22,6 @@ import { PerformanceStatsCards } from "@/components/vehicle-booking/performance-
 import { AdvancedStatsCards } from "@/components/vehicle-booking/advanced-stats-cards"
 import { PdfReportGenerator } from "@/components/vehicle-booking/pdf-report-generator"
 import { DailyStatsList } from "@/components/vehicle-booking/daily-stats-list"
-import { Card, CardContent } from "@/components/ui/card"
-import { Truck, Weight, TrendingUp, Clock } from "lucide-react"
 import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
 import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
 import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
@@ -97,27 +95,6 @@ export default function CalendarViewPage() {
   const loading = bookingsLoading
   const isRefreshing = isFetchingBookings || isFetchingStats
 
-  // Calculate tons per hour
-  const tonsPerHour = useMemo(() => {
-    if (!rangeStats || !rangeStats.total_tons_offloaded) return 0
-
-    // Parse date range
-    const startDate = new Date(statsFrom)
-    const endDate = new Date(statsTo)
-    const now = new Date()
-
-    // If end date is in the future, cap it to current time
-    const effectiveEndDate = endDate > now ? now : endDate
-
-    // Calculate hours elapsed
-    const hoursElapsed = (effectiveEndDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)
-
-    // Avoid division by zero
-    if (hoursElapsed <= 0) return 0
-
-    return rangeStats.total_tons_offloaded / hoursElapsed
-  }, [rangeStats, statsFrom, statsTo])
-
   const handleStatsDatetimeChange = (from: string, to: string) => {
     setStatsDatetimeFrom(from)
     setStatsDatetimeTo(to)
@@ -187,6 +164,11 @@ export default function CalendarViewPage() {
   const handleDialogSuccess = () => {
     // React Query will automatically refetch after mutations
     // No manual refetch needed - data stays in sync automatically
+  }
+
+  const handleStatsDayClick = (date: string) => {
+    // Open the sheet to show bookings for the selected date
+    setSheetOpen(true)
   }
 
   // Loading skeleton
@@ -299,109 +281,6 @@ export default function CalendarViewPage() {
             onDayClick={handleStatsDayClick}
           />
         )}
-        {/* Simplified Metrics */}
-        {statsLoading ? (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-            <div className="h-28 bg-muted animate-pulse rounded-lg" />
-          </div>
-        ) : rangeStats ? (
-          <div className="grid grid-cols-2 gap-3">
-            {/* Total Vehicles Offloaded */}
-            <Card className="border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/50 dark:to-background">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      {tStats("completedVehicles")}
-                    </p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                      {rangeStats.completed_vehicles.toLocaleString()}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-blue-100 dark:bg-blue-900/50 p-2">
-                    <Truck className="size-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Total Tons Offloaded */}
-            <Card className="border-emerald-200 dark:border-emerald-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/50 dark:to-background">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      {tStats("totalTons")}
-                    </p>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                      {(rangeStats.total_tons_offloaded ?? 0).toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 p-2">
-                    <Weight className="size-5 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Tons Per Hour */}
-            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/50 dark:to-background">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      {tStats("tonsPerHour")}
-                    </p>
-                    <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-                      {tonsPerHour.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-amber-100 dark:bg-amber-900/50 p-2">
-                    <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Average Processing Time (Received to Exited) */}
-            <Card className="border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-white dark:from-purple-950/50 dark:to-background">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-muted-foreground mb-2">
-                      {tStats("avgProcessingTime")}
-                    </p>
-                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
-                      {rangeStats.avg_processing_time_hours !== null
-                        ? rangeStats.avg_processing_time_hours.toLocaleString(undefined, {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1,
-                          })
-                        : "N/A"}
-                      {rangeStats.avg_processing_time_hours !== null && (
-                        <span className="text-sm font-normal text-muted-foreground ml-1">
-                          {tStats("hrs")}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-purple-100 dark:bg-purple-900/50 p-2">
-                    <Clock className="size-5 text-purple-600 dark:text-purple-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : null}
       </div>
 
       {/* Day Bookings Sheet */}
