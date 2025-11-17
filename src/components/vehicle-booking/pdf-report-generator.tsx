@@ -52,14 +52,6 @@ export function PdfReportGenerator({ stats, dateRange, isLoading }: PdfReportGen
     return Number(value)
   }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A"
-    try {
-      return format(new Date(dateString), "MMM d, yyyy")
-    } catch {
-      return "Invalid Date"
-    }
-  }
 
   const handleViewReport = () => {
     if (!stats) return

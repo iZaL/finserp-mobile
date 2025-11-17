@@ -16,20 +16,6 @@ import type {
 } from "@/types/vehicle-booking"
 import { toast } from "sonner"
 
-/**
- * Helper function to clear Service Worker API cache
- * This ensures fresh data is fetched after mutations instead of stale cached data
- */
-async function clearServiceWorkerCache() {
-  if ('caches' in window) {
-    const cacheNames = await caches.keys()
-    for (const cacheName of cacheNames) {
-      if (cacheName.includes('api-cache')) {
-        await caches.delete(cacheName)
-      }
-    }
-  }
-}
 
 /**
  * Hook to fetch paginated vehicle bookings with filters
@@ -241,8 +227,6 @@ export function useCreateVehicleBooking() {
       return vehicleBookingService.createBooking(data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -267,8 +251,6 @@ export function useUpdateVehicleBooking() {
       return vehicleBookingService.updateBooking(id, data)
     },
     onSuccess: async (_, variables) => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate list queries and detail queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.detail(variables.id) })
@@ -296,8 +278,6 @@ export function useDeleteVehicleBooking() {
       return vehicleBookingService.deleteBooking(id)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -322,8 +302,6 @@ export function useReceiveVehicle() {
       return vehicleBookingService.receiveVehicle(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -348,8 +326,6 @@ export function useRejectVehicle() {
       return vehicleBookingService.rejectVehicle(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -374,8 +350,6 @@ export function useExitVehicle() {
       return vehicleBookingService.exitVehicle(id)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -400,8 +374,6 @@ export function useUnreceiveVehicle() {
       return vehicleBookingService.unreceiveVehicle(id)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -426,8 +398,6 @@ export function useStartOffloading() {
       return vehicleBookingService.startOffloading(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -452,8 +422,6 @@ export function useCompleteOffloading() {
       return vehicleBookingService.completeOffloading(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -478,8 +446,6 @@ export function useApproveVehicle() {
       return vehicleBookingService.approveVehicle(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -504,8 +470,6 @@ export function useRejectApproval() {
       return vehicleBookingService.rejectApproval(id, data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -530,8 +494,6 @@ export function useBulkAction() {
       return vehicleBookingService.bulkAction(data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate all vehicle booking queries (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.all })
       // Also refetch active queries for immediate updates if page is already mounted
@@ -554,8 +516,6 @@ export function useUpdateDailyLimit() {
       return vehicleBookingService.updateDailyLimit(date, limit)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate and refetch daily capacity queries
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.dailyCapacity() })
       await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.dailyCapacity(), type: 'active' })
@@ -578,8 +538,6 @@ export function useUpdateControlSettings() {
       return vehicleBookingService.updateControlSettings(data)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate and refetch settings queries
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.settings() })
       await queryClient.refetchQueries({ queryKey: vehicleBookingKeys.settings(), type: 'active' })
@@ -603,8 +561,6 @@ export function useUploadMedia() {
       return vehicleBookingService.uploadMedia(vehicleId, file)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate list queries and bills gallery (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })
@@ -631,8 +587,6 @@ export function useDeleteMedia() {
       return vehicleBookingService.deleteMedia(mediaId)
     },
     onSuccess: async () => {
-      // Clear Service Worker cache to ensure fresh data
-      await clearServiceWorkerCache()
       // Invalidate list queries and bills gallery (marks them as stale)
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.lists() })
       queryClient.invalidateQueries({ queryKey: vehicleBookingKeys.billsGallery() })

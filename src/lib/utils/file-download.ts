@@ -39,7 +39,7 @@ export function downloadTextFile(content: string, filename: string, mimeType: st
 /**
  * Download JSON data as a CSV file
  */
-export function downloadCSV(data: any[], filename: string): void {
+export function downloadCSV(data: Record<string, unknown>[], filename: string): void {
   if (!data || data.length === 0) {
     throw new Error('No data to export')
   }

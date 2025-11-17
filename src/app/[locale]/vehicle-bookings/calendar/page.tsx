@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -166,7 +166,7 @@ export default function CalendarViewPage() {
     // No manual refetch needed - data stays in sync automatically
   }
 
-  const handleStatsDayClick = (date: string) => {
+  const handleStatsDayClick = () => {
     // Open the sheet to show bookings for the selected date
     setSheetOpen(true)
   }

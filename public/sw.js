@@ -6,7 +6,6 @@ const CACHE_VERSION = "1762912671789"; // Will be replaced during build
 const CACHE_NAME = `finserp-cache-${CACHE_VERSION}`;
 const API_CACHE_NAME = `finserp-api-cache-${CACHE_VERSION}`;
 const OFFLINE_URL = "/offline";
-const API_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Helper to check if request is an API request
 function isApiRequest(url) {
@@ -19,17 +18,6 @@ function isApiRequest(url) {
   }
 }
 
-// Helper to check if cached response is expired
-function isCacheExpired(response) {
-  if (!response) return true;
-  
-  const cacheDate = response.headers.get("sw-cache-date");
-  if (!cacheDate) return true;
-  
-  const cacheTime = parseInt(cacheDate, 10);
-  const now = Date.now();
-  return (now - cacheTime) > API_CACHE_TTL;
-}
 
 // Cache important assets during install
 self.addEventListener("install", (event) => {
@@ -61,28 +49,13 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Delete old caches from previous versions
           if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
             console.log("Deleting old cache:", cacheName);
             return caches.delete(cacheName);
           }
         })
       );
-    }).then(() => {
-      // Clean up expired API cache entries
-      return caches.open(API_CACHE_NAME).then((cache) => {
-        return cache.keys().then((keys) => {
-          return Promise.all(
-            keys.map((key) => {
-              return cache.match(key).then((response) => {
-                if (isCacheExpired(response)) {
-                  console.log("Deleting expired cache:", key.url);
-                  return cache.delete(key);
-                }
-              });
-            })
-          );
-        });
-      });
     })
   );
 
@@ -90,7 +63,7 @@ self.addEventListener("activate", (event) => {
   return self.clients.claim();
 });
 
-// Handle fetch events with Cache First for API, Network First for assets
+// Handle fetch events with Network First for API (React Query manages caching), Network First for assets
 self.addEventListener("fetch", (event) => {
   // Skip non-GET requests
   if (event.request.method !== "GET") {
@@ -106,63 +79,35 @@ self.addEventListener("fetch", (event) => {
   const isApi = isApiRequest(request.url);
 
   if (isApi) {
-    // Cache First strategy for API requests
+    // Network First strategy for ALL API requests
+    // Let React Query handle caching - it's designed for this and already configured properly
+    // Service Worker only provides offline fallback
     event.respondWith(
       caches.open(API_CACHE_NAME).then((cache) => {
-        return cache.match(request).then((cachedResponse) => {
-          // Check if we have a valid (non-expired) cached response
-          if (cachedResponse && !isCacheExpired(cachedResponse)) {
-            // Return cached response immediately
-            // Then update cache in background (stale-while-revalidate)
-            fetch(request)
-              .then((networkResponse) => {
-                if (networkResponse.ok) {
-                  // Clone and cache the fresh response
-                  const responseToCache = networkResponse.clone();
-                  // Add cache timestamp header
-                  const headers = new Headers(responseToCache.headers);
-                  headers.set("sw-cache-date", Date.now().toString());
-                  const cachedResponse = new Response(responseToCache.body, {
-                    status: responseToCache.status,
-                    statusText: responseToCache.statusText,
-                    headers: headers,
-                  });
-                  cache.put(request, cachedResponse);
-                }
-              })
-              .catch(() => {
-                // Network failed, but we already returned cached response
-                console.log("Background fetch failed, using cached response");
+        return fetch(request)
+          .then((networkResponse) => {
+            // Cache successful responses for offline fallback only
+            if (networkResponse.ok) {
+              const responseToCache = networkResponse.clone();
+              const headers = new Headers(responseToCache.headers);
+              headers.set("sw-cache-date", Date.now().toString());
+              const cachedResponse = new Response(responseToCache.body, {
+                status: responseToCache.status,
+                statusText: responseToCache.statusText,
+                headers: headers,
               });
-
-            return cachedResponse;
-          }
-
-          // No valid cache, fetch from network
-          return fetch(request)
-            .then((networkResponse) => {
-              // Only cache successful responses
-              if (networkResponse.ok) {
-                const responseToCache = networkResponse.clone();
-                // Add cache timestamp header
-                const headers = new Headers(responseToCache.headers);
-                headers.set("sw-cache-date", Date.now().toString());
-                const cachedResponse = new Response(responseToCache.body, {
-                  status: responseToCache.status,
-                  statusText: responseToCache.statusText,
-                  headers: headers,
-                });
-                cache.put(request, cachedResponse);
-              }
-              return networkResponse;
-            })
-            .catch(() => {
-              // Network failed, try to return expired cache as fallback
+              cache.put(request, cachedResponse);
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Network failed - return cached response as offline fallback
+            return cache.match(request).then((cachedResponse) => {
               if (cachedResponse) {
-                console.log("Network failed, returning expired cache as fallback");
+                console.log("Offline: Using cached API response");
                 return cachedResponse;
               }
-              // No cache at all, return error
+              // No cache available
               return new Response(
                 JSON.stringify({ error: "Offline", message: "No cached data available" }),
                 {
@@ -171,7 +116,7 @@ self.addEventListener("fetch", (event) => {
                 }
               );
             });
-        });
+          });
       })
     );
   } else {
