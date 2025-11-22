@@ -173,16 +173,27 @@ self.addEventListener("push", (event) => {
       // Special handling for vehicle booking status changes
       if (data.data && data.data.type === 'vehicle_booking_status_changed') {
         const isEnabled = data.data.is_enabled;
-        const action = data.data.action;
+
+        // Enhanced notification for booking status changes
+        const statusTitle = isEnabled
+          ? "Booking System Opened"
+          : "Booking System Closed";
+
+        const statusBody = isEnabled
+          ? "Vehicle bookings are now open! You can create new bookings."
+          : "Vehicle bookings are now closed. New bookings cannot be created at this time.";
 
         notificationData = {
-          title: data.title || `Vehicle Booking System ${action === 'enabled' ? 'Enabled' : 'Disabled'}`,
-          body: data.body || data.message || notificationData.body,
-          icon: isEnabled ? "/icon-192x192.png" : "/icon-warning.png",
+          title: data.title || statusTitle,
+          body: data.body || data.message || statusBody,
+          icon: isEnabled ? "/icon-192x192.png" : "/icon-192x192.png",
           badge: "/icon-144x144.png",
           tag: "vehicle-booking-status",
           requireInteraction: !isEnabled, // Require interaction for disabled notifications
-          data: data.data || {},
+          data: {
+            ...data.data,
+            url: "/", // Navigate to dashboard when clicked
+          },
         };
       } else {
         // Default notification handling
@@ -240,7 +251,8 @@ self.addEventListener("notificationclick", (event) => {
 
   if (event.notification.data) {
     if (event.notification.data.type === 'vehicle_booking_status_changed') {
-      urlToOpen = event.notification.data.url || "/vehicle-bookings";
+      // Navigate to dashboard for booking status changes to show the banner
+      urlToOpen = event.notification.data.url || "/";
     } else if (event.notification.data.url) {
       urlToOpen = event.notification.data.url;
     }

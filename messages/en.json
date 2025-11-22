@@ -668,7 +668,97 @@
       "title": "Disable Notifications?",
       "description": "You will no longer receive notifications for vehicle booking updates.",
       "confirm": "Disable"
+    },
+    "bookingStatusChanged": "Booking System {status}",
+    "bookingsNowOpen": "Vehicle bookings are now open! You can create new bookings.",
+    "bookingsNowClosed": "Vehicle bookings are now closed. New bookings cannot be created at this time.",
+    "welcome": {
+      "title": "Stay Updated in Real-Time",
+      "subtitle": "Enable notifications to receive instant updates about your vehicle bookings",
+      "benefits": {
+        "title": "You'll be notified when:",
+        "bookingCreated": "New vehicle booking is created",
+        "bookingReceived": "Vehicle arrives at the facility",
+        "offloadingStarted": "Offloading process begins",
+        "offloadingCompleted": "Offloading is completed",
+        "vehicleExited": "Vehicle exits the facility",
+        "bookingApproved": "Booking is approved",
+        "bookingRejected": "Booking is rejected",
+        "systemAlerts": "System alerts and capacity warnings"
+      },
+      "enableButton": "Enable Notifications",
+      "maybeLater": "Maybe Later",
+      "notSupported": "Your browser doesn't support notifications",
+      "permissionDenied": "Notification permission was denied. Please enable it in your browser settings."
+    },
+    "banner": {
+      "message": "Enable notifications to stay updated on your vehicle bookings",
+      "enableNow": "Enable Now"
+    },
+    "header": {
+      "enabled": "Notifications Enabled",
+      "disabled": "Notifications Disabled",
+      "enable": "Enable",
+      "disable": "Disable",
+      "notSupported": "Not Supported",
+      "clickToEnable": "Click to enable notifications",
+      "clickToManage": "Click to manage notifications",
+      "goToPreferences": "Go to Preferences"
     }
+  },
+  "install": {
+    "prompt": {
+      "title": "Install FinsERP",
+      "description": "Install this app on your device for quick access and a better experience.",
+      "install": "Install",
+      "notNow": "Not now",
+      "openGuide": "How to Install"
+    },
+    "guide": {
+      "title": "Install FinsERP App",
+      "description": "Follow these simple steps to install FinsERP on your device",
+      "iosTitle": "Install on iPhone/iPad",
+      "androidTitle": "Install on Android",
+      "desktopTitle": "Install on Desktop",
+      "iosSteps": {
+        "step1": "Tap the Share button",
+        "step1Detail": "Look for the share icon at the bottom of Safari",
+        "step2": "Find 'Add to Home Screen'",
+        "step2Detail": "Scroll down and tap 'Add to Home Screen'",
+        "step3": "Tap 'Add'",
+        "step3Detail": "Confirm to add the app to your home screen"
+      },
+      "androidSteps": {
+        "step1": "Tap the menu button",
+        "step1Detail": "Look for the three dots (⋮) at the top right",
+        "step2": "Tap 'Add to Home screen'",
+        "step2Detail": "Select 'Add to Home screen' or 'Install app'",
+        "step3": "Tap 'Add' or 'Install'",
+        "step3Detail": "Confirm to add the app to your home screen"
+      },
+      "desktopSteps": {
+        "step1": "Click the install icon",
+        "step1Detail": "Look for the install icon in your browser's address bar",
+        "step2": "Click 'Install'",
+        "step2Detail": "Confirm the installation when prompted"
+      },
+      "alreadyInstalled": "App is already installed!",
+      "close": "Close"
+    },
+    "fab": {
+      "tooltip": "Install App"
+    }
+  },
+  "bookingStatus": {
+    "closed": "Bookings Closed",
+    "closedTitle": "Vehicle Bookings Are Currently Closed",
+    "closedDescription": "The vehicle booking system has been temporarily disabled. New bookings cannot be created at this time.",
+    "closedReason": "This may be due to factory maintenance, capacity limits, or scheduled downtime.",
+    "checkBackLater": "Please check back later or contact your administrator for more information.",
+    "contactAdmin": "Contact Administrator",
+    "opened": "Bookings Open",
+    "openedTitle": "Vehicle Bookings Are Now Open",
+    "openedDescription": "The vehicle booking system is active. You can create new bookings."
   },
   "bills": {
     "title": "Vehicle Bills",

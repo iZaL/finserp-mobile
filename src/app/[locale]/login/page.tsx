@@ -149,13 +149,6 @@ export default function LoginPage() {
               {isLoading ? t("loggingIn") : t("loginButton")}
             </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-            <p className="text-xs text-center text-blue-700 dark:text-blue-300 font-medium">
-              {t("demoCredentials")}
-            </p>
-          </div>
         </div>
       </div>
     </div>

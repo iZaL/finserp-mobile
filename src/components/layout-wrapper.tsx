@@ -5,6 +5,7 @@ import { MobileNav } from "@/components/mobile-nav"
 import { UserMenu } from "@/components/user-menu"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ModeToggle } from "@/components/mode-toggle"
+import { NotificationBellIcon } from "@/components/notification-bell-icon"
 import { AppSidebar } from "@/components/app-sidebar"
 import { OfflineIndicator } from "@/components/offline-indicator"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -47,6 +48,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBellIcon />
             <ModeToggle />
             <LanguageSwitcher />
             <UserMenu />

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { X, Download } from "lucide-react";
+import { X, Download, HelpCircle } from "lucide-react";
+import { detectPlatform } from "@/lib/platform-detect";
+import { InstallGuideDialog } from "@/components/install-guide-dialog";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -15,35 +18,45 @@ interface BeforeInstallPromptEvent extends Event {
  * Hides automatically when the app is already running in standalone mode
  */
 export function InstallPrompt() {
+  const t = useTranslations();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Check if already running in standalone mode
-    const standalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    // Detect platform
+    const platformInfo = detectPlatform();
+    setIsStandalone(platformInfo.isStandalone);
+    setIsIOS(platformInfo.platform === 'ios-safari');
 
-    setIsStandalone(standalone);
-
-    if (standalone) {
+    if (platformInfo.isStandalone) {
       // Don't show install prompt if already installed
       return;
     }
 
-    // Listen for the beforeinstallprompt event
+    // Check if user has previously dismissed the prompt
+    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    const dismissedDate = dismissed ? parseInt(dismissed) : 0;
+    const daysSinceDismissed = (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
+
+    // For iOS, show the guide button since beforeinstallprompt doesn't work
+    if (platformInfo.platform === 'ios-safari') {
+      // Show prompt if never dismissed or dismissed more than 7 days ago
+      if (!dismissed || daysSinceDismissed > 7) {
+        setShowPrompt(true);
+      }
+      return;
+    }
+
+    // Listen for the beforeinstallprompt event (Android/Desktop)
     const handleBeforeInstallPrompt = (e: Event) => {
       // Prevent the default mini-infobar from appearing on mobile
       e.preventDefault();
 
       // Store the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-
-      // Check if user has previously dismissed the prompt
-      const dismissed = localStorage.getItem('pwa-install-dismissed');
-      const dismissedDate = dismissed ? parseInt(dismissed) : 0;
-      const daysSinceDismissed = (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
 
       // Show prompt if never dismissed or dismissed more than 7 days ago
       if (!dismissed || daysSinceDismissed > 7) {
@@ -69,7 +82,14 @@ export function InstallPrompt() {
   }, []);
 
   const handleInstallClick = async () => {
+    // For iOS, just open the guide
+    if (isIOS) {
+      setShowGuide(true);
+      return;
+    }
+
     if (!deferredPrompt) {
+      setShowGuide(true);
       return;
     }
 
@@ -96,50 +116,72 @@ export function InstallPrompt() {
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
+  const handleOpenGuide = () => {
+    setShowGuide(true);
+  };
+
   // Don't show anything if in standalone mode or prompt shouldn't be shown
-  if (isStandalone || !showPrompt || !deferredPrompt) {
+  if (isStandalone || !showPrompt) {
+    return null;
+  }
+
+  // Don't show on iOS if there's no prompt (will show guide button instead)
+  if (!isIOS && !deferredPrompt) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 md:left-auto md:right-4 md:max-w-sm">
-      <div className="bg-card border border-border rounded-lg shadow-lg p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Download className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-sm">Install FinsERP</h3>
+    <>
+      <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 md:left-auto md:right-4 md:max-w-sm">
+        <div className="bg-card border border-border rounded-lg shadow-lg p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-sm">{t("install.prompt.title")}</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                {t("install.prompt.description")}
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleInstallClick}
+                  size="sm"
+                  className="flex-1"
+                >
+                  {isIOS ? t("install.prompt.openGuide") : t("install.prompt.install")}
+                </Button>
+                {!isIOS && (
+                  <Button
+                    onClick={handleOpenGuide}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  onClick={handleDismiss}
+                  variant="outline"
+                  size="sm"
+                >
+                  {t("install.prompt.notNow")}
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Install this app on your device for quick access and a better experience.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleInstallClick}
-                size="sm"
-                className="flex-1"
-              >
-                Install
-              </Button>
-              <Button
-                onClick={handleDismiss}
-                variant="outline"
-                size="sm"
-              >
-                Not now
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0"
+              onClick={handleDismiss}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 flex-shrink-0"
-            onClick={handleDismiss}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
       </div>
-    </div>
+
+      <InstallGuideDialog open={showGuide} onOpenChange={setShowGuide} />
+    </>
   );
 }
