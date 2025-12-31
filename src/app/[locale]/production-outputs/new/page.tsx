@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useMemo, useCallback} from 'react';
+import {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
@@ -39,22 +39,38 @@ export default function CreateProductionOutputPage() {
     useProductionOutputFormData();
   const bulkCreateMutation = useBulkCreateProductionOutputs();
 
-  // Parse URL params from production runs dashboard
-  const urlParams = useMemo(() => {
+  // Parse URL params from production runs dashboard - using useState to avoid hydration issues
+  const [urlParams, setUrlParams] = useState({
+    runId: null as number | null,
+    shiftId: null as number | null,
+    fromDashboard: false,
+  });
+
+  useEffect(() => {
     const runId = searchParams.get('run_id');
     const shiftId = searchParams.get('shift_id');
-    return {
+    setUrlParams({
       runId: runId ? parseInt(runId) : null,
       shiftId: shiftId ? parseInt(shiftId) : null,
       fromDashboard: !!runId,
-    };
+    });
   }, [searchParams]);
 
-  // Form state
-  const [productionDate, setProductionDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
-  const [shiftId, setShiftId] = useState<number | null>(urlParams.shiftId);
+  // Form state - initialize with empty string to avoid hydration mismatch
+  const [productionDate, setProductionDate] = useState('');
+
+  // Set production date on client side only
+  useEffect(() => {
+    setProductionDate(new Date().toISOString().split('T')[0]);
+  }, []);
+  const [shiftId, setShiftId] = useState<number | null>(null);
+
+  // Update shiftId when urlParams changes
+  useEffect(() => {
+    if (urlParams.shiftId) {
+      setShiftId(urlParams.shiftId);
+    }
+  }, [urlParams.shiftId]);
 
   // Product output entries state - keyed by product type ID
   const [productEntries, setProductEntries] = useState<
@@ -62,11 +78,8 @@ export default function CreateProductionOutputPage() {
   >({});
 
   // Initialize product entries when form data loads
-  useMemo(() => {
-    if (
-      formDataOptions?.product_types &&
-      Object.keys(productEntries).length === 0
-    ) {
+  useEffect(() => {
+    if (formDataOptions?.product_types) {
       const initialEntries: Record<number, ProductOutputEntryData> = {};
       formDataOptions.product_types.forEach((pt) => {
         // Use default_package_type_id from product type, or fall back to first package type for this product
@@ -88,7 +101,7 @@ export default function CreateProductionOutputPage() {
       });
       setProductEntries(initialEntries);
     }
-  }, [formDataOptions, productEntries]);
+  }, [formDataOptions]);
 
   const handleEntryChange = useCallback(
     (productTypeId: number, data: ProductOutputEntryData) => {
