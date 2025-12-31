@@ -383,25 +383,28 @@ export default function NewProductionRunPage() {
           </div>
         )}
 
-        {/* Submit Button */}
-        <div className="bg-background fixed right-0 bottom-0 left-0 border-t p-4">
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="h-12 w-full text-base"
-          >
-            {createRunMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 size-5 animate-spin" />
-                {t('new.starting')}
-              </>
-            ) : (
-              <>
-                <Play className="mr-2 size-5" />
-                {t('new.startButton')}
-              </>
-            )}
-          </Button>
+        {/* Fixed Submit Button */}
+        <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-40 border-t px-4 pt-4 pb-20 shadow-lg">
+          <div className="mx-auto max-w-2xl">
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="h-12 w-full text-base"
+              size="lg"
+            >
+              {createRunMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 size-5 animate-spin" />
+                  {t('new.starting')}
+                </>
+              ) : (
+                <>
+                  <Play className="mr-2 size-5" />
+                  {t('new.startButton')}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </ProductionRunsGuard>
