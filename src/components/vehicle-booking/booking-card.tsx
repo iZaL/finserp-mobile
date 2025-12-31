@@ -1,36 +1,50 @@
-"use client"
+'use client';
 
-import { memo, useCallback } from "react"
-import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from "next-intl"
-import { Truck, Calendar, User, Users, CheckCircle, XCircle, LogOut, RotateCcw, Edit, Trash2, MoreVertical, Fish, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import {memo, useCallback} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {useTranslations} from 'next-intl';
+import {
+  Truck,
+  Calendar,
+  User,
+  Users,
+  CheckCircle,
+  XCircle,
+  LogOut,
+  RotateCcw,
+  Edit,
+  Trash2,
+  MoreVertical,
+  Fish,
+  FileText,
+} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {Checkbox} from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { RelativeTime } from "@/components/relative-time"
-import { getVehicleStatusColor } from "@/lib/utils/status-colors"
-import type { VehicleBooking } from "@/types/vehicle-booking"
+} from '@/components/ui/dropdown-menu';
+import {RelativeTime} from '@/components/relative-time';
+import {getVehicleStatusColor} from '@/lib/utils/status-colors';
+import type {VehicleBooking} from '@/types/vehicle-booking';
 
 interface BookingCardProps {
-  booking: VehicleBooking
-  onReceive?: (booking: VehicleBooking) => void
-  onReject?: (booking: VehicleBooking) => void
-  onStartOffloading?: (booking: VehicleBooking) => void
-  onCompleteOffloading?: (booking: VehicleBooking) => void
-  onExit?: (booking: VehicleBooking) => void
-  onUnreceive?: (booking: VehicleBooking) => void
-  onEdit?: (booking: VehicleBooking) => void
-  onDelete?: (booking: VehicleBooking) => void
-  onApprove?: (booking: VehicleBooking) => void
-  onRejectApproval?: (booking: VehicleBooking) => void
-  onClick?: (booking: VehicleBooking) => void
-  isSelected?: boolean
-  onSelectionChange?: (booking: VehicleBooking, selected: boolean) => void
+  booking: VehicleBooking;
+  onReceive?: (booking: VehicleBooking) => void;
+  onReject?: (booking: VehicleBooking) => void;
+  onStartOffloading?: (booking: VehicleBooking) => void;
+  onCompleteOffloading?: (booking: VehicleBooking) => void;
+  onExit?: (booking: VehicleBooking) => void;
+  onUnreceive?: (booking: VehicleBooking) => void;
+  onEdit?: (booking: VehicleBooking) => void;
+  onDelete?: (booking: VehicleBooking) => void;
+  onApprove?: (booking: VehicleBooking) => void;
+  onRejectApproval?: (booking: VehicleBooking) => void;
+  onClick?: (booking: VehicleBooking) => void;
+  isSelected?: boolean;
+  onSelectionChange?: (booking: VehicleBooking, selected: boolean) => void;
 }
 
 const BookingCardComponent = ({
@@ -49,43 +63,47 @@ const BookingCardComponent = ({
   isSelected = false,
   onSelectionChange,
 }: BookingCardProps) => {
-  const router = useRouter()
-  const t = useTranslations('vehicleBookings.bookingCard')
+  const router = useRouter();
+  const t = useTranslations('vehicleBookings.bookingCard');
 
-  const handleAction = useCallback((e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation()
-    action()
-  }, [])
-
+  const handleAction = useCallback(
+    (e: React.MouseEvent, action: () => void) => {
+      e.stopPropagation();
+      action();
+    },
+    []
+  );
 
   return (
     <div
-      className={`relative rounded-xl border bg-card text-card-foreground shadow-sm p-4 hover:shadow-md transition-all ${
-        isSelected ? "border-primary bg-primary/5" : ""
+      className={`bg-card text-card-foreground relative rounded-xl border p-4 shadow-sm transition-all hover:shadow-md ${
+        isSelected ? 'border-primary bg-primary/5' : ''
       }`}
       onClick={() => onClick?.(booking)}
     >
       {/* Swimming Fish Animation - Only show when offloading */}
-      {booking.status === "offloading"}
+      {booking.status === 'offloading'}
       {/* Header */}
-      <div className="flex items-start justify-between mb-3 relative z-10">
+      <div className="relative z-10 mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
           {/* Selection Checkbox */}
           {onSelectionChange && (
             <Checkbox
               checked={isSelected}
-              onCheckedChange={(checked) => onSelectionChange(booking, !!checked)}
+              onCheckedChange={(checked) =>
+                onSelectionChange(booking, !!checked)
+              }
               onClick={(e) => e.stopPropagation()}
             />
           )}
-          <div className="relative flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+          <div className="relative flex size-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
             <Truck className="size-5" />
             {/* Corner fish badge for offloading status */}
-            {booking.status === "offloading" && (
-              <div className="absolute -top-1.5 -right-1.5 size-6 rounded-full bg-amber-100 dark:bg-amber-900/70 border-2 border-white dark:border-gray-800 overflow-hidden">
-                <div className="relative w-full h-full">
+            {booking.status === 'offloading' && (
+              <div className="absolute -top-1.5 -right-1.5 size-6 overflow-hidden rounded-full border-2 border-white bg-amber-100 dark:border-gray-800 dark:bg-amber-900/70">
+                <div className="relative h-full w-full">
                   <Fish
-                    className="absolute size-3.5 text-amber-600 dark:text-amber-400 top-1/2 transform -translate-y-1/2"
+                    className="absolute top-1/2 size-3.5 -translate-y-1/2 transform text-amber-600 dark:text-amber-400"
                     style={{
                       animation: 'fishSwimBadge 4s ease-in-out infinite',
                     }}
@@ -96,14 +114,16 @@ const BookingCardComponent = ({
           </div>
           <div>
             <h4 className="font-semibold">{booking.vehicle_number}</h4>
-            <p className="text-xs text-muted-foreground">
-              <span className="opacity-60">ID: {booking.id}</span> · {booking.box_count} {t('boxes')} · {Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}
+            <p className="text-muted-foreground text-xs">
+              <span className="opacity-60">ID: {booking.id}</span> ·{' '}
+              {booking.box_count} {t('boxes')} ·{' '}
+              {Number(booking.weight_tons || 0).toFixed(2)} {t('tons')}
             </p>
           </div>
         </div>
-        <div className="flex flex-col gap-1 items-end">
+        <div className="flex flex-col items-end gap-1">
           <span
-            className={`px-2 py-1 text-xs font-medium rounded-full ${getVehicleStatusColor(booking.status)}`}
+            className={`rounded-full px-2 py-1 text-xs font-medium ${getVehicleStatusColor(booking.status)}`}
           >
             {t(booking.status)}
           </span>
@@ -111,35 +131,54 @@ const BookingCardComponent = ({
       </div>
 
       {/* Details */}
-      <div className="grid grid-cols-2 gap-2 text-sm mb-3 relative z-10">
+      <div className="relative z-10 mb-3 grid grid-cols-2 gap-2 text-sm">
         {booking.driver_name && (
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2">
             <User className="size-4" />
             <span className="truncate">{booking.driver_name}</span>
           </div>
         )}
         {booking.supplier_name && (
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2">
             <Users className="size-4" />
             <span className="truncate">{booking.supplier_name}</span>
           </div>
         )}
-        <div className="flex items-center justify-between gap-2 text-muted-foreground col-span-2">
+        <div className="text-muted-foreground col-span-2 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Calendar className="size-4" />
             <span className="text-xs">
-              {booking.status === "exited" && booking.exited_at ? (
-                <>{t('exited')}: <RelativeTime date={booking.exited_at} /></>
-              ) : booking.status === "offloaded" && booking.offloading_completed_at ? (
-                <>{t('offloaded')}: <RelativeTime date={booking.offloading_completed_at} /></>
-              ) : booking.status === "offloading" && booking.offloading_started_at ? (
-                <>{t('offloading')}: <RelativeTime date={booking.offloading_started_at} /></>
-              ) : booking.status === "received" && booking.received_at ? (
-                <>{t('received')}: <RelativeTime date={booking.received_at} /></>
-              ) : booking.status === "rejected" && booking.rejected_at ? (
-                <>{t('rejected')}: <RelativeTime date={booking.rejected_at} /></>
+              {booking.status === 'exited' && booking.exited_at ? (
+                <>
+                  {t('exited')}: <RelativeTime date={booking.exited_at} />
+                </>
+              ) : booking.status === 'offloaded' &&
+                booking.offloading_completed_at ? (
+                <>
+                  {t('offloaded')}:{' '}
+                  <RelativeTime date={booking.offloading_completed_at} />
+                </>
+              ) : booking.status === 'offloading' &&
+                booking.offloading_started_at ? (
+                <>
+                  {t('offloading')}:{' '}
+                  <RelativeTime date={booking.offloading_started_at} />
+                </>
+              ) : booking.status === 'received' && booking.received_at ? (
+                <>
+                  {t('received')}: <RelativeTime date={booking.received_at} />
+                </>
+              ) : booking.status === 'rejected' && booking.rejected_at ? (
+                <>
+                  {t('rejected')}: <RelativeTime date={booking.rejected_at} />
+                </>
               ) : (
-                <>{t('booked')}: <RelativeTime date={booking.entry_datetime || booking.created_at} /></>
+                <>
+                  {t('booked')}:{' '}
+                  <RelativeTime
+                    date={booking.entry_datetime || booking.created_at}
+                  />
+                </>
               )}
             </span>
           </div>
@@ -155,12 +194,13 @@ const BookingCardComponent = ({
       </div>
 
       {/* Received Info */}
-      {booking.status === "received" && booking.actual_box_count && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-muted/50 rounded relative z-10">
+      {booking.status === 'received' && booking.actual_box_count && (
+        <div className="text-muted-foreground bg-muted/50 relative z-10 mb-3 rounded p-2 text-xs">
           {t('received')}: {booking.actual_box_count} {t('boxes')}
           {booking.actual_box_count !== booking.box_count && (
-            <span className="font-medium text-orange-600 dark:text-orange-400 ms-1">
-              (Diff: {booking.actual_box_count - booking.box_count > 0 ? "+" : ""}
+            <span className="ms-1 font-medium text-orange-600 dark:text-orange-400">
+              (Diff:{' '}
+              {booking.actual_box_count - booking.box_count > 0 ? '+' : ''}
               {booking.actual_box_count - booking.box_count})
             </span>
           )}
@@ -168,8 +208,8 @@ const BookingCardComponent = ({
       )}
 
       {/* Rejection Info */}
-      {booking.status === "rejected" && booking.rejection_reason && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800 relative z-10">
+      {booking.status === 'rejected' && booking.rejection_reason && (
+        <div className="text-muted-foreground relative z-10 mb-3 rounded border border-red-200 bg-red-50 p-2 text-xs dark:border-red-800 dark:bg-red-900/10">
           <p className="font-medium text-red-600 dark:text-red-400">
             {t('rejected')}: {booking.rejection_reason}
           </p>
@@ -181,7 +221,7 @@ const BookingCardComponent = ({
 
       {/* Approval Pending Info */}
       {booking.is_pending_approval && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-amber-50 dark:bg-amber-900/10 rounded border border-amber-200 dark:border-amber-800 relative z-10">
+        <div className="text-muted-foreground relative z-10 mb-3 rounded border border-amber-200 bg-amber-50 p-2 text-xs dark:border-amber-800 dark:bg-amber-900/10">
           <p className="font-medium text-amber-600 dark:text-amber-400">
             {t('waitingForApproval')}
           </p>
@@ -193,7 +233,7 @@ const BookingCardComponent = ({
 
       {/* Approval Rejected Info */}
       {booking.approval_status === 'rejected' && (
-        <div className="text-xs text-muted-foreground mb-3 p-2 bg-red-50 dark:bg-red-900/10 rounded border border-red-200 dark:border-red-800 relative z-10">
+        <div className="text-muted-foreground relative z-10 mb-3 rounded border border-red-200 bg-red-50 p-2 text-xs dark:border-red-800 dark:bg-red-900/10">
           <p className="font-medium text-red-600 dark:text-red-400">
             {t('approvalRejectedMessage')}
           </p>
@@ -203,9 +243,8 @@ const BookingCardComponent = ({
         </div>
       )}
 
-
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-1.5 mt-3">
+      <div className="mt-3 flex items-center justify-end gap-1.5">
         {/* Approval Actions - Show when user can approve */}
         {booking.can_approve && onApprove && (
           <>
@@ -213,9 +252,9 @@ const BookingCardComponent = ({
               size="sm"
               variant="outline"
               onClick={(e) => handleAction(e, () => onApprove(booking))}
-              className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
+              className="border-emerald-300 bg-white px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-emerald-950"
             >
-              <CheckCircle className="size-3 me-1.5" />
+              <CheckCircle className="me-1.5 size-3" />
               {t('actions.approve')}
             </Button>
             {onRejectApproval && (
@@ -232,10 +271,12 @@ const BookingCardComponent = ({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem
-                    onClick={(e) => handleAction(e, () => onRejectApproval(booking))}
-                    className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                    onClick={(e) =>
+                      handleAction(e, () => onRejectApproval(booking))
+                    }
+                    className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                   >
-                    <XCircle className="size-3 me-2" />
+                    <XCircle className="me-2 size-3" />
                     {t('actions.rejectApproval')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -245,127 +286,141 @@ const BookingCardComponent = ({
         )}
 
         {/* Booked Status Actions */}
-        {booking.status === "booked" && !booking.can_approve && (
+        {booking.status === 'booked' && !booking.can_approve && (
           <>
             {booking.can_receive && onReceive && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onReceive(booking))}
-                className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
+                className="border-emerald-300 bg-white px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-emerald-950"
               >
-                <CheckCircle className="size-3 me-1.5" />
+                <CheckCircle className="me-1.5 size-3" />
                 {t('actions.receive')}
               </Button>
             )}
-            {(booking.can_edit || booking.can_delete || booking.can_reject) && (onEdit || onDelete || onReject) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="px-2 py-1.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {booking.can_edit && onEdit && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onEdit(booking))}
-                      className="cursor-pointer"
+            {(booking.can_edit || booking.can_delete || booking.can_reject) &&
+              (onEdit || onDelete || onReject) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="px-2 py-1.5"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Edit className="size-4 me-2" />
-                      {t('actions.edit')}
-                    </DropdownMenuItem>
-                  )}
-                  {booking.can_reject && onReject && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onReject(booking))}
-                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    >
-                      <XCircle className="size-4 me-2" />
-                      {t('actions.reject')}
-                    </DropdownMenuItem>
-                  )}
-                  {booking.can_delete && onDelete && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onDelete(booking))}
-                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    >
-                      <Trash2 className="size-4 me-2" />
-                      {t('actions.delete')}
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {booking.can_edit && onEdit && (
+                      <DropdownMenuItem
+                        onClick={(e) => handleAction(e, () => onEdit(booking))}
+                        className="cursor-pointer"
+                      >
+                        <Edit className="me-2 size-4" />
+                        {t('actions.edit')}
+                      </DropdownMenuItem>
+                    )}
+                    {booking.can_reject && onReject && (
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleAction(e, () => onReject(booking))
+                        }
+                        className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                      >
+                        <XCircle className="me-2 size-4" />
+                        {t('actions.reject')}
+                      </DropdownMenuItem>
+                    )}
+                    {booking.can_delete && onDelete && (
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleAction(e, () => onDelete(booking))
+                        }
+                        className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                      >
+                        <Trash2 className="me-2 size-4" />
+                        {t('actions.delete')}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
           </>
         )}
 
         {/* Received Status Actions */}
-        {booking.status === "received" && (
+        {booking.status === 'received' && (
           <>
             {booking.can_start_offloading && onStartOffloading && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => handleAction(e, () => onStartOffloading(booking))}
-                className="px-3 py-1.5 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm"
+                onClick={(e) =>
+                  handleAction(e, () => onStartOffloading(booking))
+                }
+                className="border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
-                <CheckCircle className="size-3 me-1.5" />
+                <CheckCircle className="me-1.5 size-3" />
                 {t('actions.startOffloading')}
               </Button>
             )}
-            {(booking.can_unreceive || booking.can_reject) && (onUnreceive || onReject) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="px-2 py-1.5"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {booking.can_unreceive && onUnreceive && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onUnreceive(booking))}
-                      className="cursor-pointer"
+            {(booking.can_unreceive || booking.can_reject) &&
+              (onUnreceive || onReject) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="px-2 py-1.5"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <RotateCcw className="size-4 me-2" />
-                      {t('actions.unreceive')}
-                    </DropdownMenuItem>
-                  )}
-                  {booking.can_reject && onReject && (
-                    <DropdownMenuItem
-                      onClick={(e) => handleAction(e, () => onReject(booking))}
-                      className="cursor-pointer text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
-                    >
-                      <XCircle className="size-4 me-2" />
-                      {t('actions.reject')}
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {booking.can_unreceive && onUnreceive && (
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleAction(e, () => onUnreceive(booking))
+                        }
+                        className="cursor-pointer"
+                      >
+                        <RotateCcw className="me-2 size-4" />
+                        {t('actions.unreceive')}
+                      </DropdownMenuItem>
+                    )}
+                    {booking.can_reject && onReject && (
+                      <DropdownMenuItem
+                        onClick={(e) =>
+                          handleAction(e, () => onReject(booking))
+                        }
+                        className="cursor-pointer text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                      >
+                        <XCircle className="me-2 size-4" />
+                        {t('actions.reject')}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
           </>
         )}
 
         {/* Offloading Status Actions */}
-        {booking.status === "offloading" && (
+        {booking.status === 'offloading' && (
           <>
             {booking.can_complete_offloading && onCompleteOffloading && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => handleAction(e, () => onCompleteOffloading(booking))}
-                className="px-3 py-1.5 border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:bg-slate-800 dark:hover:bg-emerald-950 text-sm"
+                onClick={(e) =>
+                  handleAction(e, () => onCompleteOffloading(booking))
+                }
+                className="border-emerald-300 bg-white px-3 py-1.5 text-sm text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:bg-slate-800 dark:text-emerald-400 dark:hover:bg-emerald-950"
               >
-                <CheckCircle className="size-3 me-1.5" />
+                <CheckCircle className="me-1.5 size-3" />
                 {t('actions.completeOffloading')}
               </Button>
             )}
@@ -373,7 +428,7 @@ const BookingCardComponent = ({
         )}
 
         {/* Offloaded Status Actions */}
-        {booking.status === "offloaded" && (
+        {booking.status === 'offloaded' && (
           <>
             {/* Create Fish Purchase Bill Button */}
             {!booking.fish_purchase_id && (
@@ -381,11 +436,15 @@ const BookingCardComponent = ({
                 size="sm"
                 variant="outline"
                 onClick={(e) => {
-                  handleAction(e, () => router.push(`/fish-purchases/new?vehicle_booking_id=${booking.id}`));
+                  handleAction(e, () =>
+                    router.push(
+                      `/fish-purchases/new?vehicle_booking_id=${booking.id}`
+                    )
+                  );
                 }}
-                className="px-3 py-1.5 border-purple-300 text-purple-700 bg-white hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:bg-slate-800 dark:hover:bg-purple-950 text-sm"
+                className="border-purple-300 bg-white px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:bg-slate-800 dark:text-purple-400 dark:hover:bg-purple-950"
               >
-                <FileText className="size-3 me-1.5" />
+                <FileText className="me-1.5 size-3" />
                 {t('actions.createFishPurchase')}
               </Button>
             )}
@@ -395,10 +454,14 @@ const BookingCardComponent = ({
               <Button
                 size="sm"
                 variant="outline"
-                onClick={(e) => handleAction(e, () => router.push(`/fish-purchases/${booking.fish_purchase_id}`))}
-                className="px-3 py-1.5 border-purple-300 text-purple-700 bg-white hover:bg-purple-50 dark:border-purple-600 dark:text-purple-400 dark:bg-slate-800 dark:hover:bg-purple-950 text-sm"
+                onClick={(e) =>
+                  handleAction(e, () =>
+                    router.push(`/fish-purchases/${booking.fish_purchase_id}`)
+                  )
+                }
+                className="border-purple-300 bg-white px-3 py-1.5 text-sm text-purple-700 hover:bg-purple-50 dark:border-purple-600 dark:bg-slate-800 dark:text-purple-400 dark:hover:bg-purple-950"
               >
-                <FileText className="size-3 me-1.5" />
+                <FileText className="me-1.5 size-3" />
                 {booking.fish_purchase_bill_number}
               </Button>
             )}
@@ -408,9 +471,9 @@ const BookingCardComponent = ({
                 size="sm"
                 variant="outline"
                 onClick={(e) => handleAction(e, () => onExit(booking))}
-                className="px-3 py-1.5 border-blue-300 text-blue-700 bg-white hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:bg-slate-800 dark:hover:bg-blue-950 text-sm"
+                className="border-blue-300 bg-white px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:bg-slate-800 dark:text-blue-400 dark:hover:bg-blue-950"
               >
-                <LogOut className="size-3 me-1.5" />
+                <LogOut className="me-1.5 size-3" />
                 {t('actions.exit')}
               </Button>
             )}
@@ -418,12 +481,15 @@ const BookingCardComponent = ({
         )}
 
         {/* Exited/Rejected Status - No Actions */}
-        {(booking.status === "exited" || booking.status === "rejected" || booking.status === "pending") && null}
+        {(booking.status === 'exited' ||
+          booking.status === 'rejected' ||
+          booking.status === 'pending') &&
+          null}
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Memoize component to prevent unnecessary re-renders
 // Only re-render when props actually change
-export const BookingCard = memo(BookingCardComponent)
+export const BookingCard = memo(BookingCardComponent);

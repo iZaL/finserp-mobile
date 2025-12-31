@@ -7,35 +7,35 @@
  * Validation error from Laravel backend
  */
 export interface ValidationError {
-  errors: Record<string, string | string[]>
-  message?: string
+  errors: Record<string, string | string[]>;
+  message?: string;
 }
 
 /**
  * API error response
  */
 export interface ApiError extends Error {
-  statusCode?: number
-  errors?: Record<string, string | string[]>
-  isValidationError?: boolean
-  isNetworkError?: boolean
-  isTimeout?: boolean
+  statusCode?: number;
+  errors?: Record<string, string | string[]>;
+  isValidationError?: boolean;
+  isNetworkError?: boolean;
+  isTimeout?: boolean;
 }
 
 /**
  * Network error (offline, no connection)
  */
 export interface NetworkError extends Error {
-  isNetworkError: true
-  code?: string
+  isNetworkError: true;
+  code?: string;
 }
 
 /**
  * Timeout error
  */
 export interface TimeoutError extends Error {
-  isTimeout: true
-  code?: string
+  isTimeout: true;
+  code?: string;
 }
 
 /**
@@ -45,11 +45,11 @@ export interface TimeoutError extends Error {
  */
 export function isValidationError(error: unknown): error is ValidationError {
   return (
-    typeof error === "object" &&
+    typeof error === 'object' &&
     error !== null &&
-    "errors" in error &&
-    typeof (error as ValidationError).errors === "object"
-  )
+    'errors' in error &&
+    typeof (error as ValidationError).errors === 'object'
+  );
 }
 
 /**
@@ -58,7 +58,7 @@ export function isValidationError(error: unknown): error is ValidationError {
  * @returns true if error is an API error
  */
 export function isApiError(error: unknown): error is ApiError {
-  return error instanceof Error && "statusCode" in error
+  return error instanceof Error && 'statusCode' in error;
 }
 
 /**
@@ -68,11 +68,11 @@ export function isApiError(error: unknown): error is ApiError {
  */
 export function isNetworkError(error: unknown): error is NetworkError {
   return (
-    typeof error === "object" &&
+    typeof error === 'object' &&
     error !== null &&
-    "isNetworkError" in error &&
+    'isNetworkError' in error &&
     (error as NetworkError).isNetworkError === true
-  )
+  );
 }
 
 /**
@@ -82,11 +82,11 @@ export function isNetworkError(error: unknown): error is NetworkError {
  */
 export function isTimeoutError(error: unknown): error is TimeoutError {
   return (
-    typeof error === "object" &&
+    typeof error === 'object' &&
     error !== null &&
-    "isTimeout" in error &&
+    'isTimeout' in error &&
     (error as TimeoutError).isTimeout === true
-  )
+  );
 }
 
 /**
@@ -97,21 +97,21 @@ export function isTimeoutError(error: unknown): error is TimeoutError {
  */
 export function getErrorMessage(
   error: unknown,
-  fallback = "An error occurred"
+  fallback = 'An error occurred'
 ): string {
   if (error instanceof Error) {
-    return error.message
+    return error.message;
   }
 
   if (isValidationError(error) && error.message) {
-    return error.message
+    return error.message;
   }
 
-  if (typeof error === "string") {
-    return error
+  if (typeof error === 'string') {
+    return error;
   }
 
-  return fallback
+  return fallback;
 }
 
 /**
@@ -123,16 +123,16 @@ export function getValidationErrors(
   error: unknown
 ): Record<string, string[]> | null {
   if (!isValidationError(error)) {
-    return null
+    return null;
   }
 
-  const errors: Record<string, string[]> = {}
+  const errors: Record<string, string[]> = {};
 
   Object.entries(error.errors).forEach(([field, messages]) => {
-    errors[field] = Array.isArray(messages) ? messages : [messages]
-  })
+    errors[field] = Array.isArray(messages) ? messages : [messages];
+  });
 
-  return errors
+  return errors;
 }
 
 /**
@@ -141,17 +141,17 @@ export function getValidationErrors(
  * @returns Formatted error messages array
  */
 export function formatValidationErrors(error: unknown): string[] {
-  const validationErrors = getValidationErrors(error)
+  const validationErrors = getValidationErrors(error);
   if (!validationErrors) {
-    return []
+    return [];
   }
 
-  const messages: string[] = []
+  const messages: string[] = [];
   Object.entries(validationErrors).forEach(([field, fieldMessages]) => {
     fieldMessages.forEach((message) => {
-      messages.push(`${field}: ${message}`)
-    })
-  })
+      messages.push(`${field}: ${message}`);
+    });
+  });
 
-  return messages
+  return messages;
 }

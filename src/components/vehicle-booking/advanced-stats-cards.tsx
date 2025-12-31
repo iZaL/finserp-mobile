@@ -1,45 +1,55 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { StatsKPICard } from "./stats-kpi-card"
-import { ChevronDown, ChevronUp, Clock, AlertTriangle, TrendingUp, Users } from "lucide-react"
-import { useTranslations } from "next-intl"
-import type { RangeStats } from "@/types/vehicle-booking"
+import * as React from 'react';
+import {useState} from 'react';
+import {Button} from '@/components/ui/button';
+import {StatsKPICard} from './stats-kpi-card';
+import {
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  AlertTriangle,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
+import {useTranslations} from 'next-intl';
+import type {RangeStats} from '@/types/vehicle-booking';
 
 interface AdvancedStatsCardsProps {
-  stats: RangeStats | undefined
-  isLoading?: boolean
+  stats: RangeStats | undefined;
+  isLoading?: boolean;
 }
 
-export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps) {
-  const t = useTranslations("vehicleBookings.rangeStats")
-  const [isExpanded, setIsExpanded] = useState(false)
+export function AdvancedStatsCards({
+  stats,
+  isLoading,
+}: AdvancedStatsCardsProps) {
+  const t = useTranslations('vehicleBookings.rangeStats');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (isLoading || !stats) {
     return (
       <div className="space-y-3">
         {/* Show More Button Skeleton */}
         <div className="flex justify-center">
-          <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          <div className="bg-muted h-8 w-32 animate-pulse rounded" />
         </div>
       </div>
-    )
+    );
   }
 
   const formatHours = (hours: number | null) => {
-    if (hours === null || hours === undefined) return t("noData")
+    if (hours === null || hours === undefined) return t('noData');
     if (hours < 1) {
-      return `${Math.round(hours * 60)} ${t("mins")}`
+      return `${Math.round(hours * 60)} ${t('mins')}`;
     }
-    return `${hours.toFixed(1)} ${t("hrs")}`
-  }
+    return `${hours.toFixed(1)} ${t('hrs')}`;
+  };
 
   const formatPercent = (value: number | null | undefined) => {
-    if (value === null || value === undefined) return "0%"
-    return `${Math.round(value)}%`
-  }
+    if (value === null || value === undefined) return '0%';
+    return `${Math.round(value)}%`;
+  };
 
   return (
     <div className="space-y-3">
@@ -53,13 +63,13 @@ export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps
         >
           {isExpanded ? (
             <>
-              {t("showLess")}
-              <ChevronUp className="h-3 w-3 ml-1" />
+              {t('showLess')}
+              <ChevronUp className="ml-1 h-3 w-3" />
             </>
           ) : (
             <>
-              {t("showAdvanced")}
-              <ChevronDown className="h-3 w-3 ml-1" />
+              {t('showAdvanced')}
+              <ChevronDown className="ml-1 h-3 w-3" />
             </>
           )}
         </Button>
@@ -72,27 +82,27 @@ export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps
           <div className="grid grid-cols-2 gap-3">
             <StatsKPICard
               icon={<Clock className="h-4 w-4" />}
-              title={t("offloadingTimeTitle")}
+              title={t('offloadingTimeTitle')}
               value={formatHours(stats.avg_offloading_time_hours)}
-              subtitle={t("avgOffloadingDuration")}
+              subtitle={t('avgOffloadingDuration')}
               badge={
                 (stats.avg_offloading_time_hours ?? 0) > 2
-                  ? { label: t("slow"), variant: "destructive" }
+                  ? {label: t('slow'), variant: 'destructive'}
                   : (stats.avg_offloading_time_hours ?? 0) > 1
-                  ? { label: t("normal"), variant: "secondary" }
-                  : { label: t("fast"), variant: "default" }
+                    ? {label: t('normal'), variant: 'secondary'}
+                    : {label: t('fast'), variant: 'default'}
               }
             />
 
             <StatsKPICard
               icon={<Clock className="h-4 w-4" />}
-              title={t("exitWaitTime")}
+              title={t('exitWaitTime')}
               value={formatHours(stats.avg_exit_wait_time_hours)}
-              subtitle={t("avgExitWaitDuration")}
+              subtitle={t('avgExitWaitDuration')}
               badge={
                 (stats.avg_exit_wait_time_hours ?? 0) > 0.5
-                  ? { label: t("high"), variant: "destructive" }
-                  : { label: t("good"), variant: "default" }
+                  ? {label: t('high'), variant: 'destructive'}
+                  : {label: t('good'), variant: 'default'}
               }
             />
           </div>
@@ -101,16 +111,16 @@ export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps
           <div className="grid grid-cols-2 gap-3">
             <StatsKPICard
               icon={<TrendingUp className="h-4 w-4" />}
-              title={t("peakHour")}
-              value={stats.peak_hour || t("noData")}
-              subtitle={t("busiestTimeOfDay")}
+              title={t('peakHour')}
+              value={stats.peak_hour || t('noData')}
+              subtitle={t('busiestTimeOfDay')}
             />
 
             <StatsKPICard
               icon={<Users className="h-4 w-4" />}
-              title={t("topSupplier")}
-              value={stats.busiest_supplier || t("noData")}
-              subtitle={t("mostActiveSupplier")}
+              title={t('topSupplier')}
+              value={stats.busiest_supplier || t('noData')}
+              subtitle={t('mostActiveSupplier')}
             />
           </div>
 
@@ -118,23 +128,23 @@ export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps
           <div className="grid grid-cols-2 gap-3">
             <StatsKPICard
               icon={<AlertTriangle className="h-4 w-4" />}
-              title={t("boxVariance")}
+              title={t('boxVariance')}
               value={formatPercent(stats.box_variance_percentage)}
-              subtitle={t("actualVsPlannedBoxes")}
+              subtitle={t('actualVsPlannedBoxes')}
               badge={
                 (stats.box_variance_percentage ?? 0) > 15
-                  ? { label: t("high"), variant: "destructive" }
+                  ? {label: t('high'), variant: 'destructive'}
                   : (stats.box_variance_percentage ?? 0) > 5
-                  ? { label: t("moderate"), variant: "secondary" }
-                  : { label: t("low"), variant: "default" }
+                    ? {label: t('moderate'), variant: 'secondary'}
+                    : {label: t('low'), variant: 'default'}
               }
             />
 
             <StatsKPICard
               icon={<Clock className="h-4 w-4" />}
-              title={t("totalCycleTime")}
+              title={t('totalCycleTime')}
               value={formatHours(stats.avg_total_cycle_hours)}
-              subtitle={t("avgTotalDuration")}
+              subtitle={t('avgTotalDuration')}
             />
           </div>
 
@@ -142,34 +152,34 @@ export function AdvancedStatsCards({ stats, isLoading }: AdvancedStatsCardsProps
           <div className="grid grid-cols-2 gap-3">
             <StatsKPICard
               icon={<AlertTriangle className="h-4 w-4" />}
-              title={t("rejectionRate")}
+              title={t('rejectionRate')}
               value={formatPercent(stats.rejection_rate_percent)}
-              subtitle={t("vehiclesRejected")}
+              subtitle={t('vehiclesRejected')}
               badge={
                 stats.rejection_rate_percent > 10
-                  ? { label: t("high"), variant: "destructive" }
+                  ? {label: t('high'), variant: 'destructive'}
                   : stats.rejection_rate_percent > 5
-                  ? { label: t("moderate"), variant: "secondary" }
-                  : { label: t("low"), variant: "default" }
+                    ? {label: t('moderate'), variant: 'secondary'}
+                    : {label: t('low'), variant: 'default'}
               }
             />
 
             <StatsKPICard
               icon={<TrendingUp className="h-4 w-4" />}
-              title={t("completionRate")}
+              title={t('completionRate')}
               value={formatPercent(stats.completion_rate_percent)}
-              subtitle={t("vehiclesCompleted")}
+              subtitle={t('vehiclesCompleted')}
               badge={
                 stats.completion_rate_percent >= 95
-                  ? { label: t("excellent"), variant: "default" }
+                  ? {label: t('excellent'), variant: 'default'}
                   : stats.completion_rate_percent >= 85
-                  ? { label: t("good"), variant: "secondary" }
-                  : { label: t("needsImprovement"), variant: "destructive" }
+                    ? {label: t('good'), variant: 'secondary'}
+                    : {label: t('needsImprovement'), variant: 'destructive'}
               }
             />
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

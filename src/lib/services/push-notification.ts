@@ -1,4 +1,4 @@
-import { api } from "../api";
+import {api} from '../api';
 
 export interface PushSubscriptionData {
   endpoint: string;
@@ -13,8 +13,8 @@ export interface PushSubscriptionData {
  * Request notification permission from the user
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
-  if (!("Notification" in window)) {
-    throw new Error("This browser does not support notifications");
+  if (!('Notification' in window)) {
+    throw new Error('This browser does not support notifications');
   }
 
   const permission = await Notification.requestPermission();
@@ -24,9 +24,11 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 /**
  * Subscribe to push notifications
  */
-export async function subscribeToPushNotifications(vapidPublicKey: string): Promise<PushSubscription | null> {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    console.warn("Push notifications are not supported");
+export async function subscribeToPushNotifications(
+  vapidPublicKey: string
+): Promise<PushSubscription | null> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.warn('Push notifications are not supported');
     return null;
   }
 
@@ -47,7 +49,7 @@ export async function subscribeToPushNotifications(vapidPublicKey: string): Prom
 
     return subscription;
   } catch (error) {
-    console.error("Failed to subscribe to push notifications:", error);
+    console.error('Failed to subscribe to push notifications:', error);
     return null;
   }
 }
@@ -56,7 +58,7 @@ export async function subscribeToPushNotifications(vapidPublicKey: string): Prom
  * Unsubscribe from push notifications
  */
 export async function unsubscribeFromPushNotifications(): Promise<boolean> {
-  if (!("serviceWorker" in navigator)) {
+  if (!('serviceWorker' in navigator)) {
     return false;
   }
 
@@ -71,7 +73,7 @@ export async function unsubscribeFromPushNotifications(): Promise<boolean> {
 
     return false;
   } catch (error) {
-    console.error("Failed to unsubscribe from push notifications:", error);
+    console.error('Failed to unsubscribe from push notifications:', error);
     return false;
   }
 }
@@ -86,45 +88,55 @@ export async function sendSubscriptionToBackend(
   const subscriptionData: PushSubscriptionData = {
     endpoint: subscription.endpoint,
     keys: {
-      p256dh: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("p256dh")!))),
-      auth: btoa(String.fromCharCode(...new Uint8Array(subscription.getKey("auth")!))),
+      p256dh: btoa(
+        String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))
+      ),
+      auth: btoa(
+        String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))
+      ),
     },
     vapidPublicKey,
   };
 
-  await api.post("/push-subscriptions", subscriptionData);
+  await api.post('/push-subscriptions', subscriptionData);
 }
 
 /**
  * Remove subscription from backend
  */
-export async function removeSubscriptionFromBackend(endpoint: string): Promise<void> {
-  await api.delete("/push-subscriptions", { data: { endpoint } });
+export async function removeSubscriptionFromBackend(
+  endpoint: string
+): Promise<void> {
+  await api.delete('/push-subscriptions', {data: {endpoint}});
 }
 
 /**
  * Check if user has granted notification permission
  */
 export function hasNotificationPermission(): boolean {
-  if (!("Notification" in window)) {
+  if (!('Notification' in window)) {
     return false;
   }
-  return Notification.permission === "granted";
+  return Notification.permission === 'granted';
 }
 
 /**
  * Check if push notifications are supported
  */
 export function isPushNotificationSupported(): boolean {
-  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
 }
 
 /**
  * Convert VAPID key from base64 to Uint8Array
  */
 function urlBase64ToUint8Array(base64String: string): BufferSource {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);

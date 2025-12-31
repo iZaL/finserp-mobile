@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {useState, useEffect, useRef, useCallback} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -16,159 +16,164 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Plus, AlertTriangle, Zap, ArrowLeft, Loader2 } from "lucide-react"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import { useCreateVehicleBooking } from "@/hooks/use-vehicle-bookings"
-import axios from "axios"
-import type { DailyCapacity, VehicleBookingSettings } from "@/types/vehicle-booking"
-import { toast } from "sonner"
-import { PermissionGuard } from "@/components/permission-guard"
-import { VEHICLE_BOOKING_PERMISSIONS } from "@/lib/permissions"
-import { usePermissions } from "@/lib/stores/permission-store"
+} from '@/components/ui/dialog';
+import {Plus, AlertTriangle, Zap, ArrowLeft, Loader2} from 'lucide-react';
+import {vehicleBookingService} from '@/lib/services/vehicle-booking';
+import {useCreateVehicleBooking} from '@/hooks/use-vehicle-bookings';
+import axios from 'axios';
+import type {
+  DailyCapacity,
+  VehicleBookingSettings,
+} from '@/types/vehicle-booking';
+import {toast} from 'sonner';
+import {VehicleBookingCreateGuard} from '@/components/permission-guard';
+import {usePermissions} from '@/lib/stores/permission-store';
 
 export default function NewBookingPage() {
-  const router = useRouter()
-  const t = useTranslations('vehicleBookings.newBookingForm')
-  const tCommon = useTranslations('common')
-  const tValidation = useTranslations('vehicleBookings.validation')
-  const vehicleNumberRef = useRef<HTMLInputElement>(null)
-  const permissions = usePermissions()
-  const createMutation = useCreateVehicleBooking()
+  const router = useRouter();
+  const t = useTranslations('vehicleBookings.newBookingForm');
+  const tCommon = useTranslations('common');
+  const tValidation = useTranslations('vehicleBookings.validation');
+  const vehicleNumberRef = useRef<HTMLInputElement>(null);
+  const permissions = usePermissions();
+  const createMutation = useCreateVehicleBooking();
 
   // Form state
-  const [vehicleNumber, setVehicleNumber] = useState("")
-  const [boxCount, setBoxCount] = useState("")
-  const [boxWeightKg, setBoxWeightKg] = useState("")
-  const [totalWeightTons, setTotalWeightTons] = useState("")
-  const [driverName, setDriverName] = useState("")
-  const [driverPhone, setDriverPhone] = useState("")
-  const [supplierName, setSupplierName] = useState("")
-  const [supplierPhone, setSupplierPhone] = useState("")
-  const [notes, setNotes] = useState("")
-  const [allowOverride, setAllowOverride] = useState(false)
+  const [vehicleNumber, setVehicleNumber] = useState('');
+  const [boxCount, setBoxCount] = useState('');
+  const [boxWeightKg, setBoxWeightKg] = useState('');
+  const [totalWeightTons, setTotalWeightTons] = useState('');
+  const [driverName, setDriverName] = useState('');
+  const [driverPhone, setDriverPhone] = useState('');
+  const [supplierName, setSupplierName] = useState('');
+  const [supplierPhone, setSupplierPhone] = useState('');
+  const [notes, setNotes] = useState('');
+  const [allowOverride, setAllowOverride] = useState(false);
 
   // UI state
-  const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null)
-  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [showCapacityDialog, setShowCapacityDialog] = useState(false)
-  const [isSystemEnabled, setIsSystemEnabled] = useState(true)
+  const [capacityInfo, setCapacityInfo] = useState<DailyCapacity | null>(null);
+  const [settings, setSettings] = useState<VehicleBookingSettings | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showCapacityDialog, setShowCapacityDialog] = useState(false);
+  const [isSystemEnabled, setIsSystemEnabled] = useState(true);
 
   const fetchInitialData = async (signal?: AbortSignal) => {
     try {
       const [capacityData, settingsData] = await Promise.all([
-        vehicleBookingService.getDailyCapacity(undefined, { signal }),
-        vehicleBookingService.getSettings({ signal }),
-      ])
-      setCapacityInfo(capacityData)
-      setSettings(settingsData)
-      setIsSystemEnabled(settingsData.vehicle_booking_enabled ?? true)
+        vehicleBookingService.getDailyCapacity(undefined, {signal}),
+        vehicleBookingService.getSettings({signal}),
+      ]);
+      setCapacityInfo(capacityData);
+      setSettings(settingsData);
+      setIsSystemEnabled(settingsData.vehicle_booking_enabled ?? true);
 
       // Set initial box weight from settings
-      setBoxWeightKg(settingsData.default_box_weight_kg.toString())
+      setBoxWeightKg(settingsData.default_box_weight_kg.toString());
     } catch (error: unknown) {
       if (!axios.isCancel(error)) {
-        console.error("Error fetching initial data:", error)
+        console.error('Error fetching initial data:', error);
         // Fallback to default if fetching fails
-        setBoxWeightKg("50")
+        setBoxWeightKg('50');
       }
     }
-  }
+  };
 
   // Fetch capacity info and settings on mount
   useEffect(() => {
-    const abortController = new AbortController()
-    fetchInitialData(abortController.signal)
-    vehicleNumberRef.current?.focus()
+    const abortController = new AbortController();
+    fetchInitialData(abortController.signal);
+    vehicleNumberRef.current?.focus();
 
     return () => {
-      abortController.abort()
-    }
-  }, [])
+      abortController.abort();
+    };
+  }, []);
 
   // Calculate total weight
-  const calculateTotalWeight = useCallback((boxes: number, weightKg: number): string => {
-    if (boxes <= 0 || weightKg <= 0) return ""
-    const totalTons = (boxes * weightKg) / 1000
-    return totalTons.toFixed(3)
-  }, [])
+  const calculateTotalWeight = useCallback(
+    (boxes: number, weightKg: number): string => {
+      if (boxes <= 0 || weightKg <= 0) return '';
+      const totalTons = (boxes * weightKg) / 1000;
+      return totalTons.toFixed(3);
+    },
+    []
+  );
 
   // Handle box count change
   const handleBoxCountChange = (value: string) => {
-    setBoxCount(value)
-    const boxes = parseInt(value) || 0
-    const weight = parseFloat(boxWeightKg) || 0
-    setTotalWeightTons(calculateTotalWeight(boxes, weight))
-  }
+    setBoxCount(value);
+    const boxes = parseInt(value) || 0;
+    const weight = parseFloat(boxWeightKg) || 0;
+    setTotalWeightTons(calculateTotalWeight(boxes, weight));
+  };
 
   // Handle box weight change
   const handleBoxWeightChange = (value: string) => {
-    setBoxWeightKg(value)
-    const boxes = parseInt(boxCount) || 0
-    const weight = parseFloat(value) || 0
-    setTotalWeightTons(calculateTotalWeight(boxes, weight))
-  }
+    setBoxWeightKg(value);
+    const boxes = parseInt(boxCount) || 0;
+    const weight = parseFloat(value) || 0;
+    setTotalWeightTons(calculateTotalWeight(boxes, weight));
+  };
 
   // Form validation
   const validateForm = (): boolean => {
     if (!vehicleNumber.trim()) {
-      toast.error(tValidation('vehicleNumberRequired'))
-      return false
+      toast.error(tValidation('vehicleNumberRequired'));
+      return false;
     }
 
-    const boxes = parseInt(boxCount) || 0
-    const weight = parseFloat(boxWeightKg) || 0
+    const boxes = parseInt(boxCount) || 0;
+    const weight = parseFloat(boxWeightKg) || 0;
 
     if (isNaN(boxes) || boxes <= 0) {
-      toast.error(tValidation('boxCountRequired'))
-      return false
+      toast.error(tValidation('boxCountRequired'));
+      return false;
     }
 
     if (boxes > 10000) {
-      toast.error(tValidation('boxCountMax'))
-      return false
+      toast.error(tValidation('boxCountMax'));
+      return false;
     }
 
     if (isNaN(weight) || weight <= 0) {
-      toast.error(tValidation('boxWeightRequired'))
-      return false
+      toast.error(tValidation('boxWeightRequired'));
+      return false;
     }
 
     if (weight < 1) {
-      toast.error(tValidation('boxWeightMin'))
-      return false
+      toast.error(tValidation('boxWeightMin'));
+      return false;
     }
 
     if (weight > 1000) {
-      toast.error(tValidation('boxWeightMax'))
-      return false
+      toast.error(tValidation('boxWeightMax'));
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   // Handle submit
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    const boxes = parseInt(boxCount) || 0
-    const remainingCapacity = capacityInfo?.remaining_capacity_boxes || 0
-    const willExceed = boxes > remainingCapacity && remainingCapacity > 0
+    const boxes = parseInt(boxCount) || 0;
+    const remainingCapacity = capacityInfo?.remaining_capacity_boxes || 0;
+    const willExceed = boxes > remainingCapacity && remainingCapacity > 0;
 
     // Show capacity dialog if exceeding
     if (willExceed && !allowOverride) {
-      setShowCapacityDialog(true)
-      return
+      setShowCapacityDialog(true);
+      return;
     }
 
-    submitForm()
-  }
+    submitForm();
+  };
 
   const submitForm = () => {
-    setSubmitting(true)
+    setSubmitting(true);
 
     const bookingData = {
       vehicle_number: vehicleNumber.trim().toUpperCase(),
@@ -180,100 +185,105 @@ export default function NewBookingPage() {
       supplier_phone: supplierPhone.trim() || undefined,
       notes: notes.trim() || undefined,
       allow_override: allowOverride,
-    }
+    };
 
     createMutation.mutate(bookingData, {
       onSuccess: () => {
         // Show custom success message with vehicle number
-        toast.success(t('vehicleAdded', { number: vehicleNumber }))
+        toast.success(t('vehicleAdded', {number: vehicleNumber}));
 
         // Redirect to booking dashboard (data will be fresh due to cache invalidation)
-        router.push('/vehicle-bookings')
+        router.push('/vehicle-bookings');
 
-        setSubmitting(false)
+        setSubmitting(false);
       },
       onError: (error: unknown) => {
-        console.error("Error creating booking:", error)
+        console.error('Error creating booking:', error);
 
         // Handle validation errors
         const axiosError = error as {
-          isValidationError?: boolean
-          validationErrors?: Record<string, string[]>
-          message?: string
+          isValidationError?: boolean;
+          validationErrors?: Record<string, string[]>;
+          message?: string;
           response?: {
-            status: number
+            status: number;
             data?: {
-              errors?: Record<string, string[]>
-              message?: string
-            }
-          }
-        }
+              errors?: Record<string, string[]>;
+              message?: string;
+            };
+          };
+        };
 
         if (axiosError.isValidationError && axiosError.validationErrors) {
           // Show all validation errors
-          const errorMessages: string[] = []
-          Object.entries(axiosError.validationErrors).forEach(([field, messages]) => {
-            const fieldLabel = tValidation(field) || field.replace(/_/g, ' ')
-            const fieldMessages = Array.isArray(messages) ? messages : [messages]
-            errorMessages.push(...fieldMessages.map(msg => `${fieldLabel}: ${msg}`))
-          })
+          const errorMessages: string[] = [];
+          Object.entries(axiosError.validationErrors).forEach(
+            ([field, messages]) => {
+              const fieldLabel = tValidation(field) || field.replace(/_/g, ' ');
+              const fieldMessages = Array.isArray(messages)
+                ? messages
+                : [messages];
+              errorMessages.push(
+                ...fieldMessages.map((msg) => `${fieldLabel}: ${msg}`)
+              );
+            }
+          );
 
           if (errorMessages.length > 0) {
-            toast.error(errorMessages.join("\n"), {
+            toast.error(errorMessages.join('\n'), {
               duration: 6000,
-            })
+            });
           }
         } else if (axiosError.message) {
           // Show generic error message
           toast.error(axiosError.message, {
             duration: 4000,
-          })
+          });
         } else {
           // Fallback error message
-          toast.error(tCommon('errors.generic') || "Failed to create booking. Please try again.")
+          toast.error(
+            tCommon('errors.generic') ||
+              'Failed to create booking. Please try again.'
+          );
         }
 
-        setSubmitting(false)
+        setSubmitting(false);
       },
-    })
-  }
+    });
+  };
 
   const handleCapacityProceed = () => {
-    setAllowOverride(true)
-    setShowCapacityDialog(false)
-    submitForm()
-  }
+    setAllowOverride(true);
+    setShowCapacityDialog(false);
+    submitForm();
+  };
 
-  const boxes = parseInt(boxCount) || 0
-  const remainingCapacity = capacityInfo?.remaining_capacity_boxes || 0
-  const isCapacityWarning = boxes > remainingCapacity && remainingCapacity > 0
-  const exceeding = boxes - remainingCapacity
+  const boxes = parseInt(boxCount) || 0;
+  const remainingCapacity = capacityInfo?.remaining_capacity_boxes || 0;
+  const isCapacityWarning = boxes > remainingCapacity && remainingCapacity > 0;
+  const exceeding = boxes - remainingCapacity;
 
   return (
-    <PermissionGuard permissions={VEHICLE_BOOKING_PERMISSIONS.CREATE}>
-      <div className="flex items-center justify-between mb-4">
+    <VehicleBookingCreateGuard>
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="size-4" />
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{t('title')}</h2>
-            <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
+            <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
           </div>
         </div>
       </div>
 
       {/* System Disabled Warning */}
       {!isSystemEnabled && (
-        <div className="mb-4 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950/30">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="size-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+            <AlertTriangle className="mt-0.5 size-5 flex-shrink-0 text-red-600 dark:text-red-400" />
             <div className="flex-1">
-              <h3 className="font-semibold text-red-800 dark:text-red-400 mb-1">
+              <h3 className="mb-1 font-semibold text-red-800 dark:text-red-400">
                 {t('systemDisabled')}
               </h3>
               <p className="text-sm text-red-700 dark:text-red-500">
@@ -294,13 +304,23 @@ export default function NewBookingPage() {
 
       {/* Approval Required Info */}
       {isSystemEnabled && settings?.require_vehicle_booking_approval && (
-        <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30">
           <div className="flex items-start gap-3">
-            <svg className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="mt-0.5 size-5 flex-shrink-0 text-amber-600 dark:text-amber-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div className="flex-1">
-              <h3 className="font-semibold text-amber-800 dark:text-amber-400 mb-1">
+              <h3 className="mb-1 font-semibold text-amber-800 dark:text-amber-400">
                 {t('approvalRequired')}
               </h3>
               <p className="text-sm text-amber-700 dark:text-amber-500">
@@ -384,7 +404,7 @@ export default function NewBookingPage() {
                   className="bg-muted text-muted-foreground"
                 />
                 {boxCount && boxWeightKg && (
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     {boxCount} boxes × {boxWeightKg} kg = {totalWeightTons} tons
                   </p>
                 )}
@@ -393,31 +413,38 @@ export default function NewBookingPage() {
 
             {/* Capacity Warning */}
             {isCapacityWarning && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/30">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
                   <div className="text-sm">
-                    <p className="font-medium text-amber-800 dark:text-amber-400">{t('capacityWarning')}</p>
+                    <p className="font-medium text-amber-800 dark:text-amber-400">
+                      {t('capacityWarning')}
+                    </p>
                     <p className="text-amber-700 dark:text-amber-500">
-                      {t('willExceedBy', { count: exceeding })}
+                      {t('willExceedBy', {count: exceeding})}
                     </p>
                   </div>
                 </div>
 
                 {capacityInfo?.can_override &&
-                 permissions.canOverrideDailyLimit() &&
-                 settings?.allow_vehicle_booking_override && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <Checkbox
-                      id="allow_override"
-                      checked={allowOverride}
-                      onCheckedChange={(checked) => setAllowOverride(checked as boolean)}
-                    />
-                    <Label htmlFor="allow_override" className="text-sm text-amber-700 dark:text-amber-500 cursor-pointer">
-                      {t('allowOverride')}
-                    </Label>
-                  </div>
-                )}
+                  permissions.canOverrideDailyLimit() &&
+                  settings?.allow_vehicle_booking_override && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <Checkbox
+                        id="allow_override"
+                        checked={allowOverride}
+                        onCheckedChange={(checked) =>
+                          setAllowOverride(checked as boolean)
+                        }
+                      />
+                      <Label
+                        htmlFor="allow_override"
+                        className="cursor-pointer text-sm text-amber-700 dark:text-amber-500"
+                      >
+                        {t('allowOverride')}
+                      </Label>
+                    </div>
+                  )}
               </div>
             )}
 
@@ -444,8 +471,8 @@ export default function NewBookingPage() {
               </div>
             </div>
 
-{/* Driver Details */}
-<div className="grid grid-cols-2 gap-3">
+            {/* Driver Details */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="driver_name">{t('driverName')}</Label>
                 <Input
@@ -477,8 +504,8 @@ export default function NewBookingPage() {
                 rows={3}
                 maxLength={500}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {t('charactersCount', { count: notes.length })}
+              <p className="text-muted-foreground mt-1 text-xs">
+                {t('charactersCount', {count: notes.length})}
               </p>
             </div>
 
@@ -490,15 +517,15 @@ export default function NewBookingPage() {
             >
               {submitting ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   {t('adding')}
                 </>
               ) : (
                 <>
-                  <Plus className="size-4 mr-2" />
+                  <Plus className="mr-2 size-4" />
                   {t('addVehicle')}
                   {isCapacityWarning && (
-                    <AlertTriangle className="size-3 ml-2 text-amber-300" />
+                    <AlertTriangle className="ml-2 size-3 text-amber-300" />
                   )}
                 </>
               )}
@@ -524,12 +551,21 @@ export default function NewBookingPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t('remaining')}</span>
-                  <span className="font-medium">{remainingCapacity} {t('boxes', { ns: 'vehicleBookings.capacity' })}</span>
+                  <span className="text-muted-foreground">
+                    {t('remaining')}
+                  </span>
+                  <span className="font-medium">
+                    {remainingCapacity}{' '}
+                    {t('boxes', {ns: 'vehicleBookings.capacity'})}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('adding2')}</span>
-                  <span className="font-medium">{boxes} {t('boxes', { ns: 'vehicleBookings.capacity' })} ({totalWeightTons} {t('tons', { ns: 'vehicleBookings.bookingCard' })})</span>
+                  <span className="font-medium">
+                    {boxes} {t('boxes', {ns: 'vehicleBookings.capacity'})} (
+                    {totalWeightTons}{' '}
+                    {t('tons', {ns: 'vehicleBookings.bookingCard'})})
+                  </span>
                 </div>
               </div>
               <div className="flex items-center justify-center">
@@ -537,7 +573,9 @@ export default function NewBookingPage() {
                   <div className="text-2xl font-bold text-amber-600">
                     +{exceeding}
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('boxesOverLimit')}</div>
+                  <div className="text-muted-foreground text-xs">
+                    {t('boxesOverLimit')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -559,6 +597,6 @@ export default function NewBookingPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </PermissionGuard>
-  )
+    </VehicleBookingCreateGuard>
+  );
 }

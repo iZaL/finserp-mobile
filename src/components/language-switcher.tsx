@@ -1,15 +1,15 @@
-"use client"
+'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from '@/i18n/navigation';
-import { Button } from "@/components/ui/button";
+import {useLocale, useTranslations} from 'next-intl';
+import {usePathname, useRouter} from '@/i18n/navigation';
+import {Button} from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Languages } from "lucide-react";
+} from '@/components/ui/dropdown-menu';
+import {Languages} from 'lucide-react';
 
 export function LanguageSwitcher() {
   const t = useTranslations('language');
@@ -19,7 +19,7 @@ export function LanguageSwitcher() {
 
   const switchLocale = (newLocale: string) => {
     // Use next-intl's router which handles locale routing automatically
-    router.push(pathname, { locale: newLocale });
+    router.push(pathname, {locale: newLocale});
   };
 
   return (

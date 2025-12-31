@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,18 +10,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useApproveVehicle } from "@/hooks/use-vehicle-bookings"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { CheckCircle, Loader2 } from "lucide-react"
+} from '@/components/ui/dialog';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {useApproveVehicle} from '@/hooks/use-vehicle-bookings';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {CheckCircle, Loader2} from 'lucide-react';
 
 interface ApproveDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function ApproveDialog({
@@ -30,40 +30,43 @@ export function ApproveDialog({
   onOpenChange,
   onSuccess,
 }: ApproveDialogProps) {
-  const t = useTranslations('vehicleBookings.approveDialog')
-  const tCommon = useTranslations('common')
-  const [notes, setNotes] = useState("")
-  const mutation = useApproveVehicle()
+  const t = useTranslations('vehicleBookings.approveDialog');
+  const tCommon = useTranslations('common');
+  const [notes, setNotes] = useState('');
+  const mutation = useApproveVehicle();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!mutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
       if (!newOpen) {
-        setNotes("")
+        setNotes('');
       }
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!booking) return
+    if (!booking) return;
 
-    mutation.mutate({
-      id: booking.id,
-      data: {
-        notes: notes.trim() || undefined,
+    mutation.mutate(
+      {
+        id: booking.id,
+        data: {
+          notes: notes.trim() || undefined,
+        },
       },
-    }, {
-      onSuccess: () => {
-        // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
+      {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          handleOpenChange(false);
+          onSuccess();
+        },
       }
-    })
-  }
+    );
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -74,17 +77,19 @@ export function ApproveDialog({
             {t('title')}
           </DialogTitle>
           <DialogDescription>
-            {t('description', { vehicle: booking.vehicle_number })}
+            {t('description', {vehicle: booking.vehicle_number})}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* Vehicle Info */}
-            <div className="rounded-lg border p-3 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('vehicleNumber')}
+                  </p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -93,13 +98,17 @@ export function ApproveDialog({
                 </div>
                 {booking.driver_name && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">{t('driver')}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {t('driver')}
+                    </p>
                     <p className="font-medium">{booking.driver_name}</p>
                   </div>
                 )}
                 {booking.supplier_name && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">{t('supplier')}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {t('supplier')}
+                    </p>
                     <p className="font-medium">{booking.supplier_name}</p>
                   </div>
                 )}
@@ -108,7 +117,9 @@ export function ApproveDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">{t('notes')} ({tCommon('optional')})</Label>
+              <Label htmlFor="notes">
+                {t('notes')} ({tCommon('optional')})
+              </Label>
               <Textarea
                 id="notes"
                 value={notes}
@@ -117,7 +128,7 @@ export function ApproveDialog({
                 rows={3}
                 maxLength={500}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {notes.length}/500 {tCommon('characters')}
               </p>
             </div>
@@ -135,16 +146,16 @@ export function ApproveDialog({
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 text-white hover:bg-green-700"
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   {t('approving')}
                 </>
               ) : (
                 <>
-                  <CheckCircle className="size-4 mr-2" />
+                  <CheckCircle className="mr-2 size-4" />
                   {t('approve')}
                 </>
               )}
@@ -153,5 +164,5 @@ export function ApproveDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

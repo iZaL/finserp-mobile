@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import {useEffect, useState} from 'react';
 
 /**
  * Hook to detect if the app is running in standalone mode (installed as PWA)
@@ -13,7 +13,8 @@ export function useIsStandalone() {
     // Check if running in standalone mode
     const standalone =
       window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
+      (window.navigator as Navigator & {standalone?: boolean}).standalone ===
+        true ||
       document.referrer.includes('android-app://');
 
     setIsStandalone(standalone);

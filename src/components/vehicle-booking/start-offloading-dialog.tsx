@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useStartOffloading } from "@/hooks/use-vehicle-bookings"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { CheckCircle, Loader2, Truck } from "lucide-react"
+} from '@/components/ui/dialog';
+import {useStartOffloading} from '@/hooks/use-vehicle-bookings';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {CheckCircle, Loader2, Truck} from 'lucide-react';
 
 interface StartOffloadingDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function StartOffloadingDialog({
@@ -27,28 +27,31 @@ export function StartOffloadingDialog({
   onOpenChange,
   onSuccess,
 }: StartOffloadingDialogProps) {
-  const tCommon = useTranslations('common')
-  const mutation = useStartOffloading()
+  const tCommon = useTranslations('common');
+  const mutation = useStartOffloading();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!mutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
     }
-  }
+  };
 
   const handleConfirm = () => {
-    if (!booking) return
+    if (!booking) return;
 
-    mutation.mutate({ id: booking.id }, {
-      onSuccess: () => {
-        // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
+    mutation.mutate(
+      {id: booking.id},
+      {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          handleOpenChange(false);
+          onSuccess();
+        },
       }
-    })
-  }
+    );
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -59,12 +62,13 @@ export function StartOffloadingDialog({
             Start Offloading
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to start offloading for vehicle <strong>{booking.vehicle_number}</strong>?
+            Are you sure you want to start offloading for vehicle{' '}
+            <strong>{booking.vehicle_number}</strong>?
           </DialogDescription>
         </DialogHeader>
 
         {/* Vehicle Summary */}
-        <div className="rounded-lg border p-3 bg-muted/50">
+        <div className="bg-muted/50 rounded-lg border p-3">
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-muted-foreground text-xs">Vehicle</p>
@@ -76,7 +80,9 @@ export function StartOffloadingDialog({
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Weight</p>
-              <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} tons</p>
+              <p className="font-medium">
+                {Number(booking.weight_tons || 0).toFixed(2)} tons
+              </p>
             </div>
             {booking.driver_name && (
               <div>
@@ -98,16 +104,16 @@ export function StartOffloadingDialog({
           <Button
             onClick={handleConfirm}
             disabled={mutation.isPending}
-            className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700"
+            className="bg-amber-600 text-white hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-700"
           >
             {mutation.isPending ? (
               <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Starting...
               </>
             ) : (
               <>
-                <CheckCircle className="size-4 mr-2" />
+                <CheckCircle className="mr-2 size-4" />
                 Start Offloading
               </>
             )}
@@ -115,5 +121,5 @@ export function StartOffloadingDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

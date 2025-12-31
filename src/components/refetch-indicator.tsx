@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { useIsFetching } from "@tanstack/react-query"
-import { RefreshCw } from "lucide-react"
-import { useEffect, useState } from "react"
+import {useIsFetching} from '@tanstack/react-query';
+import {RefreshCw} from 'lucide-react';
+import {useEffect, useState} from 'react';
 
 /**
  * Global indicator showing when React Query is fetching data in the background
@@ -12,32 +12,34 @@ import { useEffect, useState } from "react"
  * even when they don't explicitly trigger a refresh
  */
 export function RefetchIndicator() {
-  const isFetching = useIsFetching()
-  const [show, setShow] = useState(false)
+  const isFetching = useIsFetching();
+  const [show, setShow] = useState(false);
 
   // Only show if fetching for more than 300ms (prevents flashing for quick requests)
   useEffect(() => {
     if (isFetching > 0) {
-      const timer = setTimeout(() => setShow(true), 300)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setShow(true), 300);
+      return () => clearTimeout(timer);
     } else {
-      setShow(false)
+      setShow(false);
     }
-  }, [isFetching])
+  }, [isFetching]);
 
-  if (!show) return null
+  if (!show) return null;
 
   return (
     <div
-      className="fixed top-4 right-4 z-[9999] pointer-events-none"
+      className="pointer-events-none fixed top-4 right-4 z-[9999]"
       role="status"
       aria-live="polite"
       aria-label="Syncing data"
     >
-      <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-500/10 dark:bg-blue-400/10 backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20">
-        <RefreshCw className="size-4 text-blue-600 dark:text-blue-400 animate-spin" />
-        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">Syncing...</span>
+      <div className="flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-2 backdrop-blur-sm dark:border-blue-400/20 dark:bg-blue-400/10">
+        <RefreshCw className="size-4 animate-spin text-blue-600 dark:text-blue-400" />
+        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+          Syncing...
+        </span>
       </div>
     </div>
-  )
+  );
 }

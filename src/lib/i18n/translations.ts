@@ -1,4 +1,4 @@
-export type Language = 'en' | 'ar'
+export type Language = 'en' | 'ar';
 
 export const translations = {
   en: {
@@ -89,6 +89,6 @@ export const translations = {
     logout: 'تسجيل الخروج',
     language: 'اللغة',
   },
-}
+};
 
-export type TranslationKey = keyof typeof translations.en
+export type TranslationKey = keyof typeof translations.en;

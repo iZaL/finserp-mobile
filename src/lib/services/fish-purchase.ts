@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import {api} from '@/lib/api';
 import type {
   FishPurchase,
   FishPurchaseFilters,
@@ -7,36 +7,36 @@ import type {
   CreateFishPurchaseRequest,
   UpdateFishPurchaseRequest,
   UpdateStatusRequest,
-} from "@/types/fish-purchase";
-import type { AdvancePaymentRequest } from "@/types/payment";
+} from '@/types/fish-purchase';
+import type {AdvancePaymentRequest} from '@/types/payment';
 import type {
   PaginatedResponse,
   ApiResponse,
   Contact,
   Address,
   Bank,
-} from "@/types/shared";
+} from '@/types/shared';
 
 export const fishPurchaseService = {
   // Get all fish purchases with filters and pagination
   getFishPurchases: async (
     filters?: FishPurchaseFilters,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<PaginatedResponse<FishPurchase>> => {
     const params = new URLSearchParams();
 
-    if (filters?.search) params.append("search", filters.search);
-    if (filters?.status && filters.status !== "all")
-      params.append("status", filters.status);
-    if (filters?.date_from) params.append("date_from", filters.date_from);
-    if (filters?.date_to) params.append("date_to", filters.date_to);
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.status && filters.status !== 'all')
+      params.append('status', filters.status);
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
     if (filters?.supplier_id)
-      params.append("supplier_id", filters.supplier_id.toString());
+      params.append('supplier_id', filters.supplier_id.toString());
     if (filters?.location_id)
-      params.append("location_id", filters.location_id.toString());
-    if (filters?.page) params.append("page", filters.page.toString());
+      params.append('location_id', filters.location_id.toString());
+    if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.per_page)
-      params.append("per_page", filters.per_page.toString());
+      params.append('per_page', filters.per_page.toString());
 
     const response = await api.get<PaginatedResponse<FishPurchase>>(
       `/fish-purchases?${params.toString()}`,
@@ -47,9 +47,11 @@ export const fishPurchaseService = {
 
   // Get single fish purchase by ID
   getFishPurchase: async (id: number): Promise<FishPurchase> => {
-    const response = await api.get<ApiResponse<FishPurchase> & { payment_accounts?: Array<{ id: number; name: string }> }>(
-      `/fish-purchases/${id}`
-    );
+    const response = await api.get<
+      ApiResponse<FishPurchase> & {
+        payment_accounts?: Array<{id: number; name: string}>;
+      }
+    >(`/fish-purchases/${id}`);
     // Merge payment_accounts from root into the purchase data
     const purchase = response.data.data!;
     if (response.data.payment_accounts) {
@@ -103,10 +105,11 @@ export const fishPurchaseService = {
     id: number,
     data: AdvancePaymentRequest
   ): Promise<FishPurchase> => {
-    const response = await api.post<ApiResponse<FishPurchase> & { payment_accounts?: Array<{ id: number; name: string }> }>(
-      `/fish-purchases/${id}/payments`,
-      data
-    );
+    const response = await api.post<
+      ApiResponse<FishPurchase> & {
+        payment_accounts?: Array<{id: number; name: string}>;
+      }
+    >(`/fish-purchases/${id}/payments`, data);
     // Merge payment_accounts from root into the purchase data
     const purchase = response.data.data!;
     if (response.data.payment_accounts) {
@@ -116,9 +119,9 @@ export const fishPurchaseService = {
   },
 
   // Get fish species list
-  getFishSpecies: async (
-    config?: { signal?: AbortSignal }
-  ): Promise<FishSpecies[]> => {
+  getFishSpecies: async (config?: {
+    signal?: AbortSignal;
+  }): Promise<FishSpecies[]> => {
     const response = await api.get<ApiResponse<FishSpecies[]>>(
       `/fish-purchases/fish-species`,
       config
@@ -127,14 +130,12 @@ export const fishPurchaseService = {
   },
 
   // Get suppliers with bank details
-  getSuppliers: async (
-    options?: {
-      signal?: AbortSignal;
-      limit?: number;
-      search?: string;
-      selectedSupplierId?: number;
-    }
-  ): Promise<Contact[]> => {
+  getSuppliers: async (options?: {
+    signal?: AbortSignal;
+    limit?: number;
+    search?: string;
+    selectedSupplierId?: number;
+  }): Promise<Contact[]> => {
     const params = new URLSearchParams();
     if (options?.limit) {
       params.append('limit', options.limit.toString());
@@ -143,7 +144,10 @@ export const fishPurchaseService = {
       params.append('search', options.search);
     }
     if (options?.selectedSupplierId) {
-      params.append('selected_supplier_id', options.selectedSupplierId.toString());
+      params.append(
+        'selected_supplier_id',
+        options.selectedSupplierId.toString()
+      );
     }
 
     const url = `/fish-purchases/suppliers${params.toString() ? `?${params.toString()}` : ''}`;
@@ -168,9 +172,7 @@ export const fishPurchaseService = {
   },
 
   // Get fish landing sites (locations)
-  getLocations: async (
-    config?: { signal?: AbortSignal }
-  ): Promise<Address[]> => {
+  getLocations: async (config?: {signal?: AbortSignal}): Promise<Address[]> => {
     const response = await api.get<ApiResponse<Address[]>>(
       `/fish-purchases/locations`,
       config
@@ -179,7 +181,10 @@ export const fishPurchaseService = {
   },
 
   // Create a new location
-  createLocation: async (data: { name: string; city?: string }): Promise<Address> => {
+  createLocation: async (data: {
+    name: string;
+    city?: string;
+  }): Promise<Address> => {
     const response = await api.post<ApiResponse<Address>>(
       `/fish-purchases/locations`,
       data
@@ -188,7 +193,7 @@ export const fishPurchaseService = {
   },
 
   // Get banks list
-  getBanks: async (config?: { signal?: AbortSignal }): Promise<Bank[]> => {
+  getBanks: async (config?: {signal?: AbortSignal}): Promise<Bank[]> => {
     const response = await api.get<ApiResponse<Bank[]>>(
       `/fish-purchases/banks`,
       config
@@ -197,7 +202,7 @@ export const fishPurchaseService = {
   },
 
   // Get agents list
-  getAgents: async (config?: { signal?: AbortSignal }): Promise<Contact[]> => {
+  getAgents: async (config?: {signal?: AbortSignal}): Promise<Contact[]> => {
     const response = await api.get<ApiResponse<Contact[]>>(
       `/fish-purchases/agents`,
       config
@@ -206,9 +211,9 @@ export const fishPurchaseService = {
   },
 
   // Get settings (bill number, defaults, etc.)
-  getSettings: async (
-    config?: { signal?: AbortSignal }
-  ): Promise<FishPurchaseSettings> => {
+  getSettings: async (config?: {
+    signal?: AbortSignal;
+  }): Promise<FishPurchaseSettings> => {
     const response = await api.get<ApiResponse<FishPurchaseSettings>>(
       `/fish-purchases/settings`,
       config
@@ -217,9 +222,9 @@ export const fishPurchaseService = {
   },
 
   // Get all form data in a single request (optimized - replaces 6 separate calls)
-  getFormData: async (
-    config?: { signal?: AbortSignal }
-  ): Promise<{
+  getFormData: async (config?: {
+    signal?: AbortSignal;
+  }): Promise<{
     fish_species: FishSpecies[];
     suppliers: Contact[];
     locations: Address[];
@@ -227,22 +232,23 @@ export const fishPurchaseService = {
     agents: Contact[];
     settings: FishPurchaseSettings;
   }> => {
-    const response = await api.get<ApiResponse<{
-      fish_species: FishSpecies[];
-      suppliers: Contact[];
-      locations: Address[];
-      banks: Bank[];
-      agents: Contact[];
-      settings: FishPurchaseSettings;
-    }>>(
-      `/fish-purchases/form-data`,
-      config
-    );
+    const response = await api.get<
+      ApiResponse<{
+        fish_species: FishSpecies[];
+        suppliers: Contact[];
+        locations: Address[];
+        banks: Bank[];
+        agents: Contact[];
+        settings: FishPurchaseSettings;
+      }>
+    >(`/fish-purchases/form-data`, config);
     return response.data.data!;
   },
 
   // Get vehicle booking data for pre-populating form
-  getVehicleBookingData: async (vehicleBookingId: number): Promise<{
+  getVehicleBookingData: async (
+    vehicleBookingId: number
+  ): Promise<{
     vehicle_number: string;
     driver_name: string;
     driver_phone?: string;
@@ -251,15 +257,17 @@ export const fishPurchaseService = {
     box_count: number;
     entry_date: string;
   }> => {
-    const response = await api.get<ApiResponse<{
-      vehicle_number: string;
-      driver_name: string;
-      driver_phone?: string;
-      supplier_name: string;
-      supplier_phone?: string;
-      box_count: number;
-      entry_date: string;
-    }>>(`/fish-purchases/vehicle-booking/${vehicleBookingId}`);
+    const response = await api.get<
+      ApiResponse<{
+        vehicle_number: string;
+        driver_name: string;
+        driver_phone?: string;
+        supplier_name: string;
+        supplier_phone?: string;
+        box_count: number;
+        entry_date: string;
+      }>
+    >(`/fish-purchases/vehicle-booking/${vehicleBookingId}`);
     return response.data.data!;
   },
 

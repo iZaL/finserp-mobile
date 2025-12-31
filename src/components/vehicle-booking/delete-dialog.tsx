@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useDeleteVehicleBooking } from "@/hooks/use-vehicle-bookings"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { Trash2, Loader2 } from "lucide-react"
+} from '@/components/ui/dialog';
+import {useDeleteVehicleBooking} from '@/hooks/use-vehicle-bookings';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {Trash2, Loader2} from 'lucide-react';
 
 interface DeleteDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function DeleteDialog({
@@ -27,31 +27,31 @@ export function DeleteDialog({
   onOpenChange,
   onSuccess,
 }: DeleteDialogProps) {
-  const t = useTranslations('vehicleBookings')
-  const tCommon = useTranslations('common')
-  const mutation = useDeleteVehicleBooking()
+  const t = useTranslations('vehicleBookings');
+  const tCommon = useTranslations('common');
+  const mutation = useDeleteVehicleBooking();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!mutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!booking) return
+    if (!booking) return;
 
     mutation.mutate(booking.id, {
       onSuccess: () => {
         // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
-      }
-    })
-  }
+        handleOpenChange(false);
+        onSuccess();
+      },
+    });
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -59,17 +59,19 @@ export function DeleteDialog({
         <DialogHeader>
           <DialogTitle>Delete Vehicle</DialogTitle>
           <DialogDescription>
-            {t('deleteConfirm', { vehicle: booking.vehicle_number })}
+            {t('deleteConfirm', {vehicle: booking.vehicle_number})}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* Vehicle Info */}
-            <div className="rounded-lg border p-3 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
+                  <p className="text-muted-foreground text-xs">
+                    Vehicle Number
+                  </p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -86,12 +88,13 @@ export function DeleteDialog({
             </div>
 
             {/* Warning */}
-            <div className="rounded-lg border border-red-800 dark:border-red-800 p-3">
-              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+            <div className="rounded-lg border border-red-800 p-3 dark:border-red-800">
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">
                 ⚠️ Warning
               </p>
-              <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">
-                This action cannot be undone. The vehicle booking will be permanently deleted from the system.
+              <p className="mt-1 text-xs text-red-600/80 dark:text-red-400/80">
+                This action cannot be undone. The vehicle booking will be
+                permanently deleted from the system.
               </p>
             </div>
           </div>
@@ -112,12 +115,12 @@ export function DeleteDialog({
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Deleting...
                 </>
               ) : (
                 <>
-                  <Trash2 className="size-4 mr-2" />
+                  <Trash2 className="mr-2 size-4" />
                   Delete
                 </>
               )}
@@ -126,5 +129,5 @@ export function DeleteDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,14 +1,19 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Plus, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FishItemCard } from "./fish-item-card";
-import { PurchaseSummary } from "./purchase-summary";
-import type { FishSpecies, FishPurchaseItem } from "@/types/fish-purchase";
+import {useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {Plus, AlertCircle} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {Alert, AlertDescription} from '@/components/ui/alert';
+import {FishItemCard} from './fish-item-card';
+import {PurchaseSummary} from './purchase-summary';
+import type {FishSpecies, FishPurchaseItem} from '@/types/fish-purchase';
 
 interface FishItemListProps {
   items: FishPurchaseItem[];
@@ -23,7 +28,7 @@ export function FishItemList({
   onChange,
   errors = {},
 }: FishItemListProps) {
-  const t = useTranslations("fishPurchases.items");
+  const t = useTranslations('fishPurchases.items');
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({
     0: true, // First item expanded by default
   });
@@ -49,16 +54,16 @@ export function FishItemList({
           id: 1,
           fish_species_id: 0,
           rate: 0,
-          fish_count: "",
+          fish_count: '',
           box_count: 0,
           average_box_weight: 0,
           net_weight: 0,
           net_amount: 0,
           box_weights: [0],
-          remarks: "",
+          remarks: '',
         },
       ]);
-      setExpandedItems({ 0: true });
+      setExpandedItems({0: true});
       return;
     }
 
@@ -84,13 +89,13 @@ export function FishItemList({
       id: newId,
       fish_species_id: 0,
       rate: 0,
-      fish_count: "",
+      fish_count: '',
       box_count: 0,
       average_box_weight: 0,
       net_weight: 0,
       net_amount: 0,
       box_weights: [0],
-      remarks: "",
+      remarks: '',
     };
 
     // Add new item at the end
@@ -107,7 +112,10 @@ export function FishItemList({
   // Check if there are any incomplete items
   const hasIncompleteItems = items.some(
     (item) =>
-      !item.fish_species_id || !item.box_count || !item.rate || item.box_weights.length === 0
+      !item.fish_species_id ||
+      !item.box_count ||
+      !item.rate ||
+      item.box_weights.length === 0
   );
 
   return (
@@ -117,8 +125,8 @@ export function FishItemList({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t("title")}</CardTitle>
-              <CardDescription>{t("description")}</CardDescription>
+              <CardTitle>{t('title')}</CardTitle>
+              <CardDescription>{t('description')}</CardDescription>
             </div>
             <Button
               type="button"
@@ -127,7 +135,7 @@ export function FishItemList({
               className="gap-2"
             >
               <Plus className="size-4" />
-              {t("addItem")}
+              {t('addItem')}
             </Button>
           </div>
         </CardHeader>
@@ -138,7 +146,7 @@ export function FishItemList({
         <Alert>
           <AlertCircle className="size-4" />
           <AlertDescription className="text-sm">
-            {t("helpText")}
+            {t('helpText')}
           </AlertDescription>
         </Alert>
       )}
@@ -155,7 +163,9 @@ export function FishItemList({
               fishSpecies={fishSpecies}
               expanded={expandedItems[actualIndex] || false}
               onToggleExpand={() => handleToggleExpand(actualIndex)}
-              onUpdate={(updatedItem) => handleUpdateItem(actualIndex, updatedItem)}
+              onUpdate={(updatedItem) =>
+                handleUpdateItem(actualIndex, updatedItem)
+              }
               onRemove={() => handleRemoveItem(actualIndex)}
               errors={errors[Number(item.id) || actualIndex]}
               canRemove={items.length > 1}
@@ -166,7 +176,11 @@ export function FishItemList({
 
       {/* Summary */}
       {items.length > 0 && !hasIncompleteItems && (
-        <PurchaseSummary items={items} showDetails={true} fishSpecies={fishSpecies} />
+        <PurchaseSummary
+          items={items}
+          showDetails={true}
+          fishSpecies={fishSpecies}
+        />
       )}
 
       {/* Warning for incomplete items */}
@@ -174,7 +188,7 @@ export function FishItemList({
         <Alert variant="destructive">
           <AlertCircle className="size-4" />
           <AlertDescription className="text-sm">
-            {t("incompleteItemsWarning")}
+            {t('incompleteItemsWarning')}
           </AlertDescription>
         </Alert>
       )}

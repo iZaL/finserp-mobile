@@ -1,4 +1,15 @@
 {
+  "impersonation": {
+    "viewingAs": "عرض كـ",
+    "loggedInBy": "تسجيل الدخول بواسطة",
+    "stop": "إيقاف الانتحال",
+    "title": "تسجيل الدخول كمستخدم",
+    "description": "اختر مستخدمًا لعرض التطبيق كما يراه",
+    "searchPlaceholder": "ابحث عن المستخدمين...",
+    "noUsersFound": "لم يتم العثور على مستخدمين",
+    "loginAs": "تسجيل الدخول كـ",
+    "cancel": "إلغاء"
+  },
   "common": {
     "loading": "جاري التحميل...",
     "search": "بحث",
@@ -16,7 +27,14 @@
     "close": "إغلاق",
     "optional": "اختياري",
     "required": "مطلوب",
-    "characters": "حرف"
+    "characters": "حرف",
+    "selectOperator": "اختر المشغل...",
+    "searchOperator": "ابحث عن المشغلين...",
+    "noOperatorsFound": "لم يتم العثور على مشغلين",
+    "retry": "إعادة المحاولة",
+    "accessDenied": "تم رفض الوصول",
+    "accessDeniedDescription": "ليس لديك صلاحية للوصول إلى هذه الصفحة. يرجى التواصل مع المسؤول إذا كنت بحاجة إلى الوصول.",
+    "backToHome": "العودة للرئيسية"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -29,7 +47,17 @@
     "statistics": "السجل",
     "viewStatistics": "عرض سجل الحجوزات",
     "vehicleBills": "فواتير السيارات",
-    "manageBills": "تصفح وإدارة مرفقات الفواتير"
+    "manageBills": "تصفح وإدارة مرفقات الفواتير",
+    "production": "الإنتاج",
+    "productionRuns": "دورات الإنتاج",
+    "manageProduction": "إدارة الدورات وعمليات الورديات",
+    "viewProduction": "عرض الإنتاج",
+    "startRun": "بدء الدورة",
+    "startNewRun": "بدء دورة إنتاج جديدة",
+    "productionOutputs": "مخرجات الإنتاج",
+    "viewProductionOutputs": "عرض وإدارة المخرجات",
+    "inventory": "المخزون",
+    "manageInventory": "تتبع المخزون والحركات"
   },
   "vehicleBookings": {
     "title": "حجوزات السيارات",
@@ -509,6 +537,66 @@
       "downloadError": "فشل في تحميل التقرير"
     }
   },
+  "productionOutputs": {
+    "title": "مخرجات الإنتاج",
+    "subtitle": "تتبع الإنتاج اليومي",
+    "add": "إضافة",
+    "failedToLoad": "فشل في تحميل مخرجات الإنتاج",
+    "retry": "إعادة المحاولة",
+    "select": "تحديد",
+    "cancel": "إلغاء",
+    "selectOutputs": "حدد المخرجات لإنشاء دفعة",
+    "createBatch": "إنشاء دفعة",
+    "selectedCount": "{count} محدد",
+    "differentProductTypes": "المخرجات المحددة لها أنواع منتجات مختلفة",
+    "noAvailableQuantity": "لا توجد كمية متاحة",
+    "empty": {
+      "title": "لا توجد مخرجات إنتاج",
+      "description": "ابدأ بتتبع إنتاجك.",
+      "addFirst": "إضافة أول مخرج"
+    },
+    "list": {
+      "date": "التاريخ",
+      "records": "{count} سجلات",
+      "record": "السجل",
+      "product": "المنتج",
+      "weight": "الوزن",
+      "time": "الوقت",
+      "total": "الإجمالي"
+    },
+    "new": {
+      "title": "تسجيل مخرجات الإنتاج",
+      "subtitle": "تتبع الإنتاج اليومي",
+      "activeRunBanner": "التسجيل لدورة إنتاج نشطة",
+      "runNumber": "دورة #{runId}",
+      "productionInfo": "معلومات الإنتاج",
+      "productionDate": "تاريخ الإنتاج",
+      "shift": "الشيفت",
+      "selectShift": "اختر الشيفت",
+      "noShift": "بدون شيفت",
+      "fromRun": "(من الدورة)",
+      "outputByProductType": "الإنتاج حسب نوع المنتج",
+      "totalOutput": "إجمالي الإنتاج:",
+      "saving": "جاري الحفظ...",
+      "saveAsDraft": "حفظ كمسودة"
+    },
+    "entry": {
+      "expected": "المتوقع",
+      "packageType": "نوع التغليف",
+      "selectPackageType": "اختر نوع التغليف",
+      "bagsProduced": "الأكياس المنتجة",
+      "tankCapacity": "سعة الخزان (كجم)",
+      "fillCycles": "دورات التعبئة",
+      "storage": "التخزين",
+      "tankStorage": "تخزين الخزان",
+      "bulkStorage": "التخزين السائب",
+      "bags": "أكياس",
+      "cycles": "دورات",
+      "total": "الإجمالي",
+      "warehouse": "المستودع",
+      "selectWarehouse": "اختر المستودع"
+    }
+  },
   "language": {
     "en": "English",
     "ar": "العربية"
@@ -517,6 +605,8 @@
     "home": "الرئيسية",
     "bookings": "الحجوزات",
     "suppliers": "الموردين",
+    "productionOutputs": "الإنتاج",
+    "inventory": "المخزون",
     "more": "الإعدادات",
     "mainMenu": "القائمة الرئيسية",
     "profile": "الملف الشخصي",
@@ -543,6 +633,10 @@
     "vehicleBookedDescription": "احصل على إشعار عند إنشاء حجز سيارة",
     "vehicleReceived": "سيارة مستلمة",
     "vehicleReceivedDescription": "احصل على إشعار عند استلام سيارة في المنشأة",
+    "vehicleOffloadingStarted": "بدأ التفريغ",
+    "vehicleOffloadingStartedDescription": "احصل على إشعار عند بدء عملية تفريغ السيارة",
+    "vehicleOffloadingCompleted": "اكتمل التفريغ",
+    "vehicleOffloadingCompletedDescription": "احصل على إشعار عند اكتمال عملية تفريغ السيارة",
     "vehicleExited": "سيارة خارجة",
     "vehicleExitedDescription": "احصل على إشعار عند خروج سيارة من المنشأة",
     "vehicleApproved": "سيارة معتمدة",
@@ -830,6 +924,279 @@
     "appName": "FinsERP",
     "mobileApp": "تطبيق الجوال"
   },
+  "productionRuns": {
+    "title": "دورات الإنتاج",
+    "subtitle": "إدارة دورات الإنتاج والورديات",
+    "dashboard": "لوحة الإنتاج",
+    "dashboardDescription": "مراقبة الدورات وعمليات الورديات",
+    "viewRuns": "عرض الدورات",
+    "manageRuns": "إدارة جميع دورات الإنتاج",
+    "createNew": "دورة جديدة",
+    "createFirst": "بدء أول دورة",
+    "noActiveRun": "لا توجد دورة نشطة",
+    "noActiveRunDescription": "ابدأ دورة إنتاج لبدء التتبع",
+    "currentRun": "الدورة الحالية",
+    "runStatus": {
+      "planned": "مخطط",
+      "in_progress": "قيد التنفيذ",
+      "completed": "مكتمل",
+      "canceled": "ملغي"
+    },
+    "actions": {
+      "startRun": "بدء الدورة",
+      "stopRun": "إيقاف الدورة",
+      "completeRun": "إكمال الدورة",
+      "recordOutput": "تسجيل الإنتاج"
+    },
+    "shift": {
+      "shift": "الشيفت",
+      "currentShift": "الشيفت الحالي",
+      "currentOperator": "المشغل الحالي",
+      "shiftHandover": "تسليم الشيفت",
+      "handoverTo": "تسليم إلى",
+      "handoverFrom": "تسليم من {shift}",
+      "noOperator": "لم يتم تعيين مشغل",
+      "startShift": "بدء الشيفت",
+      "endShift": "إنهاء الشيفت"
+    },
+    "runDetails": "تفاصيل الدورة",
+    "detail": {
+      "runName": "اسم الدورة",
+      "started": "بدأت",
+      "created": "أنشئت",
+      "completed": "اكتملت",
+      "productionLines": "خطوط الإنتاج",
+      "total": "الإجمالي",
+      "notes": "ملاحظات"
+    },
+    "list": {
+      "title": "دورات الإنتاج الأخيرة",
+      "run": "الدورة",
+      "status": "الحالة",
+      "planned": "المخطط",
+      "actual": "الفعلي",
+      "operator": "المشغل",
+      "lines": "الخطوط",
+      "viewDetails": "عرض التفاصيل"
+    },
+    "dialog": {
+      "completeTitle": "إكمال دورة الإنتاج",
+      "completeDescription": "هل أنت متأكد من أنك تريد إكمال دورة الإنتاج \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "completionNotesPlaceholder": "اختياري: إضافة ملاحظات الإكمال...",
+      "completing": "جاري الإكمال...",
+      "completeButton": "إكمال الدورة"
+    },
+    "outputs": {
+      "title": "مخرجات الإنتاج",
+      "subtitle": "المخرجات المسجلة لهذه الدورة",
+      "empty": "لم يتم تسجيل مخرجات",
+      "emptyDescription": "ستظهر مخرجات الإنتاج هنا بمجرد تسجيلها"
+    },
+    "handover": {
+      "subtitle": "تسليم ورديتك إلى المشغل التالي",
+      "shiftDetails": "تفاصيل الشيفت",
+      "fromShift": "من الشيفت",
+      "toShift": "إلى الشيفت",
+      "selectShift": "اختر الشيفت",
+      "pendingTasks": "المهام المعلقة",
+      "add": "إضافة",
+      "noPendingTasks": "لا توجد مهام معلقة للتسليم",
+      "taskPlaceholder": "وصف المهمة المعلقة...",
+      "issues": "المشاكل للإبلاغ",
+      "noIssues": "لا توجد مشاكل للإبلاغ",
+      "issueTypePlaceholder": "نوع المشكلة (مثل: المعدات، السلامة)",
+      "issueDescriptionPlaceholder": "وصف المشكلة...",
+      "severityLow": "منخفض",
+      "severityMedium": "متوسط",
+      "severityHigh": "عالي",
+      "additionalNotes": "ملاحظات إضافية",
+      "notesPlaceholder": "أي ملاحظات إضافية للوردية التالية...",
+      "submitting": "جاري الإرسال...",
+      "submitButton": "إرسال التسليم",
+      "pending": "معلق",
+      "accept": "قبول"
+    },
+    "search": {
+      "placeholder": "البحث حسب اسم الدورة..."
+    },
+    "empty": {
+      "title": "لا توجد دورات إنتاج",
+      "description": "ابدأ بإنشاء أول دورة إنتاج"
+    },
+    "new": {
+      "title": "بدء دورة إنتاج",
+      "subtitle": "تكوين وبدء دورة إنتاج جديدة",
+      "runName": "اسم الدورة",
+      "runNamePlaceholder": "يتم إنشاؤه تلقائياً أو أدخل اسماً مخصصاً",
+      "selectOperator": "اختر المشغل",
+      "selectOperatorPlaceholder": "اختر مشغل الوردية",
+      "selectProductionLine": "خطوط الإنتاج",
+      "selectProductionLinePlaceholder": "اختر خط الإنتاج",
+      "plannedCapacity": "السعة المخططة",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "ملاحظات اختيارية حول هذه الدورة...",
+      "startButton": "بدء دورة الإنتاج",
+      "starting": "جاري البدء...",
+      "comingSoon": "قريباً",
+      "comingSoonDescription": "هذه الميزة قيد التطوير. قريباً ستتمكن من بدء وإدارة دورات الإنتاج مباشرة من جهازك المحمول.",
+      "linesSelected": "{count} مختار",
+      "maxCapacity": "الحد الأقصى: {capacity} كجم",
+      "max": "الحد الأقصى",
+      "startImmediatelyDescription": "بدء الدورة مباشرة بعد الإنشاء",
+      "summaryLines": "خطوط الإنتاج",
+      "summaryCapacity": "إجمالي السعة المخططة",
+      "failedToLoad": "فشل في تحميل بيانات النموذج"
+    }
+  },
+  "inventory": {
+    "title": "المخزون",
+    "subtitle": "نظرة عامة على مخزون الإنتاج",
+    "totalStock": "الإجمالي: {quantity} {unit}",
+    "total": "إجمالي",
+    "warehouseCount": "{count} مستودعات",
+    "warehouseOverview": "نظرة عامة على المستودعات",
+    "openingStock": "رصيد الافتتاح",
+    "movementsLabel": "الحركات",
+    "closingStock": "رصيد الإغلاق",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "transferLabel": "تحويل",
+    "transferTo": "تحويل",
+    "transferFrom": "تحويل",
+    "recentMovements": "الحركات الأخيرة",
+    "viewAll": "عرض الكل",
+    "noStock": "لا يوجد مخزون",
+    "empty": {
+      "title": "لا توجد بيانات مخزون",
+      "description": "ستظهر مخرجات الإنتاج هنا بمجرد تسجيلها"
+    },
+    "actions": {
+      "newTransfer": "تحويل جديد",
+      "newAdjustment": "تسوية جديدة"
+    },
+    "transfer": {
+      "title": "تحويل المخزون",
+      "subtitle": "نقل المخزون بين المستودعات",
+      "productType": "نوع المنتج",
+      "selectProductType": "اختر نوع المنتج",
+      "sourceWarehouse": "من المستودع",
+      "selectSourceWarehouse": "اختر المستودع المصدر",
+      "destinationWarehouse": "إلى المستودع",
+      "selectDestinationWarehouse": "اختر المستودع الهدف",
+      "quantity": "الكمية",
+      "availableStock": "المتوفر: {quantity} {unit}",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "ملاحظات اختيارية حول هذا التحويل...",
+      "submit": "تحويل",
+      "submitting": "جاري التحويل...",
+      "success": "تم التحويل بنجاح",
+      "error": "فشل في تحويل المخزون",
+      "validation": {
+        "productTypeRequired": "نوع المنتج مطلوب",
+        "sourceWarehouseRequired": "المستودع المصدر مطلوب",
+        "destinationWarehouseRequired": "المستودع الهدف مطلوب",
+        "sameWarehouse": "المصدر والهدف لا يمكن أن يكونا نفس المستودع",
+        "quantityRequired": "الكمية يجب أن تكون أكبر من 0",
+        "insufficientStock": "المخزون غير كافٍ في المستودع المصدر"
+      }
+    },
+    "adjustment": {
+      "title": "تسوية المخزون",
+      "subtitle": "تسجيل تسوية المخزون",
+      "productType": "نوع المنتج",
+      "selectProductType": "اختر نوع المنتج",
+      "warehouse": "المستودع",
+      "selectWarehouse": "اختر المستودع",
+      "type": "نوع التسوية",
+      "addition": "إضافة",
+      "subtraction": "خصم",
+      "quantity": "الكمية",
+      "reason": "السبب",
+      "selectReason": "اختر السبب",
+      "reasons": {
+        "variance": "فرق الإنتاج",
+        "damaged": "تالف",
+        "expired": "منتهي الصلاحية",
+        "count": "تصحيح الجرد",
+        "other": "أخرى"
+      },
+      "notes": "ملاحظات",
+      "notesPlaceholder": "ملاحظات اختيارية حول هذه التسوية...",
+      "submit": "حفظ التسوية",
+      "submitting": "جاري الحفظ...",
+      "success": "تم تسجيل التسوية بنجاح",
+      "error": "فشل في تسجيل التسوية",
+      "validation": {
+        "productTypeRequired": "نوع المنتج مطلوب",
+        "warehouseRequired": "المستودع مطلوب",
+        "quantityRequired": "الكمية يجب أن تكون أكبر من 0",
+        "reasonRequired": "السبب مطلوب"
+      }
+    },
+    "movements": {
+      "title": "حركات المخزون",
+      "subtitle": "جميع حركات المخزون",
+      "filters": "التصفية",
+      "filterWarehouse": "المستودع",
+      "dateRange": "نطاق التاريخ",
+      "dateFrom": "من",
+      "dateTo": "إلى",
+      "productType": "نوع المنتج",
+      "allProductTypes": "جميع أنواع المنتجات",
+      "movementType": "نوع الحركة",
+      "allTypes": "جميع الأنواع",
+      "warehouse": "المستودع",
+      "allWarehouses": "جميع المستودعات",
+      "applyFilters": "تطبيق التصفية",
+      "clearFilters": "مسح التصفية",
+      "loadError": "فشل في تحميل الحركات",
+      "retry": "إعادة المحاولة",
+      "loadMore": "تحميل المزيد",
+      "showing": "عرض",
+      "of": "من",
+      "movements": "حركات",
+      "reason": "السبب",
+      "types": {
+        "transfer_in": "تحويل وارد",
+        "transfer_out": "تحويل صادر",
+        "adjustment_add": "إضافة",
+        "adjustment_sub": "خصم",
+        "production_output": "مخرجات الإنتاج",
+        "production": "إنتاج",
+        "adjustment": "تسوية",
+        "addition": "إضافة",
+        "subtraction": "خصم"
+      },
+      "empty": "لا توجد حركات",
+      "emptyDescription": "لم يتم العثور على حركات مخزون للفلاتر المحددة",
+      "calendar": {
+        "weekView": "أسبوع",
+        "monthView": "شهر",
+        "today": "اليوم",
+        "movementsFor": "حركات {date}",
+        "noMovements": "لا توجد حركات في هذا اليوم",
+        "inbound": "وارد",
+        "outbound": "صادر",
+        "net": "صافي",
+        "totalInbound": "إجمالي الوارد",
+        "totalOutbound": "إجمالي الصادر",
+        "transfers": "التحويلات",
+        "netChange": "صافي التغيير",
+        "monthSummary": "ملخص {month}",
+        "mostActiveWarehouses": "المستودعات الأكثر نشاطاً",
+        "movements": "حركات",
+        "days": {
+          "sun": "أحد",
+          "mon": "إثنين",
+          "tue": "ثلاثاء",
+          "wed": "أربعاء",
+          "thu": "خميس",
+          "fri": "جمعة",
+          "sat": "سبت"
+        }
+      }
+    }
+  },
   "fishPurchases": {
     "title": "مشتريات الأسماك",
     "listDescription": "إدارة فواتير ومعاملات شراء الأسماك",
@@ -1073,6 +1440,10 @@
         "success": "نجح",
         "failed": "فشل"
       }
+    },
+    "printPreview": {
+      "title": "معاينة الطباعة",
+      "print": "طباعة"
     }
   }
 }

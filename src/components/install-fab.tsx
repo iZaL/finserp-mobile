@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
-import { detectPlatform } from "@/lib/platform-detect";
-import { InstallGuideDialog } from "@/components/install-guide-dialog";
+import {useEffect, useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
+import {Download} from 'lucide-react';
+import {detectPlatform} from '@/lib/platform-detect';
+import {InstallGuideDialog} from '@/components/install-guide-dialog';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
 
 /**
  * Install FAB (Floating Action Button)
@@ -57,14 +57,14 @@ export function InstallFAB() {
             <Button
               onClick={handleClick}
               size="icon"
-              className="fixed bottom-20 right-4 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6"
-              aria-label={t("install.fab.tooltip")}
+              className="fixed right-4 bottom-20 z-40 h-14 w-14 rounded-full shadow-lg md:bottom-6"
+              aria-label={t('install.fab.tooltip')}
             >
               <Download className="h-6 w-6" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>{t("install.fab.tooltip")}</p>
+            <p>{t('install.fab.tooltip')}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

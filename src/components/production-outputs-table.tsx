@@ -1,0 +1,781 @@
+'use client';
+
+import {Fragment, useMemo, useState, useCallback} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {useTranslations} from 'next-intl';
+import {
+  Package,
+  ChevronRight,
+  Layers,
+  X,
+  Calendar,
+  Wheat,
+  Droplet,
+  Clock,
+} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent} from '@/components/ui/card';
+import {Skeleton} from '@/components/ui/skeleton';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Badge} from '@/components/ui/badge';
+import {cn} from '@/lib/utils';
+import {useProductionOutputs} from '@/hooks/use-production-outputs';
+import {usePermissionStore} from '@/lib/stores/permission-store';
+import type {
+  ProductionOutput,
+  ProductionOutputFilters,
+} from '@/types/production-output';
+
+interface GroupedData {
+  date: string;
+  byType: Record<string, {total: number; records: ProductionOutput[]}>;
+  totalRecords: number;
+  allRecords: ProductionOutput[];
+}
+
+interface ProductionOutputsTableProps {
+  filters?: ProductionOutputFilters;
+  showBatchingCard?: boolean;
+  showEmptyState?: boolean;
+  compact?: boolean;
+  title?: string;
+  subtitle?: string;
+}
+
+// Get product type styling
+function getProductTypeStyle(typeName: string) {
+  const isFishmeal = typeName.toLowerCase().includes('fishmeal');
+  return {
+    icon: isFishmeal ? Wheat : Droplet,
+    gradient: isFishmeal
+      ? 'from-amber-500 to-orange-600'
+      : 'from-blue-500 to-cyan-600',
+    textColor: isFishmeal
+      ? 'text-amber-600 dark:text-amber-400'
+      : 'text-blue-600 dark:text-blue-400',
+    bgColor: isFishmeal
+      ? 'bg-amber-50 dark:bg-amber-950/30'
+      : 'bg-blue-50 dark:bg-blue-950/30',
+  };
+}
+
+export function ProductionOutputsTable({
+  filters = {},
+  showBatchingCard = true,
+  showEmptyState = true,
+  compact = false,
+  title,
+  subtitle,
+}: ProductionOutputsTableProps) {
+  const router = useRouter();
+  const t = useTranslations('productionOutputs');
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const {data, isLoading, error} = useProductionOutputs(filters);
+  const {canCreateBatch: hasCreateBatchPermission} = usePermissionStore();
+
+  const {productTypes, groupedByDate, totals, allOutputs} = useMemo(() => {
+    if (!data?.data?.length)
+      return {
+        productTypes: [],
+        groupedByDate: [] as GroupedData[],
+        totals: {},
+        allOutputs: [] as ProductionOutput[],
+      };
+
+    const types = [
+      ...new Set(data.data.map((o) => o.product_type?.name).filter(Boolean)),
+    ] as string[];
+    const byDate: Record<
+      string,
+      Record<string, {total: number; records: ProductionOutput[]}>
+    > = {};
+    const totalsByType: Record<string, number> = {};
+
+    data.data.forEach((output) => {
+      const date = output.production_date;
+      const typeName = output.product_type?.name || 'Other';
+
+      if (!byDate[date]) byDate[date] = {};
+      if (!byDate[date][typeName])
+        byDate[date][typeName] = {total: 0, records: []};
+
+      byDate[date][typeName].total += output.total_quantity;
+      byDate[date][typeName].records.push(output);
+      totalsByType[typeName] =
+        (totalsByType[typeName] || 0) + output.total_quantity;
+    });
+
+    const grouped: GroupedData[] = Object.entries(byDate)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([date, byType]) => {
+        const allRecords = Object.values(byType).flatMap((t) => t.records);
+        return {
+          date,
+          byType,
+          totalRecords: allRecords.length,
+          allRecords,
+        };
+      });
+
+    return {
+      productTypes: types,
+      groupedByDate: grouped,
+      totals: totalsByType,
+      allOutputs: data.data,
+    };
+  }, [data?.data]);
+
+  const selectableOutputs = useMemo(() => {
+    return allOutputs.filter(
+      (o) =>
+        (o.available_quantity ?? o.total_quantity) > 0 &&
+        o.status !== 'voided' &&
+        o.status !== 'verified'
+    );
+  }, [allOutputs]);
+
+  const selectedOutputs = useMemo(() => {
+    return allOutputs.filter((o) => selectedIds.has(o.id));
+  }, [allOutputs, selectedIds]);
+
+  const selectedProductTypes = useMemo(() => {
+    return [
+      ...new Set(selectedOutputs.map((o) => o.production_product_type_id)),
+    ];
+  }, [selectedOutputs]);
+
+  const canCreateBatch =
+    selectedOutputs.length > 0 && selectedProductTypes.length === 1;
+  const mixedProductTypes = selectedProductTypes.length > 1;
+
+  const toggleDate = (date: string) => {
+    setExpandedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
+      return next;
+    });
+  };
+
+  const toggleSelection = useCallback((id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const enterSelectionMode = useCallback(() => {
+    setSelectionMode(true);
+    // Auto-expand all dates that have multiple records
+    const datesToExpand = groupedByDate
+      .filter((group) => group.totalRecords > 1)
+      .map((group) => group.date);
+    setExpandedDates(new Set(datesToExpand));
+  }, [groupedByDate]);
+
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+    setExpandedDates(new Set());
+  }, []);
+
+  const handleCreateBatch = useCallback(() => {
+    if (!canCreateBatch) return;
+    const ids = [...selectedIds].join(',');
+    router.push(`/batches/new?output_ids=${ids}`);
+  }, [canCreateBatch, selectedIds, router]);
+
+  const isOutputSelectable = useCallback((output: ProductionOutput) => {
+    return (
+      (output.available_quantity ?? output.total_quantity) > 0 &&
+      output.status !== 'voided' &&
+      output.status !== 'verified'
+    );
+  }, []);
+
+  const getSelectableForGroup = useCallback(
+    (group: GroupedData) => {
+      return group.allRecords.filter(isOutputSelectable);
+    },
+    [isOutputSelectable]
+  );
+
+  const toggleGroupSelection = useCallback(
+    (group: GroupedData) => {
+      const selectableRecords = getSelectableForGroup(group);
+      if (selectableRecords.length === 0) return;
+
+      const selectableIds = selectableRecords.map((r) => r.id);
+      const allSelected = selectableIds.every((id) => selectedIds.has(id));
+
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (allSelected) {
+          selectableIds.forEach((id) => next.delete(id));
+        } else {
+          selectableIds.forEach((id) => next.add(id));
+        }
+        return next;
+      });
+    },
+    [getSelectableForGroup, selectedIds]
+  );
+
+  const isGroupFullySelected = useCallback(
+    (group: GroupedData) => {
+      const selectableRecords = getSelectableForGroup(group);
+      if (selectableRecords.length === 0) return false;
+      return selectableRecords.every((r) => selectedIds.has(r.id));
+    },
+    [getSelectableForGroup, selectedIds]
+  );
+
+  const isGroupPartiallySelected = useCallback(
+    (group: GroupedData) => {
+      const selectableRecords = getSelectableForGroup(group);
+      if (selectableRecords.length === 0) return false;
+      const selectedCount = selectableRecords.filter((r) =>
+        selectedIds.has(r.id)
+      ).length;
+      return selectedCount > 0 && selectedCount < selectableRecords.length;
+    },
+    [getSelectableForGroup, selectedIds]
+  );
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const formatShortDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-GB', {
+      weekday: 'short',
+    });
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Card className="overflow-hidden border-0 shadow-md">
+        <div className="space-y-1 p-1">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (error && !isLoading) {
+    return (
+      <Card className="border-0 shadow-md">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <p className="text-destructive mb-4 text-sm">{t('failedToLoad')}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t('retry')}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Empty state
+  if (!isLoading && !error && data?.data.length === 0) {
+    if (!showEmptyState) return null;
+
+    return (
+      <Card className="border-0 shadow-md">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <div className="bg-muted mb-4 rounded-full p-4">
+            <Package className="text-muted-foreground size-8" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold">{t('empty.title')}</h3>
+          <p className="text-muted-foreground mb-4 text-center text-sm">
+            {t('empty.description')}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Has data
+  if (!data || data.data.length === 0) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Optional header */}
+      {(title || subtitle) && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              {title && (
+                <h2
+                  className={cn(
+                    'font-semibold',
+                    compact ? 'text-base' : 'text-lg'
+                  )}
+                >
+                  {title}
+                </h2>
+              )}
+              {subtitle && (
+                <p className="text-muted-foreground text-sm">{subtitle}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Batching card */}
+      {showBatchingCard &&
+        selectableOutputs.length > 0 &&
+        hasCreateBatchPermission() && (
+          <Card
+            className={cn(
+              'overflow-hidden border-0 shadow-md transition-all',
+              selectionMode
+                ? 'bg-gradient-to-r from-slate-700 to-slate-800'
+                : 'bg-gradient-to-r from-indigo-500 to-violet-600'
+            )}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between text-white">
+                <div>
+                  {selectionMode ? (
+                    <>
+                      <p className="font-semibold">
+                        {selectedIds.size === 0
+                          ? 'Select outputs to batch'
+                          : `${selectedIds.size} output${selectedIds.size !== 1 ? 's' : ''} selected`}
+                      </p>
+                      <p className="text-sm text-white/80">
+                        {mixedProductTypes
+                          ? 'Select same product type only'
+                          : canCreateBatch
+                            ? 'Ready to create batch'
+                            : 'Tap rows to select'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold">Create Batch from Outputs</p>
+                      <p className="text-sm text-white/80">
+                        {selectableOutputs.length} output
+                        {selectableOutputs.length !== 1 ? 's' : ''} available
+                      </p>
+                    </>
+                  )}
+                </div>
+                {selectionMode ? (
+                  <Button
+                    onClick={exitSelectionMode}
+                    variant="secondary"
+                    className="bg-white/20 text-white hover:bg-white/30"
+                  >
+                    <X className="me-2 size-4" />
+                    Cancel
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={enterSelectionMode}
+                    variant="secondary"
+                    className="bg-white/20 text-white hover:bg-white/30"
+                  >
+                    <Layers className="me-2 size-4" />
+                    {t('select')}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+      {/* Records List */}
+      <Card className="overflow-hidden border-0 shadow-md">
+        {/* Header */}
+        <div className="bg-muted/50 flex items-center border-b px-4 py-3">
+          <div className="flex-1">
+            <span className="text-sm font-semibold">{t('list.date')}</span>
+          </div>
+          {productTypes.map((type) => {
+            const style = getProductTypeStyle(type);
+            const Icon = style.icon;
+            return (
+              <div
+                key={type}
+                className="flex w-28 items-center justify-end gap-1.5"
+              >
+                <Icon className={cn('size-4', style.textColor)} />
+                <span className="text-sm font-semibold">{type}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Rows */}
+        <div className="divide-y">
+          {groupedByDate.map((group) => {
+            const isExpanded = expandedDates.has(group.date);
+            const hasMultiple = group.totalRecords > 1;
+            const singleRecord = !hasMultiple
+              ? Object.values(group.byType)[0]?.records[0]
+              : null;
+            const selectableCount = getSelectableForGroup(group).length;
+            const hasSelectable = selectableCount > 0;
+            const isFullySelected = isGroupFullySelected(group);
+            const isPartiallySelected = isGroupPartiallySelected(group);
+
+            const handleRowClick = () => {
+              if (selectionMode) {
+                if (hasMultiple) {
+                  toggleDate(group.date);
+                } else if (singleRecord && isOutputSelectable(singleRecord)) {
+                  toggleSelection(singleRecord.id);
+                }
+              } else {
+                if (hasMultiple) {
+                  toggleDate(group.date);
+                } else if (singleRecord) {
+                  router.push(`/production-outputs/${singleRecord.id}`);
+                }
+              }
+            };
+
+            return (
+              <Fragment key={group.date}>
+                <div
+                  className={cn(
+                    'group flex cursor-pointer items-center px-4 py-3 transition-colors',
+                    'hover:bg-muted/50',
+                    selectionMode && isFullySelected && 'bg-primary/5'
+                  )}
+                  onClick={handleRowClick}
+                >
+                  {/* Selection checkbox */}
+                  {selectionMode && (
+                    <div className="mr-3" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isFullySelected}
+                        disabled={!hasSelectable}
+                        className={cn(
+                          !hasSelectable && 'opacity-30',
+                          isPartiallySelected &&
+                            'data-[state=unchecked]:bg-primary/30'
+                        )}
+                        onCheckedChange={() => {
+                          if (hasMultiple) {
+                            toggleGroupSelection(group);
+                          } else if (singleRecord) {
+                            toggleSelection(singleRecord.id);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Date info */}
+                  <div className="flex flex-1 items-center gap-3">
+                    <div
+                      className={cn(
+                        'flex size-10 items-center justify-center rounded-xl',
+                        'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
+                      )}
+                    >
+                      <Calendar className="text-muted-foreground size-5" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">
+                          {formatDate(group.date)}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {formatShortDate(group.date)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-xs">
+                          {hasMultiple
+                            ? t('list.records', {count: group.totalRecords})
+                            : singleRecord?.record_number}
+                        </span>
+                        {singleRecord?.batch_allocations &&
+                          singleRecord.batch_allocations.length > 0 && (
+                            <>
+                              {singleRecord.batch_allocations
+                                .slice(0, 2)
+                                .map((alloc) => (
+                                  <Badge
+                                    key={alloc.id}
+                                    variant="secondary"
+                                    className="px-1.5 py-0 text-[10px]"
+                                  >
+                                    {alloc.batch?.batch_code}
+                                  </Badge>
+                                ))}
+                              {singleRecord.batch_allocations.length > 2 && (
+                                <Badge
+                                  variant="outline"
+                                  className="px-1.5 py-0 text-[10px]"
+                                >
+                                  +{singleRecord.batch_allocations.length - 2}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        {selectionMode &&
+                          selectableCount > 0 &&
+                          hasMultiple && (
+                            <Badge
+                              variant="outline"
+                              className="px-1.5 py-0 text-[10px]"
+                            >
+                              {selectableCount} available
+                            </Badge>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Product type quantities */}
+                  {productTypes.map((type) => {
+                    const style = getProductTypeStyle(type);
+                    const value = group.byType[type]?.total;
+                    return (
+                      <div key={type} className="w-28 text-right">
+                        {value ? (
+                          <span
+                            className={cn(
+                              'text-sm font-semibold tabular-nums',
+                              style.textColor
+                            )}
+                          >
+                            {value.toLocaleString()} kg
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/50 text-sm">
+                            —
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Expand indicator */}
+                  <div className="ml-2 w-6">
+                    {hasMultiple && (
+                      <div
+                        className={cn(
+                          'text-muted-foreground transition-transform',
+                          isExpanded && 'rotate-90'
+                        )}
+                      >
+                        <ChevronRight className="size-5" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expanded details */}
+                {isExpanded && (
+                  <div className="bg-muted/30 border-t px-4 py-2">
+                    <div className="space-y-2">
+                      {Object.entries(group.byType).flatMap(
+                        ([typeName, typeData]) =>
+                          typeData.records.map((record) => {
+                            const selectable = isOutputSelectable(record);
+                            const isSelected = selectedIds.has(record.id);
+                            const style = getProductTypeStyle(typeName);
+                            const Icon = style.icon;
+
+                            return (
+                              <div
+                                key={record.id}
+                                className={cn(
+                                  'flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors',
+                                  'hover:bg-background/80',
+                                  selectionMode && isSelected && 'bg-primary/10'
+                                )}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectionMode && selectable) {
+                                    toggleSelection(record.id);
+                                  } else if (!selectionMode) {
+                                    router.push(
+                                      `/production-outputs/${record.id}`
+                                    );
+                                  }
+                                }}
+                              >
+                                {selectionMode && (
+                                  <Checkbox
+                                    checked={isSelected}
+                                    disabled={!selectable}
+                                    className={cn(!selectable && 'opacity-30')}
+                                    onCheckedChange={() =>
+                                      toggleSelection(record.id)
+                                    }
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                )}
+
+                                <div
+                                  className={cn(
+                                    'flex size-8 items-center justify-center rounded-lg',
+                                    style.bgColor
+                                  )}
+                                >
+                                  <Icon
+                                    className={cn('size-4', style.textColor)}
+                                  />
+                                </div>
+
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={cn(
+                                        'text-sm font-medium',
+                                        !selectable &&
+                                          selectionMode &&
+                                          'text-muted-foreground'
+                                      )}
+                                    >
+                                      {record.record_number}
+                                    </span>
+                                    {record.batch_allocations &&
+                                      record.batch_allocations.length > 0 && (
+                                        <>
+                                          {record.batch_allocations
+                                            .slice(0, 2)
+                                            .map((alloc) => (
+                                              <Badge
+                                                key={alloc.id}
+                                                variant="secondary"
+                                                className="px-1.5 py-0 text-[10px]"
+                                              >
+                                                {alloc.batch?.batch_code}
+                                              </Badge>
+                                            ))}
+                                        </>
+                                      )}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-muted-foreground text-xs">
+                                      {typeName}
+                                    </span>
+                                    <span className="text-muted-foreground text-xs">
+                                      •
+                                    </span>
+                                    <Clock className="text-muted-foreground size-3" />
+                                    <span className="text-muted-foreground text-xs">
+                                      {new Date(
+                                        record.created_at
+                                      ).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <span
+                                    className={cn(
+                                      'text-sm font-semibold tabular-nums',
+                                      style.textColor,
+                                      !selectable &&
+                                        selectionMode &&
+                                        'opacity-50'
+                                    )}
+                                  >
+                                    {record.total_quantity.toLocaleString()}{' '}
+                                    {record.unit}
+                                  </span>
+                                  {record.available_quantity !== undefined &&
+                                    record.available_quantity <
+                                      record.total_quantity && (
+                                      <p className="text-muted-foreground text-xs">
+                                        {record.available_quantity.toLocaleString()}{' '}
+                                        avail
+                                      </p>
+                                    )}
+                                </div>
+
+                                <ChevronRight className="text-muted-foreground size-4" />
+                              </div>
+                            );
+                          })
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Fragment>
+            );
+          })}
+        </div>
+
+        {/* Footer totals */}
+        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-4 py-3 dark:from-slate-800 dark:to-slate-700">
+          <div className="flex items-center">
+            {selectionMode && <div className="mr-3 w-5" />}
+            <div className="flex flex-1 items-center gap-3">
+              <div className="size-10" />
+              <span className="font-bold">{t('list.total')}</span>
+            </div>
+            {productTypes.map((type) => {
+              const style = getProductTypeStyle(type);
+              return (
+                <div key={type} className="w-28 text-right">
+                  <span
+                    className={cn(
+                      'text-sm font-bold tabular-nums',
+                      style.textColor
+                    )}
+                  >
+                    {totals[type] ? `${totals[type].toLocaleString()} kg` : '—'}
+                  </span>
+                </div>
+              );
+            })}
+            <div className="ml-2 w-6" />
+          </div>
+        </div>
+      </Card>
+
+      {/* Selection mode footer */}
+      {selectionMode && (
+        <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="font-semibold">
+                {selectedIds.size} output{selectedIds.size !== 1 ? 's' : ''}{' '}
+                selected
+              </div>
+              {mixedProductTypes && (
+                <p className="text-destructive text-xs">
+                  Mixed product types - select same type only
+                </p>
+              )}
+            </div>
+            <Button
+              onClick={handleCreateBatch}
+              disabled={!canCreateBatch}
+              className="bg-gradient-to-r from-indigo-500 to-violet-600"
+            >
+              <Layers className="me-2 size-4" />
+              {t('createBatch')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
-import Image from "next/image";
+import {useState, useEffect} from 'react';
+import {useTranslations} from 'next-intl';
+import Image from 'next/image';
 import {
   FileText,
   Download,
@@ -13,29 +13,29 @@ import {
   Truck,
   ArrowLeft,
   LayoutGrid,
-  List
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { vehicleBookingService } from "@/lib/services/vehicle-booking";
-import axios from "axios";
-import { FilePreviewModal } from "@/components/vehicle-booking/FilePreviewModal";
-import { BillAttachmentsGuard } from "@/components/permission-guard";
-import { toast } from "sonner";
-import { useRouter } from "@/i18n/navigation";
-import { format, subDays, startOfMonth, differenceInDays } from "date-fns";
-import type { VehicleBooking, Media } from "@/types/vehicle-booking";
+  List,
+} from 'lucide-react';
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+import {Card} from '@/components/ui/card';
+import {Label} from '@/components/ui/label';
+import {vehicleBookingService} from '@/lib/services/vehicle-booking';
+import axios from 'axios';
+import {FilePreviewModal} from '@/components/vehicle-booking/FilePreviewModal';
+import {BillAttachmentsGuard} from '@/components/permission-guard';
+import {toast} from 'sonner';
+import {useRouter} from '@/i18n/navigation';
+import {format, subDays, startOfMonth, differenceInDays} from 'date-fns';
+import type {VehicleBooking, Media} from '@/types/vehicle-booking';
 
 // File Icon Component
 interface FileIconProps {
   mimeType: string;
-  size?: "sm" | "lg";
+  size?: 'sm' | 'lg';
 }
 
-function FileIcon({ mimeType, size = "sm" }: FileIconProps) {
-  const iconClass = size === "sm" ? "size-4" : "size-8";
+function FileIcon({mimeType, size = 'sm'}: FileIconProps) {
+  const iconClass = size === 'sm' ? 'size-4' : 'size-8';
 
   if (mimeType?.startsWith('image/')) {
     return <ImageIcon className={`${iconClass} text-green-600`} />;
@@ -53,21 +53,23 @@ function formatDate(dateString: string) {
 }
 
 export default function VehicleBillsPage() {
-  const t = useTranslations("bills");
+  const t = useTranslations('bills');
   const router = useRouter();
   const [vehicles, setVehicles] = useState<VehicleBooking[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(
+    null
+  );
   const [totalBills, setTotalBills] = useState(0);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   // Simple date filter states
   const [dateFrom, setDateFrom] = useState(() => {
     const sixMonthsAgo = subDays(new Date(), 180); // 6 months instead of 30 days
-    return format(sixMonthsAgo, "yyyy-MM-dd");
+    return format(sixMonthsAgo, 'yyyy-MM-dd');
   });
   const [dateTo, setDateTo] = useState(() => {
-    return format(new Date(), "yyyy-MM-dd");
+    return format(new Date(), 'yyyy-MM-dd');
   });
 
   // Date preset handlers
@@ -123,7 +125,7 @@ export default function VehicleBillsPage() {
             date_from: dateFrom,
             date_to: dateTo,
           },
-          { signal: abortController.signal }
+          {signal: abortController.signal}
         );
         setVehicles(response.data);
 
@@ -135,8 +137,8 @@ export default function VehicleBillsPage() {
         setTotalBills(total);
       } catch (error: unknown) {
         if (!axios.isCancel(error)) {
-          console.error("Failed to fetch bills:", error);
-          toast.error("Failed to load bills");
+          console.error('Failed to fetch bills:', error);
+          toast.error('Failed to load bills');
         }
       } finally {
         if (!abortController.signal.aborted) {
@@ -156,12 +158,12 @@ export default function VehicleBillsPage() {
   }, [searchQuery, dateFrom, dateTo]);
 
   // Get all bills flattened with vehicle info
-  const allBills = vehicles.flatMap(vehicle =>
-    (vehicle.bill_attachments || []).map(attachment => ({
+  const allBills = vehicles.flatMap((vehicle) =>
+    (vehicle.bill_attachments || []).map((attachment) => ({
       ...attachment,
       vehicle_number: vehicle.vehicle_number,
       vehicle_id: vehicle.id,
-      uploaded_at: attachment.created_at
+      uploaded_at: attachment.created_at,
     }))
   );
 
@@ -178,279 +180,291 @@ export default function VehicleBillsPage() {
   return (
     <BillAttachmentsGuard>
       <div className="space-y-6 p-4 pb-20">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="shrink-0"
-          >
-            <ArrowLeft className="size-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{t('title')}</h1>
-            <p className="text-muted-foreground">{t('subtitle')}</p>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="shrink-0"
+            >
+              <ArrowLeft className="size-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">{t('title')}</h1>
+              <p className="text-muted-foreground">{t('subtitle')}</p>
+            </div>
+          </div>
+
+          {/* View Toggle */}
+          <div className="bg-muted flex gap-1 rounded-lg p-1">
+            <Button
+              size="sm"
+              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              onClick={() => setViewMode('list')}
+            >
+              <List className="size-4" />
+            </Button>
           </div>
         </div>
 
-        {/* View Toggle */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
-          <Button
-            size="sm"
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-            onClick={() => setViewMode('grid')}
-          >
-            <LayoutGrid className="size-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-            onClick={() => setViewMode('list')}
-          >
-            <List className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input
-          placeholder={t('searchPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Simple Date Filter */}
-      <Card className="p-3 space-y-2">
-        {/* Date Inputs */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <Label htmlFor="date-from" className="text-[10px] font-medium text-muted-foreground">
-              {t("fromLabel")}
-            </Label>
-            <Input
-              id="date-from"
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-8 text-xs"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="date-to" className="text-[10px] font-medium text-muted-foreground">
-              {t("toLabel")}
-            </Label>
-            <Input
-              id="date-to"
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-8 text-xs"
-            />
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            placeholder={t('searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
 
-        {/* Quick Presets */}
-        <div className="grid grid-cols-4 gap-1.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset("today")}
-            className="text-xs h-7 px-2"
-          >
-            {t("todayButton")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset("last7")}
-            className="text-xs h-7 px-2"
-          >
-            {t("sevenDaysButton")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset("last30")}
-            className="text-xs h-7 px-2"
-          >
-            {t("thirtyDaysButton")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handlePreset("thisMonth")}
-            className="text-xs h-7 px-2"
-          >
-            {t("thisMonthButton")}
-          </Button>
-        </div>
-
-        {/* Info Text */}
-        {getDayCount() > 0 && (
-          <div className="text-center text-[10px] text-muted-foreground">
-            {t("showingBillsForDays", { days: getDayCount() })}
-          </div>
-        )}
-      </Card>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-card rounded-lg p-4 border">
-          <div className="text-2xl font-bold">{totalBills}</div>
-          <div className="text-sm text-muted-foreground">{t('totalBills')}</div>
-        </div>
-        <div className="bg-card rounded-lg p-4 border">
-          <div className="text-2xl font-bold">{vehicles.length}</div>
-          <div className="text-sm text-muted-foreground">{t("vehiclesLabel")}</div>
-        </div>
-      </div>
-
-      {/* Bills Display */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">{t("loadingBills")}</div>
-        </div>
-      ) : allBills.length > 0 ? (
-        viewMode === 'grid' ? (
-          /* Grid View - Compact */
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-            {allBills.map((bill) => (
-              <div
-                key={`${bill.vehicle_id}-${bill.id}`}
-                className="bg-card rounded-lg border p-3 space-y-2"
+        {/* Simple Date Filter */}
+        <Card className="space-y-2 p-3">
+          {/* Date Inputs */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label
+                htmlFor="date-from"
+                className="text-muted-foreground text-[10px] font-medium"
               >
-                {/* Preview Thumbnail */}
+                {t('fromLabel')}
+              </Label>
+              <Input
+                id="date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label
+                htmlFor="date-to"
+                className="text-muted-foreground text-[10px] font-medium"
+              >
+                {t('toLabel')}
+              </Label>
+              <Input
+                id="date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+
+          {/* Quick Presets */}
+          <div className="grid grid-cols-4 gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePreset('today')}
+              className="h-7 px-2 text-xs"
+            >
+              {t('todayButton')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePreset('last7')}
+              className="h-7 px-2 text-xs"
+            >
+              {t('sevenDaysButton')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePreset('last30')}
+              className="h-7 px-2 text-xs"
+            >
+              {t('thirtyDaysButton')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePreset('thisMonth')}
+              className="h-7 px-2 text-xs"
+            >
+              {t('thisMonthButton')}
+            </Button>
+          </div>
+
+          {/* Info Text */}
+          {getDayCount() > 0 && (
+            <div className="text-muted-foreground text-center text-[10px]">
+              {t('showingBillsForDays', {days: getDayCount()})}
+            </div>
+          )}
+        </Card>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-card rounded-lg border p-4">
+            <div className="text-2xl font-bold">{totalBills}</div>
+            <div className="text-muted-foreground text-sm">
+              {t('totalBills')}
+            </div>
+          </div>
+          <div className="bg-card rounded-lg border p-4">
+            <div className="text-2xl font-bold">{vehicles.length}</div>
+            <div className="text-muted-foreground text-sm">
+              {t('vehiclesLabel')}
+            </div>
+          </div>
+        </div>
+
+        {/* Bills Display */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-muted-foreground">{t('loadingBills')}</div>
+          </div>
+        ) : allBills.length > 0 ? (
+          viewMode === 'grid' ? (
+            /* Grid View - Compact */
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {allBills.map((bill) => (
                 <div
-                  className="aspect-square bg-muted rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePreview(bill);
-                  }}
+                  key={`${bill.vehicle_id}-${bill.id}`}
+                  className="bg-card space-y-2 rounded-lg border p-3"
                 >
-                  {isImage(bill.mime_type) ? (
-                    <Image
-                      src={bill.url}
-                      alt={bill.file_name}
-                      fill
-                      className="object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <FileIcon mimeType={bill.mime_type} size="lg" />
-                  )}
-                </div>
-
-                {/* Bill Info */}
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Truck className="size-3 text-blue-600" />
-                    <span className="text-sm font-medium truncate">{bill.vehicle_number}</span>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground truncate">
-                    {bill.file_name}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">
-                      {formatDate(bill.uploaded_at)}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-6"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDownload(bill);
-                        }}
-                      >
-                        <Download className="size-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* List View - Compact */
-          <div className="space-y-2">
-            {allBills.map((bill) => (
-              <div
-                key={`${bill.vehicle_id}-${bill.id}`}
-                className="flex items-center gap-3 p-3 bg-card rounded-lg border"
-              >
-                {/* File Icon */}
-                <div className="shrink-0">
-                  <FileIcon mimeType={bill.mime_type} />
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Truck className="size-3 text-blue-600" />
-                    <span className="font-medium">{bill.vehicle_number}</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground truncate">
-                    {bill.file_name}
-                  </div>
-                </div>
-
-                {/* Date */}
-                <div className="text-xs text-muted-foreground shrink-0">
-                  {formatDate(bill.uploaded_at)}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-1 shrink-0">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-8"
+                  {/* Preview Thumbnail */}
+                  <div
+                    className="bg-muted relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-lg"
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePreview(bill);
                     }}
                   >
-                    <Eye className="size-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="size-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(bill);
-                    }}
-                  >
-                    <Download className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      ) : (
-        <div className="text-center py-12">
-          <FileText className="size-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">{t('noBillsFound')}</h3>
-          <p className="text-muted-foreground">{t('noBillsDescription')}</p>
-        </div>
-      )}
+                    {isImage(bill.mime_type) ? (
+                      <Image
+                        src={bill.url}
+                        alt={bill.file_name}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <FileIcon mimeType={bill.mime_type} size="lg" />
+                    )}
+                  </div>
 
-      {/* Preview Modal */}
-      <FilePreviewModal
-        isOpen={!!previewAttachment}
-        onClose={() => setPreviewAttachment(null)}
-        attachment={previewAttachment}
-      />
+                  {/* Bill Info */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <Truck className="size-3 text-blue-600" />
+                      <span className="truncate text-sm font-medium">
+                        {bill.vehicle_number}
+                      </span>
+                    </div>
+
+                    <div className="text-muted-foreground truncate text-xs">
+                      {bill.file_name}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-muted-foreground text-xs">
+                        {formatDate(bill.uploaded_at)}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(bill);
+                          }}
+                        >
+                          <Download className="size-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* List View - Compact */
+            <div className="space-y-2">
+              {allBills.map((bill) => (
+                <div
+                  key={`${bill.vehicle_id}-${bill.id}`}
+                  className="bg-card flex items-center gap-3 rounded-lg border p-3"
+                >
+                  {/* File Icon */}
+                  <div className="shrink-0">
+                    <FileIcon mimeType={bill.mime_type} />
+                  </div>
+
+                  {/* Details */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Truck className="size-3 text-blue-600" />
+                      <span className="font-medium">{bill.vehicle_number}</span>
+                    </div>
+                    <div className="text-muted-foreground truncate text-sm">
+                      {bill.file_name}
+                    </div>
+                  </div>
+
+                  {/* Date */}
+                  <div className="text-muted-foreground shrink-0 text-xs">
+                    {formatDate(bill.uploaded_at)}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreview(bill);
+                      }}
+                    >
+                      <Eye className="size-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(bill);
+                      }}
+                    >
+                      <Download className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : (
+          <div className="py-12 text-center">
+            <FileText className="text-muted-foreground mx-auto mb-4 size-12" />
+            <h3 className="mb-2 text-lg font-medium">{t('noBillsFound')}</h3>
+            <p className="text-muted-foreground">{t('noBillsDescription')}</p>
+          </div>
+        )}
+
+        {/* Preview Modal */}
+        <FilePreviewModal
+          isOpen={!!previewAttachment}
+          onClose={() => setPreviewAttachment(null)}
+          attachment={previewAttachment}
+        />
       </div>
     </BillAttachmentsGuard>
   );

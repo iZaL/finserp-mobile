@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import {useCallback, useState} from 'react';
 
 /**
  * Generic dialog state manager hook
@@ -17,8 +17,8 @@ import { useCallback, useState } from "react"
  * closeDialog()
  */
 export function useDialogManager<T = unknown>() {
-  const [activeDialog, setActiveDialog] = useState<string | null>(null)
-  const [selectedItem, setSelectedItem] = useState<T | null>(null)
+  const [activeDialog, setActiveDialog] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<T | null>(null);
 
   /**
    * Open a dialog with optional data
@@ -26,17 +26,17 @@ export function useDialogManager<T = unknown>() {
    * @param item - Data to pass to the dialog
    */
   const openDialog = useCallback((dialogName: string, item?: T) => {
-    setActiveDialog(dialogName)
-    setSelectedItem(item ?? null)
-  }, [])
+    setActiveDialog(dialogName);
+    setSelectedItem(item ?? null);
+  }, []);
 
   /**
    * Close the currently active dialog and clear selected item
    */
   const closeDialog = useCallback(() => {
-    setActiveDialog(null)
-    setSelectedItem(null)
-  }, [])
+    setActiveDialog(null);
+    setSelectedItem(null);
+  }, []);
 
   /**
    * Check if a specific dialog is currently open
@@ -46,7 +46,7 @@ export function useDialogManager<T = unknown>() {
   const isOpen = useCallback(
     (dialogName: string) => activeDialog === dialogName,
     [activeDialog]
-  )
+  );
 
   return {
     openDialog,
@@ -54,5 +54,5 @@ export function useDialogManager<T = unknown>() {
     isOpen,
     selectedItem,
     activeDialog,
-  }
+  };
 }

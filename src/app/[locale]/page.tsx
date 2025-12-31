@@ -1,35 +1,164 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from 'next-intl'
-import { Button } from "@/components/ui/button"
-import { Car, Plus, BarChart3, ClipboardList, FileText, Lock } from "lucide-react"
-import { usePermissions } from "@/lib/stores/permission-store"
-import { BookingStatusBanner } from "@/components/booking-status-banner"
-import { NotificationWelcomeModal } from "@/components/notification-welcome-modal"
-import { NotificationEnableBanner } from "@/components/notification-enable-banner"
-import { useVehicleBookingSettings } from "@/hooks/use-vehicle-bookings"
-import { usePushNotification } from "@/hooks/use-push-notification"
+import {useState, useEffect, useMemo} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {useTranslations} from 'next-intl';
+import {
+  Car,
+  Plus,
+  BarChart3,
+  ClipboardList,
+  FileText,
+  Lock,
+  Factory,
+  Package,
+  ChevronRight,
+  Boxes,
+} from 'lucide-react';
+import {usePermissions} from '@/lib/stores/permission-store';
+import {BookingStatusBanner} from '@/components/booking-status-banner';
+import {NotificationWelcomeModal} from '@/components/notification-welcome-modal';
+import {NotificationEnableBanner} from '@/components/notification-enable-banner';
+import {useVehicleBookingSettings} from '@/hooks/use-vehicle-bookings';
+import {usePushNotification} from '@/hooks/use-push-notification';
+import {cn} from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from '@/components/ui/tooltip';
+
+// Dashboard Action Card Component
+interface ActionCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  gradient: string;
+  onClick: () => void;
+  disabled?: boolean;
+  locked?: boolean;
+  lockTooltip?: string;
+}
+
+function ActionCard({
+  icon: Icon,
+  title,
+  description,
+  gradient,
+  onClick,
+  disabled,
+  locked,
+  lockTooltip,
+}: ActionCardProps) {
+  const card = (
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={cn(
+        'group relative w-full overflow-hidden rounded-xl bg-gradient-to-br p-4 text-left text-white shadow-md transition-all duration-300',
+        'hover:-translate-y-1 hover:shadow-xl',
+        'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-md',
+        gradient
+      )}
+    >
+      {/* Background decoration */}
+      <div className="absolute -top-3 -right-3 size-16 rounded-full bg-white/10" />
+      <div className="absolute -bottom-2 -left-2 size-12 rounded-full bg-white/5" />
+
+      {/* Lock indicator */}
+      {locked && (
+        <div className="absolute top-2 right-2 rounded-full bg-white/20 p-1.5">
+          <Lock className="size-3.5" />
+        </div>
+      )}
+
+      <div className="relative">
+        <div className="mb-3 inline-flex rounded-lg bg-white/20 p-2.5 backdrop-blur-sm">
+          <Icon className="size-5" />
+        </div>
+        <h4 className="mb-0.5 font-semibold">{title}</h4>
+        <p className="text-xs text-white/80">{description}</p>
+      </div>
+
+      {/* Hover indicator */}
+      <ChevronRight className="absolute right-3 bottom-3 size-4 opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-60" />
+    </button>
+  );
+
+  if (locked && lockTooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{card}</TooltipTrigger>
+          <TooltipContent>
+            <p>{lockTooltip}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return card;
+}
+
+// Section Header Component
+function SectionHeader({
+  icon: Icon,
+  title,
+  gradient,
+}: {
+  icon: React.ElementType;
+  title: string;
+  gradient: string;
+}) {
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      <div
+        className={cn(
+          'rounded-xl bg-gradient-to-br p-2.5 text-white shadow-md',
+          gradient
+        )}
+      >
+        <Icon className="size-5" />
+      </div>
+      <h3 className="text-lg font-bold">{title}</h3>
+    </div>
+  );
+}
 
 export default function Home() {
-  const router = useRouter()
-  const t = useTranslations('dashboard')
-  const tBookingStatus = useTranslations('bookingStatus')
-  const permissions = usePermissions()
-  const { data: settings, isLoading: settingsLoading } = useVehicleBookingSettings()
-  const { isSupported, isSubscribed } = usePushNotification()
+  const router = useRouter();
+  const t = useTranslations('dashboard');
+  const tBookingStatus = useTranslations('bookingStatus');
+  const permissions = usePermissions();
+  const {data: settings, isLoading: settingsLoading} =
+    useVehicleBookingSettings();
+  const {isSupported, isSubscribed} = usePushNotification();
 
-  const [showNotificationModal, setShowNotificationModal] = useState(false)
-  const [showNotificationBanner, setShowNotificationBanner] = useState(false)
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
 
-  const isBookingEnabled = settings?.vehicle_booking_enabled ?? true
+  const isBookingEnabled = settings?.vehicle_booking_enabled ?? true;
+
+  // Check if user has access to any vehicle booking feature
+  const hasVehicleBookingAccess = useMemo(() => {
+    return (
+      permissions.canAccessVehicleBookings() ||
+      permissions.canCreateVehicleBooking() ||
+      permissions.canViewVehicleBookingReports() ||
+      permissions.canViewBillAttachments()
+    );
+  }, [permissions]);
+
+  // Check if user has access to any production feature
+  const hasProductionAccess = useMemo(() => {
+    return (
+      permissions.canAccessProductionRuns() ||
+      permissions.canAccessProductionOutputs() ||
+      permissions.canAccessInventory()
+    );
+  }, [permissions]);
 
   // Debug logging
   useEffect(() => {
@@ -38,32 +167,33 @@ export default function Home() {
         settings,
         vehicle_booking_enabled: settings?.vehicle_booking_enabled,
         isBookingEnabled,
-        settingsLoading
-      })
+        settingsLoading,
+      });
     }
-  }, [settings, isBookingEnabled, settingsLoading])
+  }, [settings, isBookingEnabled, settingsLoading]);
 
   // Check if we should show notification modal or banner
   useEffect(() => {
     if (!isSupported || isSubscribed) {
-      return
+      return;
     }
 
-    const hasSeenModal = localStorage.getItem("notification-modal-seen") === "true"
+    const hasSeenModal =
+      localStorage.getItem('notification-modal-seen') === 'true';
 
     if (!hasSeenModal) {
       // Show modal if never seen before
-      setShowNotificationModal(true)
+      setShowNotificationModal(true);
     } else {
       // Show banner if modal was dismissed but notifications not enabled
-      setShowNotificationBanner(true)
+      setShowNotificationBanner(true);
     }
-  }, [isSupported, isSubscribed])
+  }, [isSupported, isSubscribed]);
 
   const handleModalDismiss = () => {
-    setShowNotificationModal(false)
-    setShowNotificationBanner(true)
-  }
+    setShowNotificationModal(false);
+    setShowNotificationBanner(true);
+  };
 
   return (
     <>
@@ -74,93 +204,123 @@ export default function Home() {
         onDismiss={handleModalDismiss}
       />
 
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
-        <p className="text-muted-foreground mt-1">
-          {t('welcome')}
-        </p>
+      {/* Hero Section */}
+      <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-lg">
+        {/* Background decoration */}
+        <div className="absolute -top-8 -right-8 size-32 rounded-full bg-white/5" />
+        <div className="absolute -bottom-6 -left-6 size-24 rounded-full bg-white/5" />
+        <div className="absolute top-1/2 right-1/4 size-16 rounded-full bg-white/5" />
+
+        <div className="relative">
+          <h2 className="text-2xl font-bold tracking-tight">{t('title')}</h2>
+          <p className="mt-1 text-slate-300">{t('welcome')}</p>
+        </div>
       </div>
 
       {/* Notification Enable Banner - Always visible if not subscribed */}
       {showNotificationBanner && <NotificationEnableBanner />}
 
       {/* Booking Status Banner */}
-      {!settingsLoading && (
-        <BookingStatusBanner isEnabled={isBookingEnabled} />
-      )}
+      {!settingsLoading && <BookingStatusBanner isEnabled={isBookingEnabled} />}
 
       {/* Vehicle Booking Management Section */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Car className="size-5 text-blue-600 dark:text-blue-400" />
-          <h3 className="text-lg font-semibold">{t('vehicleBookings')}</h3>
+      {hasVehicleBookingAccess && (
+        <div className="bg-card rounded-2xl border p-5 shadow-sm">
+          <SectionHeader
+            icon={Car}
+            title={t('vehicleBookings')}
+            gradient="from-blue-500 to-blue-600"
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {permissions.canAccessVehicleBookings() && (
+              <ActionCard
+                icon={ClipboardList}
+                title={t('viewBookings')}
+                description={t('manageVehicles')}
+                gradient="from-blue-500 to-indigo-600"
+                onClick={() => router.push('/vehicle-bookings')}
+              />
+            )}
+
+            {permissions.canCreateVehicleBooking() && (
+              <ActionCard
+                icon={Plus}
+                title={t('newBooking')}
+                description={t('addNewBooking')}
+                gradient="from-emerald-500 to-teal-600"
+                onClick={() => router.push('/vehicle-bookings/new')}
+                disabled={!isBookingEnabled}
+                locked={!isBookingEnabled}
+                lockTooltip={tBookingStatus('closedDescription')}
+              />
+            )}
+
+            {permissions.canViewVehicleBookingReports() && (
+              <ActionCard
+                icon={BarChart3}
+                title={t('statistics')}
+                description={t('viewStatistics')}
+                gradient="from-violet-500 to-purple-600"
+                onClick={() => router.push('/vehicle-bookings/calendar')}
+              />
+            )}
+
+            {permissions.canViewBillAttachments() && (
+              <ActionCard
+                icon={FileText}
+                title={t('vehicleBills')}
+                description={t('manageBills')}
+                gradient="from-amber-500 to-orange-600"
+                onClick={() => router.push('/vehicle-bookings/bills')}
+              />
+            )}
+          </div>
         </div>
+      )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Button
-            onClick={() => router.push("/vehicle-bookings")}
-            className="h-auto flex-col items-start gap-2 p-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            <ClipboardList className="size-5" />
-            <div className="text-start">
-              <div className="font-semibold">{t('viewBookings')}</div>
-              <div className="text-xs opacity-90 font-normal">{t('manageVehicles')}</div>
-            </div>
-          </Button>
+      {/* Production Section */}
+      {hasProductionAccess && (
+        <div className="bg-card rounded-2xl border p-5 shadow-sm">
+          <SectionHeader
+            icon={Factory}
+            title={t('production')}
+            gradient="from-amber-500 to-orange-600"
+          />
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="relative">
-                  <Button
-                    onClick={() => !isBookingEnabled ? null : router.push("/vehicle-bookings/new")}
-                    disabled={!isBookingEnabled}
-                    className="h-auto flex-col items-start gap-2 p-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed w-full"
-                  >
-                    {!isBookingEnabled && (
-                      <Lock className="absolute top-2 right-2 size-4 text-white" />
-                    )}
-                    <Plus className="size-5" />
-                    <div className="text-start">
-                      <div className="font-semibold">{t('newBooking')}</div>
-                      <div className="text-xs opacity-90 font-normal">{t('addNewBooking')}</div>
-                    </div>
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              {!isBookingEnabled && (
-                <TooltipContent>
-                  <p>{tBookingStatus('closedDescription')}</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {permissions.canAccessProductionRuns() && (
+              <ActionCard
+                icon={ClipboardList}
+                title={t('viewProduction')}
+                description={t('manageProduction')}
+                gradient="from-amber-500 to-orange-600"
+                onClick={() => router.push('/production-runs')}
+              />
+            )}
 
-          <Button
-            onClick={() => router.push("/vehicle-bookings/calendar")}
-            className="h-auto flex-col items-start gap-2 p-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
-          >
-            <BarChart3 className="size-5" />
-            <div className="text-start">
-              <div className="font-semibold">{t('statistics')}</div>
-              <div className="text-xs opacity-90 font-normal">{t('viewStatistics')}</div>
-            </div>
-          </Button>
+            {permissions.canAccessProductionOutputs() && (
+              <ActionCard
+                icon={Boxes}
+                title={t('productionOutputs')}
+                description={t('viewProductionOutputs')}
+                gradient="from-indigo-500 to-violet-600"
+                onClick={() => router.push('/production-outputs')}
+              />
+            )}
 
-          {permissions.canViewBillAttachments() && (
-            <Button
-              onClick={() => router.push("/vehicle-bookings/bills")}
-              className="h-auto flex-col items-start gap-2 p-4 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
-            >
-              <FileText className="size-5" />
-              <div className="text-start">
-                <div className="font-semibold">{t('vehicleBills')}</div>
-                <div className="text-xs opacity-90 font-normal">{t('manageBills')}</div>
-              </div>
-            </Button>
-          )}
+            {permissions.canAccessInventory() && (
+              <ActionCard
+                icon={Package}
+                title={t('inventory')}
+                description={t('manageInventory')}
+                gradient="from-cyan-500 to-blue-600"
+                onClick={() => router.push('/inventory')}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

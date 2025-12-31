@@ -1,15 +1,11 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import Image from "next/image"
-import {
-  Home,
-  Calendar,
-  Settings,
-} from "lucide-react"
-import { Link, usePathname } from "@/i18n/navigation"
-import { useTranslations, useLocale } from "next-intl"
-import { isRTL } from "@/lib/utils"
+import * as React from 'react';
+import Image from 'next/image';
+import {Home, Calendar, Settings} from 'lucide-react';
+import {Link, usePathname} from '@/i18n/navigation';
+import {useTranslations, useLocale} from 'next-intl';
+import {isRTL} from '@/lib/utils';
 
 import {
   Sidebar,
@@ -22,33 +18,33 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 // Menu items matching mobile nav
 const navItems = [
   {
-    key: "home",
-    href: "/",
+    key: 'home',
+    href: '/',
     icon: Home,
   },
   {
-    key: "bookings",
-    href: "/vehicle-bookings",
+    key: 'bookings',
+    href: '/vehicle-bookings',
     icon: Calendar,
   },
   {
-    key: "more",
-    href: "/settings",
+    key: 'more',
+    href: '/settings',
     icon: Settings,
   },
-]
+];
 
 export function AppSidebar() {
-  const pathname = usePathname()
-  const locale = useLocale()
-  const t = useTranslations('navigation')
-  const tLayout = useTranslations('layout')
-  const sidebarSide = isRTL(locale) ? "right" : "left"
+  const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations('navigation');
+  const tLayout = useTranslations('layout');
+  const sidebarSide = isRTL(locale) ? 'right' : 'left';
 
   return (
     <Sidebar collapsible="icon" side={sidebarSide}>
@@ -57,12 +53,20 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/" className="group">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground group-hover:bg-primary/90 transition-colors">
-                  <Image src="/icon-192x192.png" alt="FinsERP Logo" width={24} height={24} className="size-6 rounded" />
+                <div className="bg-primary text-primary-foreground group-hover:bg-primary/90 flex aspect-square size-8 items-center justify-center rounded-lg transition-colors">
+                  <Image
+                    src="/icon-192x192.png"
+                    alt="FinsERP Logo"
+                    width={24}
+                    height={24}
+                    className="size-6 rounded"
+                  />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">FinsERP</span>
-                  <span className="text-xs text-muted-foreground">{tLayout("mobileApp")}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {tLayout('mobileApp')}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -71,11 +75,11 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{t("mainMenu")}</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('mainMenu')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const isActive = pathname === item.href
+                const isActive = pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.key}>
                     <SidebarMenuButton
@@ -89,7 +93,7 @@ export function AppSidebar() {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -97,5 +101,5 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }

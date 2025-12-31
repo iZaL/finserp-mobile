@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
+import {Check} from 'lucide-react';
+import {cn} from '@/lib/utils';
+import type {LucideIcon} from 'lucide-react';
 
 export interface ProgressStep {
   id: string;
@@ -29,9 +29,9 @@ export function ProgressSteps({
     <div className="w-full py-6">
       <div className="relative flex items-center justify-between">
         {/* Progress Line */}
-        <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700">
+        <div className="absolute top-5 right-0 left-0 h-0.5 bg-gray-200 dark:bg-gray-700">
           <div
-            className="h-full bg-primary transition-all duration-300"
+            className="bg-primary h-full transition-all duration-300"
             style={{
               width: `${(activeIndex / (steps.length - 1)) * 100}%`,
             }}
@@ -49,21 +49,23 @@ export function ProgressSteps({
           return (
             <div
               key={step.id}
-              className="relative flex flex-col items-center gap-2 flex-1"
+              className="relative flex flex-1 flex-col items-center gap-2"
             >
               {/* Step Circle */}
               <button
                 onClick={() => isClickable && onStepClick(step.id)}
                 disabled={!isClickable}
                 className={cn(
-                  "flex items-center justify-center size-10 rounded-full border-2 transition-all z-10",
-                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                  'z-10 flex size-10 items-center justify-center rounded-full border-2 transition-all',
+                  'focus:ring-primary focus:ring-2 focus:ring-offset-2 focus:outline-none',
                   isComplete || isPast
-                    ? "bg-primary border-primary text-primary-foreground"
+                    ? 'bg-primary border-primary text-primary-foreground'
                     : isActive
-                    ? "bg-white dark:bg-gray-900 border-primary text-primary"
-                    : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500",
-                  isClickable ? "cursor-pointer hover:scale-110" : "cursor-not-allowed"
+                      ? 'border-primary text-primary bg-white dark:bg-gray-900'
+                      : 'border-gray-300 bg-white text-gray-400 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-500',
+                  isClickable
+                    ? 'cursor-pointer hover:scale-110'
+                    : 'cursor-not-allowed'
                 )}
               >
                 {isComplete || isPast ? (
@@ -76,12 +78,12 @@ export function ProgressSteps({
               {/* Step Label */}
               <span
                 className={cn(
-                  "text-xs font-medium text-center max-w-[80px] transition-colors",
+                  'max-w-[80px] text-center text-xs font-medium transition-colors',
                   isActive
-                    ? "text-primary"
+                    ? 'text-primary'
                     : isComplete || isPast
-                    ? "text-gray-700 dark:text-gray-300"
-                    : "text-gray-500 dark:text-gray-400"
+                      ? 'text-gray-700 dark:text-gray-300'
+                      : 'text-gray-500 dark:text-gray-400'
                 )}
               >
                 {step.label}

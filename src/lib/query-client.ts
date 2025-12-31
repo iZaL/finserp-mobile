@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query"
+import {QueryClient} from '@tanstack/react-query';
 
 /**
  * QueryClient configuration optimized for real-time mobile PWA with offline support
@@ -56,7 +56,7 @@ export const queryClient = new QueryClient({
 
       // Network mode: prefer cache, fallback to network
       // Perfect for offline-first PWA experience
-      networkMode: "offlineFirst",
+      networkMode: 'offlineFirst',
 
       // Enable structural sharing to minimize re-renders
       // React Query will deeply compare objects and only trigger re-renders on actual changes
@@ -69,11 +69,10 @@ export const queryClient = new QueryClient({
 
       // Network mode: prefer online, but allow offline queuing
       // Mutations need network, but won't fail immediately if offline
-      networkMode: "online",
+      networkMode: 'online',
 
       // Retry delay for mutations (1 second)
       retryDelay: 1000,
     },
   },
-})
-
+});

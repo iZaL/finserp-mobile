@@ -1,8 +1,16 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useTranslations } from "next-intl"
-import { Truck, Package, User, Phone, Users, FileText, Weight } from "lucide-react"
+import {useState, useEffect} from 'react';
+import {useTranslations} from 'next-intl';
+import {
+  Truck,
+  Package,
+  User,
+  Phone,
+  Users,
+  FileText,
+  Weight,
+} from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -10,20 +18,20 @@ import {
   DrawerTitle,
   DrawerDescription,
   DrawerFooter,
-} from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { useUpdateVehicleBooking } from "@/hooks/use-vehicle-bookings"
-import { toast } from "sonner"
+} from '@/components/ui/drawer';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {useUpdateVehicleBooking} from '@/hooks/use-vehicle-bookings';
+import {toast} from 'sonner';
 
 interface EditDrawerProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function EditDrawer({
@@ -32,22 +40,22 @@ export function EditDrawer({
   onOpenChange,
   onSuccess,
 }: EditDrawerProps) {
-  const t = useTranslations('vehicleBookings.editDialog')
-  const tCommon = useTranslations('common')
-  const updateMutation = useUpdateVehicleBooking()
+  const t = useTranslations('vehicleBookings.editDialog');
+  const tCommon = useTranslations('common');
+  const updateMutation = useUpdateVehicleBooking();
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    vehicle_number: "",
+    vehicle_number: '',
     box_count: 0,
     box_weight_kg: 50,
-    driver_name: "",
-    driver_phone: "",
-    supplier_name: "",
-    supplier_phone: "",
-    notes: "",
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
+    driver_name: '',
+    driver_phone: '',
+    supplier_name: '',
+    supplier_phone: '',
+    notes: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Initialize form when booking changes
   useEffect(() => {
@@ -56,64 +64,64 @@ export function EditDrawer({
         vehicle_number: booking.vehicle_number,
         box_count: booking.box_count,
         box_weight_kg: booking.box_weight_kg || 50,
-        driver_name: booking.driver_name || "",
-        driver_phone: booking.driver_phone || "",
-        supplier_name: booking.supplier_name || "",
-        supplier_phone: booking.supplier_phone || "",
-        notes: booking.notes || "",
-      })
-      setErrors({})
+        driver_name: booking.driver_name || '',
+        driver_phone: booking.driver_phone || '',
+        supplier_name: booking.supplier_name || '',
+        supplier_phone: booking.supplier_phone || '',
+        notes: booking.notes || '',
+      });
+      setErrors({});
     }
-  }, [booking, open])
+  }, [booking, open]);
 
   // Reset form state when drawer closes
   useEffect(() => {
     if (!open) {
       setFormData({
-        vehicle_number: "",
+        vehicle_number: '',
         box_count: 0,
         box_weight_kg: 50,
-        driver_name: "",
-        driver_phone: "",
-        supplier_name: "",
-        supplier_phone: "",
-        notes: "",
-      })
-      setErrors({})
-      setIsSubmitting(false)
+        driver_name: '',
+        driver_phone: '',
+        supplier_name: '',
+        supplier_phone: '',
+        notes: '',
+      });
+      setErrors({});
+      setIsSubmitting(false);
     }
-  }, [open])
+  }, [open]);
 
   const calculateTotalWeight = () => {
-    return ((formData.box_count * formData.box_weight_kg) / 1000).toFixed(2)
-  }
+    return ((formData.box_count * formData.box_weight_kg) / 1000).toFixed(2);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!booking) return
+    if (!booking) return;
 
     // Validate
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.vehicle_number.trim()) {
-      newErrors.vehicle_number = t('validation.vehicleNumberRequired')
+      newErrors.vehicle_number = t('validation.vehicleNumberRequired');
     }
 
     if (formData.box_count <= 0) {
-      newErrors.box_count = t('validation.boxCountRequired')
+      newErrors.box_count = t('validation.boxCountRequired');
     }
 
     if (formData.box_weight_kg <= 0) {
-      newErrors.box_weight_kg = t('validation.boxWeightRequired')
+      newErrors.box_weight_kg = t('validation.boxWeightRequired');
     }
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
+      setErrors(newErrors);
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     updateMutation.mutate(
       {
@@ -131,44 +139,51 @@ export function EditDrawer({
       },
       {
         onSuccess: () => {
-          toast.success(t('success', { vehicle: formData.vehicle_number }))
-          onOpenChange(false)
-          onSuccess()
-          setIsSubmitting(false)
+          toast.success(t('success', {vehicle: formData.vehicle_number}));
+          onOpenChange(false);
+          onSuccess();
+          setIsSubmitting(false);
         },
         onError: (error: unknown) => {
           if (error && typeof error === 'object' && 'errors' in error) {
-            setErrors(error.errors as Record<string, string>)
+            setErrors(error.errors as Record<string, string>);
           } else {
-            const errorMessage = error instanceof Error ? error.message : t('error')
-            toast.error(errorMessage)
+            const errorMessage =
+              error instanceof Error ? error.message : t('error');
+            toast.error(errorMessage);
           }
-          setIsSubmitting(false)
+          setIsSubmitting(false);
         },
       }
-    )
-  }
+    );
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[85vh] flex flex-col">
-        <DrawerHeader className="text-left flex-shrink-0">
+      <DrawerContent className="flex max-h-[85vh] flex-col">
+        <DrawerHeader className="flex-shrink-0 text-left">
           <DrawerTitle className="flex items-center gap-2">
             <Truck className="size-5 text-blue-600 dark:text-blue-400" />
             {t('title')}
           </DrawerTitle>
           <DrawerDescription>
-            {t('description', { vehicle: booking.vehicle_number })}
+            {t('description', {vehicle: booking.vehicle_number})}
           </DrawerDescription>
         </DrawerHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-4 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
+          <div className="flex-1 space-y-4 overflow-y-auto px-4">
             {/* Vehicle Number */}
             <div>
-              <Label htmlFor="vehicle_number" className="flex items-center gap-2">
+              <Label
+                htmlFor="vehicle_number"
+                className="flex items-center gap-2"
+              >
                 <Truck className="size-4" />
                 {t('vehicleNumber')}
               </Label>
@@ -176,15 +191,15 @@ export function EditDrawer({
                 id="vehicle_number"
                 value={formData.vehicle_number}
                 onChange={(e) => {
-                  setFormData({ ...formData, vehicle_number: e.target.value })
-                  setErrors({ ...errors, vehicle_number: "" })
+                  setFormData({...formData, vehicle_number: e.target.value});
+                  setErrors({...errors, vehicle_number: ''});
                 }}
                 placeholder={t('placeholders.vehicleNumber')}
                 disabled={isSubmitting}
                 className="mt-1.5"
               />
               {errors.vehicle_number && (
-                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                   {errors.vehicle_number}
                 </p>
               )}
@@ -203,22 +218,28 @@ export function EditDrawer({
                   min="1"
                   value={formData.box_count}
                   onChange={(e) => {
-                    setFormData({ ...formData, box_count: parseInt(e.target.value) || 0 })
-                    setErrors({ ...errors, box_count: "" })
+                    setFormData({
+                      ...formData,
+                      box_count: parseInt(e.target.value) || 0,
+                    });
+                    setErrors({...errors, box_count: ''});
                   }}
                   placeholder="0"
                   disabled={isSubmitting}
                   className="mt-1.5"
                 />
                 {errors.box_count && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                     {errors.box_count}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label htmlFor="box_weight_kg" className="flex items-center gap-2">
+                <Label
+                  htmlFor="box_weight_kg"
+                  className="flex items-center gap-2"
+                >
                   <Weight className="size-4" />
                   {t('boxWeight')}
                 </Label>
@@ -229,15 +250,18 @@ export function EditDrawer({
                   step="0.1"
                   value={formData.box_weight_kg}
                   onChange={(e) => {
-                    setFormData({ ...formData, box_weight_kg: parseFloat(e.target.value) || 0 })
-                    setErrors({ ...errors, box_weight_kg: "" })
+                    setFormData({
+                      ...formData,
+                      box_weight_kg: parseFloat(e.target.value) || 0,
+                    });
+                    setErrors({...errors, box_weight_kg: ''});
                   }}
                   placeholder="20.0"
                   disabled={isSubmitting}
                   className="mt-1.5"
                 />
                 {errors.box_weight_kg && (
-                  <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                     {errors.box_weight_kg}
                   </p>
                 )}
@@ -245,7 +269,7 @@ export function EditDrawer({
             </div>
 
             {/* Total Weight Display */}
-            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/10">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                   {t('totalWeight')}
@@ -254,14 +278,14 @@ export function EditDrawer({
                   {calculateTotalWeight()} tons
                 </span>
               </div>
-              <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+              <p className="mt-1 text-xs text-blue-600 dark:text-blue-300">
                 {formData.box_count} boxes × {formData.box_weight_kg} kg
               </p>
             </div>
 
             {/* Driver Information */}
             <div className="space-y-4 pt-2">
-              <h4 className="text-sm font-semibold flex items-center gap-2">
+              <h4 className="flex items-center gap-2 text-sm font-semibold">
                 <User className="size-4" />
                 {t('driverInformation')}
               </h4>
@@ -271,7 +295,9 @@ export function EditDrawer({
                 <Input
                   id="driver_name"
                   value={formData.driver_name}
-                  onChange={(e) => setFormData({ ...formData, driver_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({...formData, driver_name: e.target.value})
+                  }
                   placeholder={t('placeholders.driverName')}
                   disabled={isSubmitting}
                   className="mt-1.5"
@@ -279,7 +305,10 @@ export function EditDrawer({
               </div>
 
               <div>
-                <Label htmlFor="driver_phone" className="flex items-center gap-2">
+                <Label
+                  htmlFor="driver_phone"
+                  className="flex items-center gap-2"
+                >
                   <Phone className="size-4" />
                   {t('driverPhone')}
                 </Label>
@@ -287,7 +316,9 @@ export function EditDrawer({
                   id="driver_phone"
                   type="tel"
                   value={formData.driver_phone}
-                  onChange={(e) => setFormData({ ...formData, driver_phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({...formData, driver_phone: e.target.value})
+                  }
                   placeholder={t('placeholders.driverPhone')}
                   disabled={isSubmitting}
                   className="mt-1.5"
@@ -297,7 +328,7 @@ export function EditDrawer({
 
             {/* Supplier Information */}
             <div className="space-y-4 pt-2">
-              <h4 className="text-sm font-semibold flex items-center gap-2">
+              <h4 className="flex items-center gap-2 text-sm font-semibold">
                 <Users className="size-4" />
                 {t('supplierInformation')}
               </h4>
@@ -307,7 +338,9 @@ export function EditDrawer({
                 <Input
                   id="supplier_name"
                   value={formData.supplier_name}
-                  onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({...formData, supplier_name: e.target.value})
+                  }
                   placeholder={t('placeholders.supplierName')}
                   disabled={isSubmitting}
                   className="mt-1.5"
@@ -315,7 +348,10 @@ export function EditDrawer({
               </div>
 
               <div>
-                <Label htmlFor="supplier_phone" className="flex items-center gap-2">
+                <Label
+                  htmlFor="supplier_phone"
+                  className="flex items-center gap-2"
+                >
                   <Phone className="size-4" />
                   {t('supplierPhone')}
                 </Label>
@@ -323,7 +359,9 @@ export function EditDrawer({
                   id="supplier_phone"
                   type="tel"
                   value={formData.supplier_phone}
-                  onChange={(e) => setFormData({ ...formData, supplier_phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({...formData, supplier_phone: e.target.value})
+                  }
                   placeholder={t('placeholders.supplierPhone')}
                   disabled={isSubmitting}
                   className="mt-1.5"
@@ -340,20 +378,22 @@ export function EditDrawer({
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onChange={(e) =>
+                  setFormData({...formData, notes: e.target.value})
+                }
                 placeholder={t('placeholders.notes')}
                 rows={3}
                 disabled={isSubmitting}
                 className="mt-1.5"
                 maxLength={500}
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-xs">
                 {formData.notes.length}/500 {tCommon('characters')}
               </p>
             </div>
           </div>
 
-          <DrawerFooter className="flex-row gap-2 pt-4 flex-shrink-0 pb-8 supports-[padding:max(0px)]:pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <DrawerFooter className="flex-shrink-0 flex-row gap-2 pt-4 pb-8 supports-[padding:max(0px)]:pb-[max(2rem,env(safe-area-inset-bottom))]">
             <Button
               type="button"
               variant="outline"
@@ -370,5 +410,5 @@ export function EditDrawer({
         </form>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }

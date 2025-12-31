@@ -1,4 +1,15 @@
 {
+  "impersonation": {
+    "viewingAs": "Viewing as",
+    "loggedInBy": "Logged in by",
+    "stop": "Stop Impersonation",
+    "title": "Login as User",
+    "description": "Select a user to view the app as them",
+    "searchPlaceholder": "Search users...",
+    "noUsersFound": "No users found",
+    "loginAs": "Login as",
+    "cancel": "Cancel"
+  },
   "common": {
     "loading": "Loading...",
     "search": "Search",
@@ -16,7 +27,14 @@
     "close": "Close",
     "optional": "Optional",
     "required": "Required",
-    "characters": "characters"
+    "characters": "characters",
+    "selectOperator": "Select operator...",
+    "searchOperator": "Search operators...",
+    "noOperatorsFound": "No operators found",
+    "retry": "Retry",
+    "accessDenied": "Access Denied",
+    "accessDeniedDescription": "You don't have permission to access this page. Please contact your administrator if you need access.",
+    "backToHome": "Back to Home"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -29,7 +47,17 @@
     "statistics": "History",
     "viewStatistics": "View booking history",
     "vehicleBills": "Vehicle Bills",
-    "manageBills": "Browse and manage bill attachments"
+    "manageBills": "Browse and manage bill attachments",
+    "production": "Production",
+    "productionRuns": "Production Runs",
+    "manageProduction": "Manage runs and shift operations",
+    "viewProduction": "View Production Runs",
+    "startRun": "Start Run",
+    "startNewRun": "Start a new production run",
+    "productionOutputs": "Production Outputs",
+    "viewProductionOutputs": "View and manage outputs",
+    "inventory": "Inventory",
+    "manageInventory": "Track stock and movements"
   },
   "vehicleBookings": {
     "title": "Vehicle Bookings",
@@ -505,6 +533,73 @@
       "downloadError": "Failed to download report"
     }
   },
+  "productionOutputs": {
+    "title": "Production Outputs",
+    "subtitle": "Track daily production",
+    "add": "Add",
+    "failedToLoad": "Failed to load production outputs",
+    "retry": "Retry",
+    "select": "Select",
+    "cancel": "Cancel",
+    "selectOutputs": "Select outputs to create a batch",
+    "createBatch": "Create Batch",
+    "selectedCount": "{count} selected",
+    "differentProductTypes": "Selected outputs have different product types",
+    "noAvailableQuantity": "No available quantity",
+    "summary": {
+      "totalOutput": "Total Output",
+      "records": "Records",
+      "days": "Days",
+      "byProductType": "By Product Type",
+      "allRecords": "All Records"
+    },
+    "empty": {
+      "title": "No production outputs",
+      "description": "Start tracking your production.",
+      "addFirst": "Add First Output"
+    },
+    "list": {
+      "date": "Date",
+      "records": "{count} records",
+      "record": "Record",
+      "product": "Product",
+      "weight": "Weight",
+      "time": "Time",
+      "total": "Total"
+    },
+    "new": {
+      "title": "Record Production Output",
+      "subtitle": "Track daily production",
+      "activeRunBanner": "Recording for active production run",
+      "runNumber": "Run #{runId}",
+      "productionInfo": "Production Info",
+      "productionDate": "Production Date",
+      "shift": "Shift",
+      "selectShift": "Select shift",
+      "noShift": "No shift",
+      "fromRun": "(from run)",
+      "outputByProductType": "Output by Product Type",
+      "totalOutput": "Total Output:",
+      "saving": "Saving...",
+      "saveAsDraft": "Save as Draft"
+    },
+    "entry": {
+      "expected": "Expected",
+      "packageType": "Package Type",
+      "selectPackageType": "Select package type",
+      "bagsProduced": "Bags Produced",
+      "tankCapacity": "Tank Capacity (kg)",
+      "fillCycles": "Fill Cycles",
+      "storage": "Storage",
+      "tankStorage": "Tank Storage",
+      "bulkStorage": "Bulk Storage",
+      "bags": "bags",
+      "cycles": "cycles",
+      "total": "Total",
+      "warehouse": "Warehouse",
+      "selectWarehouse": "Select warehouse"
+    }
+  },
   "language": {
     "en": "English",
     "ar": "العربية"
@@ -513,6 +608,8 @@
     "home": "Home",
     "bookings": "Bookings",
     "suppliers": "Suppliers",
+    "productionOutputs": "Production",
+    "inventory": "Inventory",
     "more": "Settings",
     "mainMenu": "Main Menu",
     "profile": "Profile",
@@ -539,6 +636,10 @@
     "vehicleBookedDescription": "Get notified when a vehicle booking is created",
     "vehicleReceived": "Vehicle Received",
     "vehicleReceivedDescription": "Get notified when a vehicle is received at the facility",
+    "vehicleOffloadingStarted": "Offloading Started",
+    "vehicleOffloadingStartedDescription": "Get notified when vehicle offloading process begins",
+    "vehicleOffloadingCompleted": "Offloading Completed",
+    "vehicleOffloadingCompletedDescription": "Get notified when vehicle offloading process is completed",
     "vehicleExited": "Vehicle Exited",
     "vehicleExitedDescription": "Get notified when a vehicle exits the facility",
     "vehicleApproved": "Vehicle Approved",
@@ -826,6 +927,324 @@
     "appName": "FinsERP",
     "mobileApp": "Mobile App"
   },
+  "productionRuns": {
+    "title": "Production Runs",
+    "subtitle": "Manage production runs and shifts",
+    "dashboard": "Production Dashboard",
+    "dashboardDescription": "Monitor runs and shift operations",
+    "viewRuns": "View Runs",
+    "manageRuns": "Manage all production runs",
+    "createNew": "New Run",
+    "createFirst": "Start First Run",
+    "noActiveRun": "No Active Run",
+    "noActiveRunDescription": "Start a production run to begin tracking",
+    "currentRun": "Current Run",
+    "runStatus": {
+      "planned": "Planned",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "actions": {
+      "startRun": "Start Run",
+      "stopRun": "Stop Run",
+      "completeRun": "Complete Run",
+      "recordOutput": "Record Output"
+    },
+    "shift": {
+      "shift": "Shift",
+      "currentShift": "Current Shift",
+      "currentOperator": "Current Operator",
+      "shiftHandover": "Shift Handover",
+      "handoverTo": "Handover to",
+      "handoverFrom": "Handover from {shift}",
+      "noOperator": "No operator assigned",
+      "startShift": "Start Shift",
+      "endShift": "End Shift"
+    },
+    "runDetails": "Run Details",
+    "detail": {
+      "runName": "Run Name",
+      "started": "Started",
+      "created": "Created",
+      "completed": "Completed",
+      "productionLines": "Production Lines",
+      "total": "Total",
+      "notes": "Notes"
+    },
+    "list": {
+      "title": "Recent Production Runs",
+      "run": "Run",
+      "status": "Status",
+      "planned": "Planned",
+      "actual": "Actual",
+      "operator": "Operator",
+      "lines": "Lines",
+      "viewDetails": "View Details"
+    },
+    "dialog": {
+      "completeTitle": "Complete Production Run",
+      "completeDescription": "Are you sure you want to complete the production run \"{name}\"? This action cannot be undone.",
+      "completionNotesPlaceholder": "Optional: Add completion notes...",
+      "completing": "Completing...",
+      "completeButton": "Complete Run"
+    },
+    "outputs": {
+      "title": "Production Outputs",
+      "subtitle": "Outputs recorded for this run",
+      "empty": "No outputs recorded",
+      "emptyDescription": "Production outputs will appear here once recorded"
+    },
+    "handover": {
+      "subtitle": "Hand over your shift to the next operator",
+      "shiftDetails": "Shift Details",
+      "fromShift": "From Shift",
+      "toShift": "To Shift",
+      "selectShift": "Select shift",
+      "pendingTasks": "Pending Tasks",
+      "add": "Add",
+      "noPendingTasks": "No pending tasks to hand over",
+      "taskPlaceholder": "Describe the pending task...",
+      "issues": "Issues to Report",
+      "noIssues": "No issues to report",
+      "issueTypePlaceholder": "Issue type (e.g., Equipment, Safety)",
+      "issueDescriptionPlaceholder": "Describe the issue...",
+      "severityLow": "Low",
+      "severityMedium": "Medium",
+      "severityHigh": "High",
+      "additionalNotes": "Additional Notes",
+      "notesPlaceholder": "Any additional notes for the next shift...",
+      "submitting": "Submitting...",
+      "submitButton": "Submit Handover",
+      "pending": "pending",
+      "accept": "Accept"
+    },
+    "search": {
+      "placeholder": "Search by run name..."
+    },
+    "empty": {
+      "title": "No Production Runs",
+      "description": "Get started by creating your first production run"
+    },
+    "new": {
+      "title": "Start Production Run",
+      "subtitle": "Configure and start a new production run",
+      "runName": "Run Name",
+      "runNamePlaceholder": "Auto-generated or enter custom name",
+      "selectOperator": "Select Operator",
+      "selectOperatorPlaceholder": "Choose the shift operator",
+      "selectProductionLine": "Production Lines",
+      "selectProductionLinePlaceholder": "Choose production line",
+      "plannedCapacity": "Planned Capacity",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes about this run...",
+      "startButton": "Start Production Run",
+      "starting": "Starting...",
+      "comingSoon": "Coming Soon",
+      "comingSoonDescription": "This feature is under development. Soon you will be able to start and manage production runs directly from your mobile device.",
+      "linesSelected": "{count} selected",
+      "maxCapacity": "Max: {capacity} kg",
+      "max": "Max",
+      "startImmediatelyDescription": "Start the run immediately after creation",
+      "summaryLines": "Production Lines",
+      "summaryCapacity": "Total Planned Capacity",
+      "failedToLoad": "Failed to load form data"
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Production stock overview",
+    "totalStock": "Total Stock",
+    "totalBatches": "Batches",
+    "stockByProductType": "Stock by Product Type",
+    "total": "Total",
+    "warehouseCount": "{count} warehouses",
+    "warehouseOverview": "Warehouse Overview",
+    "openingStock": "Opening Stock",
+    "movementsLabel": "Movements",
+    "closingStock": "Closing Stock",
+    "active": "Active",
+    "inactive": "Inactive",
+    "transferLabel": "Transfer",
+    "transferTo": "Transfer",
+    "transferFrom": "Transfer",
+    "recentMovements": "Recent Movements",
+    "viewAll": "View All",
+    "noStock": "No stock available",
+    "empty": {
+      "title": "No Inventory Data",
+      "description": "Production outputs will appear here once recorded"
+    },
+    "warehouses": {
+      "title": "Warehouses",
+      "subtitle": "Stock distribution across locations",
+      "batches": "Batches",
+      "productTypes": "Product Types",
+      "stockBreakdown": "Stock Breakdown",
+      "noStock": "No stock in warehouse",
+      "totalWarehouses": "Warehouses",
+      "totalStock": "Total Stock",
+      "totalBatches": "Batches",
+      "active": "active",
+      "allWarehouses": "All Warehouses",
+      "empty": {
+        "title": "No Warehouses",
+        "description": "No warehouses have been configured yet"
+      },
+      "notFound": {
+        "title": "Warehouse Not Found",
+        "description": "The requested warehouse does not exist",
+        "backToList": "Back to Warehouses"
+      },
+      "detail": {
+        "subtitle": "Warehouse details & inventory",
+        "totalStock": "Total Stock",
+        "tabs": {
+          "batches": "Batches",
+          "movements": "Movements"
+        },
+        "recentMovements": "Recent Movements",
+        "noMovements": "No recent movements",
+        "noBatches": {
+          "title": "No Batches",
+          "description": "This warehouse has no batches"
+        }
+      }
+    },
+    "actions": {
+      "newTransfer": "New Transfer",
+      "newAdjustment": "New Adjustment"
+    },
+    "transfer": {
+      "title": "Transfer Stock",
+      "subtitle": "Move stock between warehouses",
+      "batch": "Batch",
+      "selectBatch": "Select batch",
+      "searchBatch": "Search batches...",
+      "noBatchesFound": "No batches found",
+      "productType": "Product Type",
+      "selectProductType": "Select product type",
+      "sourceWarehouse": "From Warehouse",
+      "selectSourceWarehouse": "Select source warehouse",
+      "destinationWarehouse": "To Warehouse",
+      "selectDestinationWarehouse": "Select destination warehouse",
+      "quantity": "Quantity",
+      "availableStock": "Available: {quantity} {unit}",
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes about this transfer...",
+      "submit": "Transfer",
+      "submitting": "Transferring...",
+      "success": "Transfer completed successfully",
+      "error": "Failed to transfer stock",
+      "transferAll": "Transfer All",
+      "transferHalf": "Half",
+      "validation": {
+        "productTypeRequired": "Product type is required",
+        "sourceWarehouseRequired": "Source warehouse is required",
+        "destinationWarehouseRequired": "Destination warehouse is required",
+        "sameWarehouse": "Source and destination cannot be the same",
+        "quantityRequired": "Quantity must be greater than 0",
+        "insufficientStock": "Insufficient stock in source warehouse",
+        "batchRequired": "Please select a batch"
+      }
+    },
+    "adjustment": {
+      "title": "Stock Adjustment",
+      "subtitle": "Record inventory adjustment",
+      "productType": "Product Type",
+      "selectProductType": "Select product type",
+      "warehouse": "Warehouse",
+      "selectWarehouse": "Select warehouse",
+      "type": "Adjustment Type",
+      "addition": "Addition",
+      "subtraction": "Subtraction",
+      "quantity": "Quantity",
+      "reason": "Reason",
+      "selectReason": "Select reason",
+      "reasons": {
+        "variance": "Production variance",
+        "damaged": "Damaged",
+        "expired": "Expired",
+        "count": "Count correction",
+        "other": "Other"
+      },
+      "notes": "Notes",
+      "notesPlaceholder": "Optional notes about this adjustment...",
+      "submit": "Save Adjustment",
+      "submitting": "Saving...",
+      "success": "Adjustment recorded successfully",
+      "error": "Failed to record adjustment",
+      "validation": {
+        "productTypeRequired": "Product type is required",
+        "warehouseRequired": "Warehouse is required",
+        "quantityRequired": "Quantity must be greater than 0",
+        "reasonRequired": "Reason is required"
+      }
+    },
+    "movements": {
+      "title": "Inventory Movements",
+      "subtitle": "All stock movements",
+      "filters": "Filters",
+      "filterWarehouse": "Warehouse",
+      "dateRange": "Date Range",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "productType": "Product Type",
+      "allProductTypes": "All Product Types",
+      "movementType": "Movement Type",
+      "allTypes": "All Types",
+      "warehouse": "Warehouse",
+      "allWarehouses": "All Warehouses",
+      "applyFilters": "Apply Filters",
+      "clearFilters": "Clear Filters",
+      "loadError": "Failed to load movements",
+      "retry": "Retry",
+      "loadMore": "Load More",
+      "showing": "Showing",
+      "of": "of",
+      "movements": "movements",
+      "reason": "Reason",
+      "types": {
+        "transfer_in": "Transfer In",
+        "transfer_out": "Transfer Out",
+        "adjustment_add": "Addition",
+        "adjustment_sub": "Subtraction",
+        "production_output": "Production Output",
+        "production": "Production",
+        "adjustment": "Adjustment",
+        "addition": "Addition",
+        "subtraction": "Subtraction"
+      },
+      "empty": "No Movements",
+      "emptyDescription": "No inventory movements found for the selected filters",
+      "calendar": {
+        "weekView": "Week",
+        "monthView": "Month",
+        "today": "Today",
+        "movementsFor": "Movements for {date}",
+        "noMovements": "No movements on this day",
+        "inbound": "Inbound",
+        "outbound": "Outbound",
+        "net": "Net",
+        "totalInbound": "Total Inbound",
+        "totalOutbound": "Total Outbound",
+        "transfers": "Transfers",
+        "netChange": "Net Change",
+        "monthSummary": "{month} Summary",
+        "mostActiveWarehouses": "Most Active Warehouses",
+        "movements": "movements",
+        "days": {
+          "sun": "Sun",
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat"
+        }
+      }
+    }
+  },
   "fishPurchases": {
     "title": "Fish Purchases",
     "listDescription": "Manage fish purchase bills and transactions",
@@ -1069,6 +1488,10 @@
         "success": "Success",
         "failed": "Failed"
       }
+    },
+    "printPreview": {
+      "title": "Print Preview",
+      "print": "Print"
     }
   }
 }

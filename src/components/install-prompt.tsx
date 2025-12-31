@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { X, Download, HelpCircle } from "lucide-react";
-import { detectPlatform } from "@/lib/platform-detect";
-import { InstallGuideDialog } from "@/components/install-guide-dialog";
+import {useEffect, useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
+import {X, Download, HelpCircle} from 'lucide-react';
+import {detectPlatform} from '@/lib/platform-detect';
+import {InstallGuideDialog} from '@/components/install-guide-dialog';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  userChoice: Promise<{outcome: 'accepted' | 'dismissed'}>;
 }
 
 /**
@@ -19,7 +19,8 @@ interface BeforeInstallPromptEvent extends Event {
  */
 export function InstallPrompt() {
   const t = useTranslations();
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -39,7 +40,8 @@ export function InstallPrompt() {
     // Check if user has previously dismissed the prompt
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     const dismissedDate = dismissed ? parseInt(dismissed) : 0;
-    const daysSinceDismissed = (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
+    const daysSinceDismissed =
+      (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
 
     // For iOS, show the guide button since beforeinstallprompt doesn't work
     if (platformInfo.platform === 'ios-safari') {
@@ -76,7 +78,10 @@ export function InstallPrompt() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt
+      );
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
@@ -97,7 +102,7 @@ export function InstallPrompt() {
     await deferredPrompt.prompt();
 
     // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
+    const {outcome} = await deferredPrompt.userChoice;
 
     console.log(`User response to install prompt: ${outcome}`);
 
@@ -132,16 +137,18 @@ export function InstallPrompt() {
 
   return (
     <>
-      <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5 md:left-auto md:right-4 md:max-w-sm">
-        <div className="bg-card border border-border rounded-lg shadow-lg p-4">
+      <div className="animate-in slide-in-from-bottom-5 fixed right-4 bottom-4 left-4 z-50 md:right-4 md:left-auto md:max-w-sm">
+        <div className="bg-card border-border rounded-lg border p-4 shadow-lg">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Download className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-sm">{t("install.prompt.title")}</h3>
+              <div className="mb-2 flex items-center gap-2">
+                <Download className="text-primary h-5 w-5" />
+                <h3 className="text-sm font-semibold">
+                  {t('install.prompt.title')}
+                </h3>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                {t("install.prompt.description")}
+              <p className="text-muted-foreground mb-3 text-xs">
+                {t('install.prompt.description')}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -149,23 +156,17 @@ export function InstallPrompt() {
                   size="sm"
                   className="flex-1"
                 >
-                  {isIOS ? t("install.prompt.openGuide") : t("install.prompt.install")}
+                  {isIOS
+                    ? t('install.prompt.openGuide')
+                    : t('install.prompt.install')}
                 </Button>
                 {!isIOS && (
-                  <Button
-                    onClick={handleOpenGuide}
-                    variant="outline"
-                    size="sm"
-                  >
+                  <Button onClick={handleOpenGuide} variant="outline" size="sm">
                     <HelpCircle className="h-4 w-4" />
                   </Button>
                 )}
-                <Button
-                  onClick={handleDismiss}
-                  variant="outline"
-                  size="sm"
-                >
-                  {t("install.prompt.notNow")}
+                <Button onClick={handleDismiss} variant="outline" size="sm">
+                  {t('install.prompt.notNow')}
                 </Button>
               </div>
             </div>

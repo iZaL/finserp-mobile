@@ -1,61 +1,71 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "@/i18n/navigation"
-import { useTranslations, useLocale } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Truck, Search, Plus, RefreshCw, Package } from "lucide-react"
+import {useState, useEffect, useRef} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {useTranslations, useLocale} from 'next-intl';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Truck, Search, Plus, RefreshCw, Package} from 'lucide-react';
 import type {
   VehicleBooking,
   BookingFilters,
   CompleteOffloadingRequest,
   Media,
-} from "@/types/vehicle-booking"
-import { toast } from "sonner"
-import { BookingCard } from "@/components/vehicle-booking/booking-card"
-import { ReceiveDialog } from "@/components/vehicle-booking/receive-dialog"
-import { RejectDialog } from "@/components/vehicle-booking/reject-dialog"
-import { ExitDialog } from "@/components/vehicle-booking/exit-dialog"
-import { UnreceiveDialog } from "@/components/vehicle-booking/unreceive-dialog"
-import { DeleteDialog } from "@/components/vehicle-booking/delete-dialog"
-import { ApproveDialog } from "@/components/vehicle-booking/approve-dialog"
-import { RejectApprovalDialog } from "@/components/vehicle-booking/reject-approval-dialog"
-import { StartOffloadingDialog } from "@/components/vehicle-booking/start-offloading-dialog"
-import { CompleteOffloadingSheet } from "@/components/vehicle-booking/complete-offloading-sheet"
-import { CapacityCard } from "@/components/vehicle-booking/capacity-card"
-import { BookingDetailsDrawer } from "@/components/vehicle-booking/booking-details-drawer"
-import { EditDrawer } from "@/components/vehicle-booking/edit-drawer"
-import { FilePreviewModal } from "@/components/vehicle-booking/FilePreviewModal"
-import { VehicleBookingGuard } from "@/components/permission-guard"
-import { usePermissions } from "@/lib/stores/permission-store"
-import { useDialogManager } from "@/hooks/use-dialog-manager"
+} from '@/types/vehicle-booking';
+import {toast} from 'sonner';
+import {BookingCard} from '@/components/vehicle-booking/booking-card';
+import {ReceiveDialog} from '@/components/vehicle-booking/receive-dialog';
+import {RejectDialog} from '@/components/vehicle-booking/reject-dialog';
+import {ExitDialog} from '@/components/vehicle-booking/exit-dialog';
+import {UnreceiveDialog} from '@/components/vehicle-booking/unreceive-dialog';
+import {DeleteDialog} from '@/components/vehicle-booking/delete-dialog';
+import {ApproveDialog} from '@/components/vehicle-booking/approve-dialog';
+import {RejectApprovalDialog} from '@/components/vehicle-booking/reject-approval-dialog';
+import {StartOffloadingDialog} from '@/components/vehicle-booking/start-offloading-dialog';
+import {CompleteOffloadingSheet} from '@/components/vehicle-booking/complete-offloading-sheet';
+import {CapacityCard} from '@/components/vehicle-booking/capacity-card';
+import {BookingDetailsDrawer} from '@/components/vehicle-booking/booking-details-drawer';
+import {EditDrawer} from '@/components/vehicle-booking/edit-drawer';
+import {FilePreviewModal} from '@/components/vehicle-booking/FilePreviewModal';
+import {VehicleBookingGuard} from '@/components/permission-guard';
+import {usePermissions} from '@/lib/stores/permission-store';
+import {useDialogManager} from '@/hooks/use-dialog-manager';
 import {
   useVehicleBookingDashboard,
   useBulkAction,
   useCompleteOffloading,
-} from "@/hooks/use-vehicle-bookings"
+} from '@/hooks/use-vehicle-bookings';
 
 export default function VehicleBookingsPage() {
-  const router = useRouter()
-  const t = useTranslations("vehicleBookings")
-  const locale = useLocale()
-  const isRTL = locale === "ar"
-  const tabsScrollRef = useRef<HTMLDivElement>(null)
-  const permissions = usePermissions()
+  const router = useRouter();
+  const t = useTranslations('vehicleBookings');
+  const locale = useLocale();
+  const isRTL = locale === 'ar';
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const permissions = usePermissions();
 
   // Temporary flag to hide bulk selection features
-  const ENABLE_BULK_SELECTION = false
+  const ENABLE_BULK_SELECTION = false;
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<BookingFilters["status"]>("all")
-  const [timeRangeFilter] = useState<BookingFilters["date_filter"]>("current")
-  const [selectedBookings, setSelectedBookings] = useState<Set<number>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] =
+    useState<BookingFilters['status']>('all');
+  const [timeRangeFilter] = useState<BookingFilters['date_filter']>('current');
+  const [selectedBookings, setSelectedBookings] = useState<Set<number>>(
+    new Set()
+  );
 
   // Consolidated dialog management
-  const { openDialog, closeDialog, isOpen, selectedItem: selectedBooking } = useDialogManager<VehicleBooking>()
-  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(null)
+  const {
+    openDialog,
+    closeDialog,
+    isOpen,
+    selectedItem: selectedBooking,
+  } = useDialogManager<VehicleBooking>();
+  const [previewAttachment, setPreviewAttachment] = useState<Media | null>(
+    null
+  );
 
   // React Query hooks - All data fetching is now cached and optimized
   const {
@@ -65,218 +75,260 @@ export default function VehicleBookingsPage() {
     isLoading: loading,
     refetch,
   } = useVehicleBookingDashboard({
-    status: "all", // Always fetch all bookings
+    status: 'all', // Always fetch all bookings
     date_filter: timeRangeFilter,
     per_page: 50,
-  })
+  });
 
   // Mutations
-  const bulkActionMutation = useBulkAction()
-  const completeOffloadingMutation = useCompleteOffloading()
+  const bulkActionMutation = useBulkAction();
+  const completeOffloadingMutation = useCompleteOffloading();
 
   // Set initial scroll position for RTL
   useEffect(() => {
     if (isRTL && tabsScrollRef.current) {
-      tabsScrollRef.current.scrollLeft = tabsScrollRef.current.scrollWidth
+      tabsScrollRef.current.scrollLeft = tabsScrollRef.current.scrollWidth;
     }
-  }, [isRTL])
+  }, [isRTL]);
 
   const handleRefresh = async () => {
-    await refetch()
-    toast.success(t("refreshSuccess"))
-  }
+    await refetch();
+    toast.success(t('refreshSuccess'));
+  };
 
   // Action handlers
   const handleReceive = (booking: VehicleBooking) => {
-    openDialog('receive', booking)
-  }
+    openDialog('receive', booking);
+  };
 
   const handleReject = (booking: VehicleBooking) => {
-    openDialog('reject', booking)
-  }
+    openDialog('reject', booking);
+  };
 
   const handleExit = (booking: VehicleBooking) => {
-    openDialog('exit', booking)
-  }
+    openDialog('exit', booking);
+  };
 
   const handleUnreceive = (booking: VehicleBooking) => {
-    openDialog('unreceive', booking)
-  }
+    openDialog('unreceive', booking);
+  };
 
   const handleEdit = (booking: VehicleBooking) => {
-    openDialog('edit', booking)
-  }
+    openDialog('edit', booking);
+  };
 
   const handleDelete = (booking: VehicleBooking) => {
-    openDialog('delete', booking)
-  }
+    openDialog('delete', booking);
+  };
 
   const handleApprove = (booking: VehicleBooking) => {
-    openDialog('approve', booking)
-  }
+    openDialog('approve', booking);
+  };
 
   const handleRejectApproval = (booking: VehicleBooking) => {
-    openDialog('rejectApproval', booking)
-  }
+    openDialog('rejectApproval', booking);
+  };
 
   const handleStartOffloading = (booking: VehicleBooking) => {
-    openDialog('startOffloading', booking)
-  }
+    openDialog('startOffloading', booking);
+  };
 
   const handleCompleteOffloading = (booking: VehicleBooking) => {
-    openDialog('completeOffloading', booking)
-  }
+    openDialog('completeOffloading', booking);
+  };
 
   const handleCompleteOffloadingSubmit = (
     booking: VehicleBooking,
     data: CompleteOffloadingRequest
   ) => {
-    completeOffloadingMutation.mutate({
-      id: booking.id,
-      data,
-    }, {
-      onSuccess: () => {
-        // Close dialog after mutation AND cache updates complete
-        closeDialog()
+    completeOffloadingMutation.mutate(
+      {
+        id: booking.id,
+        data,
+      },
+      {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          closeDialog();
+        },
       }
-    })
-  }
+    );
+  };
 
   const handleViewDetails = (booking: VehicleBooking) => {
-    openDialog('details', booking)
-  }
+    openDialog('details', booking);
+  };
 
   const handleDialogSuccess = () => {
     // React Query will automatically refetch after mutations
     // No manual refetch needed - data stays in sync automatically
-  }
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleBookingUpdate = (_updatedBooking: VehicleBooking) => {
     // Note: React Query cache is automatically updated by mutation hooks
     // No need to manually update state - the selectedItem will reflect the latest cached data
-  }
+  };
 
-  const handleSelectionChange = (booking: VehicleBooking, selected: boolean) => {
-    const newSelection = new Set(selectedBookings)
+  const handleSelectionChange = (
+    booking: VehicleBooking,
+    selected: boolean
+  ) => {
+    const newSelection = new Set(selectedBookings);
     if (selected) {
-      newSelection.add(booking.id)
+      newSelection.add(booking.id);
     } else {
-      newSelection.delete(booking.id)
+      newSelection.delete(booking.id);
     }
-    setSelectedBookings(newSelection)
-  }
+    setSelectedBookings(newSelection);
+  };
 
   const handleBulkReceive = () => {
-    const count = selectedBookings.size
-    bulkActionMutation.mutate({
-      vehicle_ids: Array.from(selectedBookings),
-      action: "receive",
-    }, {
-      onSuccess: () => {
-        toast.success(`Successfully received ${count} vehicle(s)`)
-        setSelectedBookings(new Set())
+    const count = selectedBookings.size;
+    bulkActionMutation.mutate(
+      {
+        vehicle_ids: Array.from(selectedBookings),
+        action: 'receive',
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Successfully received ${count} vehicle(s)`);
+          setSelectedBookings(new Set());
+        },
       }
-    })
-  }
+    );
+  };
 
   const handleBulkReject = () => {
-    const count = selectedBookings.size
-    bulkActionMutation.mutate({
-      vehicle_ids: Array.from(selectedBookings),
-      action: "reject",
-    }, {
-      onSuccess: () => {
-        toast.success(`Successfully rejected ${count} vehicle(s)`)
-        setSelectedBookings(new Set())
+    const count = selectedBookings.size;
+    bulkActionMutation.mutate(
+      {
+        vehicle_ids: Array.from(selectedBookings),
+        action: 'reject',
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Successfully rejected ${count} vehicle(s)`);
+          setSelectedBookings(new Set());
+        },
       }
-    })
-  }
+    );
+  };
 
   const handleBulkExit = () => {
-    const count = selectedBookings.size
-    bulkActionMutation.mutate({
-      vehicle_ids: Array.from(selectedBookings),
-      action: "exit",
-    }, {
-      onSuccess: () => {
-        toast.success(`Successfully exited ${count} vehicle(s)`)
-        setSelectedBookings(new Set())
+    const count = selectedBookings.size;
+    bulkActionMutation.mutate(
+      {
+        vehicle_ids: Array.from(selectedBookings),
+        action: 'exit',
+      },
+      {
+        onSuccess: () => {
+          toast.success(`Successfully exited ${count} vehicle(s)`);
+          setSelectedBookings(new Set());
+        },
       }
-    })
-  }
+    );
+  };
 
   // Memoized filtered bookings for performance
   const filteredBookings = bookings.filter((booking) => {
     // Apply status filter - make categories mutually exclusive
-    if (statusFilter !== "all") {
-      if (statusFilter === "pending") {
-        if (!booking.is_pending_approval) return false
-      } else if (statusFilter === "booked") {
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'pending') {
+        if (!booking.is_pending_approval) return false;
+      } else if (statusFilter === 'booked') {
         if (
-          booking.status !== "booked" ||
+          booking.status !== 'booked' ||
           booking.is_pending_approval ||
-          booking.approval_status === "rejected"
+          booking.approval_status === 'rejected'
         )
-          return false
-      } else if (statusFilter === "rejected") {
-        if (booking.status !== "rejected" && booking.approval_status !== "rejected")
-          return false
-      } else if (statusFilter === "exited") {
+          return false;
+      } else if (statusFilter === 'rejected') {
+        if (
+          booking.status !== 'rejected' &&
+          booking.approval_status !== 'rejected'
+        )
+          return false;
+      } else if (statusFilter === 'exited') {
         // Show both offloaded and exited vehicles in the exited tab
-        if (booking.status !== "exited" && booking.status !== "offloaded") return false
+        if (booking.status !== 'exited' && booking.status !== 'offloaded')
+          return false;
       } else {
         // For received and other statuses, just check status
-        if (booking.status !== statusFilter) return false
+        if (booking.status !== statusFilter) return false;
       }
     }
 
     // Exclude received/offloading vehicles (they're shown in "Currently Offloading" section)
     // But allow offloaded vehicles when exited filter is active
-    if (statusFilter === "exited") {
+    if (statusFilter === 'exited') {
       // When exited filter is active, only exclude received and offloading
-      if (booking.status === "received" || booking.status === "offloading") return false
+      if (booking.status === 'received' || booking.status === 'offloading')
+        return false;
     } else {
       // For other filters, exclude received/offloading/offloaded (they're shown in "Currently Offloading" section)
       if (
-        booking.status === "received" ||
-        booking.status === "offloading" ||
-        booking.status === "offloaded"
+        booking.status === 'received' ||
+        booking.status === 'offloading' ||
+        booking.status === 'offloaded'
       )
-        return false
+        return false;
     }
 
     // Apply search filter (if search query is empty, show all)
     if (!searchQuery.trim()) {
-      return true
+      return true;
     }
 
     return (
-      booking.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (booking.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (booking.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (booking.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (booking.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-    )
-  })
+      booking.vehicle_number
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      (booking.driver_name?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (booking.driver_phone?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (booking.supplier_name?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (booking.supplier_phone?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      )
+    );
+  });
 
   // Vehicles inside factory
   const vehiclesInsideFactory = bookings.filter((b) => {
     // Status filter
-    if (b.status !== "received" && b.status !== "offloading" && b.status !== "offloaded")
-      return false
+    if (
+      b.status !== 'received' &&
+      b.status !== 'offloading' &&
+      b.status !== 'offloaded'
+    )
+      return false;
 
     // Apply search filter
-    if (!searchQuery.trim()) return true
+    if (!searchQuery.trim()) return true;
 
     return (
       b.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (b.driver_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (b.driver_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (b.supplier_name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (b.supplier_phone?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-    )
-  })
+      (b.driver_name?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (b.driver_phone?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (b.supplier_name?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      ) ||
+      (b.supplier_phone?.toLowerCase() || '').includes(
+        searchQuery.toLowerCase()
+      )
+    );
+  });
 
   // Status counts
   const statusCounts = {
@@ -286,87 +338,126 @@ export default function VehicleBookingsPage() {
     // Bookings that are approved and waiting to be received (exclude pending and approval-rejected)
     booked: bookings.filter(
       (b) =>
-        b.status === "booked" && !b.is_pending_approval && b.approval_status !== "rejected"
+        b.status === 'booked' &&
+        !b.is_pending_approval &&
+        b.approval_status !== 'rejected'
     ).length,
 
     // Bookings currently in factory being offloaded (received + offloading + offloaded)
     received: bookings.filter(
-      (b) => b.status === "received" || b.status === "offloading" || b.status === "offloaded"
+      (b) =>
+        b.status === 'received' ||
+        b.status === 'offloading' ||
+        b.status === 'offloaded'
     ).length,
 
     // Bookings that finished offloading and exited (or offloaded but not exited yet)
-    exited: bookings.filter((b) => b.status === "exited" || b.status === "offloaded").length,
+    exited: bookings.filter(
+      (b) => b.status === 'exited' || b.status === 'offloaded'
+    ).length,
 
     // Bookings rejected at gate OR rejected at approval stage
     rejected: bookings.filter(
-      (b) => b.status === "rejected" || b.approval_status === "rejected"
+      (b) => b.status === 'rejected' || b.approval_status === 'rejected'
     ).length,
-  }
+  };
 
   return (
     <VehicleBookingGuard>
-      <div className="overscroll-none overflow-x-hidden flex flex-col gap-2">
+      <div className="flex flex-col gap-2 overflow-x-hidden overscroll-none">
         {/* Search Bar and Action Buttons */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
-              placeholder={t("searchPlaceholder")}
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10"
+              className="h-10 pl-10"
             />
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex flex-shrink-0 gap-2">
             <Button
               onClick={handleRefresh}
               disabled={bulkActionMutation.isPending}
               variant="outline"
               size="default"
-              className="w-10 h-10"
+              className="h-10 w-10"
             >
               <RefreshCw
-                className={`size-5 ${bulkActionMutation.isPending ? "animate-spin" : ""}`}
+                className={`size-5 ${bulkActionMutation.isPending ? 'animate-spin' : ''}`}
               />
             </Button>
-            {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
-              <Button
-                onClick={() => router.push("/vehicle-bookings/new")}
-                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 h-10 w-10 px-0 md:w-auto md:px-3"
-                size="default"
-                title={t("newBooking")}
-              >
-                <Plus className="size-5 md:mr-2" />
-                <span className="hidden md:inline">{t("newBooking")}</span>
-              </Button>
-            )}
+            {permissions.canCreateVehicleBooking() &&
+              settings?.vehicle_booking_enabled && (
+                <Button
+                  onClick={() => router.push('/vehicle-bookings/new')}
+                  className="h-10 w-10 bg-blue-600 px-0 hover:bg-blue-700 md:w-auto md:px-3 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  size="default"
+                  title={t('newBooking')}
+                >
+                  <Plus className="size-5 md:mr-2" />
+                  <span className="hidden md:inline">{t('newBooking')}</span>
+                </Button>
+              )}
           </div>
         </div>
 
         {/* Status Filter Tabs */}
         <Tabs
-          value={statusFilter || "all"}
-          onValueChange={(value: string) => setStatusFilter(value as BookingFilters["status"])}
+          value={statusFilter || 'all'}
+          onValueChange={(value: string) =>
+            setStatusFilter(value as BookingFilters['status'])
+          }
         >
-          <div ref={tabsScrollRef} className="overflow-x-auto -mx-4 px-4 scrollbar-hide">
-            <TabsList className={`inline-flex w-auto h-auto ${isRTL ? "flex-row-reverse" : ""}`}>
-              <TabsTrigger value="all" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.all")} {bookings.length > 0 && `(${bookings.length})`}
+          <div
+            ref={tabsScrollRef}
+            className="scrollbar-hide -mx-4 overflow-x-auto px-4"
+          >
+            <TabsList
+              className={`inline-flex h-auto w-auto ${isRTL ? 'flex-row-reverse' : ''}`}
+            >
+              <TabsTrigger
+                value="all"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.all')}{' '}
+                {bookings.length > 0 && `(${bookings.length})`}
               </TabsTrigger>
-              <TabsTrigger value="pending" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.pending")} {statusCounts.pending > 0 && `(${statusCounts.pending})`}
+              <TabsTrigger
+                value="pending"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.pending')}{' '}
+                {statusCounts.pending > 0 && `(${statusCounts.pending})`}
               </TabsTrigger>
-              <TabsTrigger value="booked" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.booked")} {statusCounts.booked > 0 && `(${statusCounts.booked})`}
+              <TabsTrigger
+                value="booked"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.booked')}{' '}
+                {statusCounts.booked > 0 && `(${statusCounts.booked})`}
               </TabsTrigger>
-              <TabsTrigger value="received" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.received")} {statusCounts.received > 0 && `(${statusCounts.received})`}
+              <TabsTrigger
+                value="received"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.received')}{' '}
+                {statusCounts.received > 0 && `(${statusCounts.received})`}
               </TabsTrigger>
-              <TabsTrigger value="exited" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.exited")} {statusCounts.exited > 0 && `(${statusCounts.exited})`}
+              <TabsTrigger
+                value="exited"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.exited')}{' '}
+                {statusCounts.exited > 0 && `(${statusCounts.exited})`}
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="text-xs px-3 py-2 whitespace-nowrap">
-                {t("filters.rejected")} {statusCounts.rejected > 0 && `(${statusCounts.rejected})`}
+              <TabsTrigger
+                value="rejected"
+                className="px-3 py-2 text-xs whitespace-nowrap"
+              >
+                {t('filters.rejected')}{' '}
+                {statusCounts.rejected > 0 && `(${statusCounts.rejected})`}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -379,58 +470,66 @@ export default function VehicleBookingsPage() {
             {selectedBookings.size > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
-                  {t("vehiclesSelected", { count: selectedBookings.size })}
+                  {t('vehiclesSelected', {count: selectedBookings.size})}
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSelectedBookings(new Set())}
                 >
-                  {t("clearSelection")}
+                  {t('clearSelection')}
                 </Button>
               </div>
             )}
 
             {/* Selection Buttons */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const booked = filteredBookings.filter((b) => b.status === "booked")
-                  setSelectedBookings(new Set(booked.map((b) => b.id)))
+                  const booked = filteredBookings.filter(
+                    (b) => b.status === 'booked'
+                  );
+                  setSelectedBookings(new Set(booked.map((b) => b.id)));
                 }}
               >
-                {t("selectAllBooked", {
-                  count: filteredBookings.filter((b) => b.status === "booked").length,
+                {t('selectAllBooked', {
+                  count: filteredBookings.filter((b) => b.status === 'booked')
+                    .length,
                 })}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  const received = filteredBookings.filter((b) => b.status === "received")
-                  setSelectedBookings(new Set(received.map((b) => b.id)))
+                  const received = filteredBookings.filter(
+                    (b) => b.status === 'received'
+                  );
+                  setSelectedBookings(new Set(received.map((b) => b.id)));
                 }}
               >
-                {t("selectAllReceived", {
-                  count: filteredBookings.filter((b) => b.status === "received").length,
+                {t('selectAllReceived', {
+                  count: filteredBookings.filter((b) => b.status === 'received')
+                    .length,
                 })}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setSelectedBookings(new Set(filteredBookings.map((b) => b.id)))
+                  setSelectedBookings(
+                    new Set(filteredBookings.map((b) => b.id))
+                  );
                 }}
               >
-                {t("selectAllVisible", { count: filteredBookings.length })}
+                {t('selectAllVisible', {count: filteredBookings.length})}
               </Button>
             </div>
 
             {/* Bulk Action Buttons */}
             {selectedBookings.size > 0 && (
-              <div className="flex gap-2 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="default"
                   size="sm"
@@ -439,11 +538,11 @@ export default function VehicleBookingsPage() {
                 >
                   {bulkActionMutation.isPending ? (
                     <>
-                      <RefreshCw className="size-3 mr-1 animate-spin" />
-                      {t("bulkReceiving")}
+                      <RefreshCw className="mr-1 size-3 animate-spin" />
+                      {t('bulkReceiving')}
                     </>
                   ) : (
-                    t("bulkReceive", { count: selectedBookings.size })
+                    t('bulkReceive', {count: selectedBookings.size})
                   )}
                 </Button>
                 <Button
@@ -454,11 +553,11 @@ export default function VehicleBookingsPage() {
                 >
                   {bulkActionMutation.isPending ? (
                     <>
-                      <RefreshCw className="size-3 mr-1 animate-spin" />
-                      {t("bulkRejecting")}
+                      <RefreshCw className="mr-1 size-3 animate-spin" />
+                      {t('bulkRejecting')}
                     </>
                   ) : (
-                    t("bulkReject", { count: selectedBookings.size })
+                    t('bulkReject', {count: selectedBookings.size})
                   )}
                 </Button>
                 <Button
@@ -469,11 +568,11 @@ export default function VehicleBookingsPage() {
                 >
                   {bulkActionMutation.isPending ? (
                     <>
-                      <RefreshCw className="size-3 mr-1 animate-spin" />
-                      {t("bulkExiting")}
+                      <RefreshCw className="mr-1 size-3 animate-spin" />
+                      {t('bulkExiting')}
                     </>
                   ) : (
-                    t("bulkExit", { count: selectedBookings.size })
+                    t('bulkExit', {count: selectedBookings.size})
                   )}
                 </Button>
               </div>
@@ -482,7 +581,7 @@ export default function VehicleBookingsPage() {
         )}
 
         {/* Capacity Card */}
-        {statusFilter === "all" && !searchQuery.trim() && (
+        {statusFilter === 'all' && !searchQuery.trim() && (
           <CapacityCard
             capacity={capacityInfo || null}
             loading={loading}
@@ -492,20 +591,22 @@ export default function VehicleBookingsPage() {
 
         {/* Vehicles Inside Factory Section */}
         {!loading &&
-          (statusFilter === "all" ||
-            statusFilter === "received" ||
-            statusFilter === "offloading" ||
-            statusFilter === "offloaded") &&
+          (statusFilter === 'all' ||
+            statusFilter === 'received' ||
+            statusFilter === 'offloading' ||
+            statusFilter === 'offloaded') &&
           vehiclesInsideFactory.length > 0 && (
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 shadow-sm p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+            <div className="rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 p-4 shadow-sm dark:border-emerald-900 dark:from-emerald-950/20 dark:to-green-950/20">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
                   <Package className="size-5 text-emerald-600 dark:text-emerald-400" />
-                  {t("vehiclesInsideFactory")}
+                  {t('vehiclesInsideFactory')}
                 </h3>
                 <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                  {vehiclesInsideFactory.length}{" "}
-                  {vehiclesInsideFactory.length === 1 ? t("vehicle") : t("vehicles")}
+                  {vehiclesInsideFactory.length}{' '}
+                  {vehiclesInsideFactory.length === 1
+                    ? t('vehicle')
+                    : t('vehicles')}
                 </span>
               </div>
               <div className="space-y-3">
@@ -516,30 +617,36 @@ export default function VehicleBookingsPage() {
                       offloading: 1, // Highest priority - actively being processed
                       received: 2, // Second priority - waiting to start
                       offloaded: 3, // Lowest priority - ready to exit
-                    }
+                    };
 
-                    const priorityA = statusPriority[a.status] || 99
-                    const priorityB = statusPriority[b.status] || 99
+                    const priorityA = statusPriority[a.status] || 99;
+                    const priorityB = statusPriority[b.status] || 99;
 
                     // First sort by status priority
                     if (priorityA !== priorityB) {
-                      return priorityA - priorityB
+                      return priorityA - priorityB;
                     }
 
                     // Within same status, sort by relevant timestamp
                     const getTimestamp = (booking: VehicleBooking) => {
-                      if (booking.status === "offloading" && booking.offloading_started_at) {
-                        return booking.offloading_started_at
+                      if (
+                        booking.status === 'offloading' &&
+                        booking.offloading_started_at
+                      ) {
+                        return booking.offloading_started_at;
                       }
-                      if (booking.status === "offloaded" && booking.offloading_completed_at) {
-                        return booking.offloading_completed_at
+                      if (
+                        booking.status === 'offloaded' &&
+                        booking.offloading_completed_at
+                      ) {
+                        return booking.offloading_completed_at;
                       }
-                      return booking.received_at || booking.created_at
-                    }
+                      return booking.received_at || booking.created_at;
+                    };
 
-                    const dateA = new Date(getTimestamp(a)).getTime()
-                    const dateB = new Date(getTimestamp(b)).getTime()
-                    return dateA - dateB // Oldest first (FIFO)
+                    const dateA = new Date(getTimestamp(a)).getTime();
+                    const dateB = new Date(getTimestamp(b)).getTime();
+                    return dateA - dateB; // Oldest first (FIFO)
                   })
                   .map((booking) => (
                     <BookingCard
@@ -558,7 +665,9 @@ export default function VehicleBookingsPage() {
                       onClick={handleViewDetails}
                       isSelected={selectedBookings.has(booking.id)}
                       onSelectionChange={
-                        ENABLE_BULK_SELECTION ? handleSelectionChange : undefined
+                        ENABLE_BULK_SELECTION
+                          ? handleSelectionChange
+                          : undefined
                       }
                     />
                   ))}
@@ -573,111 +682,113 @@ export default function VehicleBookingsPage() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="rounded-xl border bg-card text-card-foreground shadow-sm p-4"
+                  className="bg-card text-card-foreground rounded-xl border p-4 shadow-sm"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3 flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-lg bg-muted animate-pulse" />
+                      <div className="bg-muted size-10 animate-pulse rounded-lg" />
                       <div className="space-y-2">
-                        <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                        <div className="h-3 w-16 bg-muted animate-pulse rounded" />
+                        <div className="bg-muted h-4 w-32 animate-pulse rounded" />
+                        <div className="bg-muted h-3 w-16 animate-pulse rounded" />
                       </div>
                     </div>
-                    <div className="h-6 w-16 bg-muted animate-pulse rounded-full" />
+                    <div className="bg-muted h-6 w-16 animate-pulse rounded-full" />
                   </div>
                   <div className="space-y-2">
-                    <div className="h-3 w-full bg-muted animate-pulse rounded" />
-                    <div className="h-3 w-3/4 bg-muted animate-pulse rounded" />
+                    <div className="bg-muted h-3 w-full animate-pulse rounded" />
+                    <div className="bg-muted h-3 w-3/4 animate-pulse rounded" />
                   </div>
                 </div>
               ))}
             </>
-          ) : filteredBookings.length === 0 && vehiclesInsideFactory.length === 0 ? (
-            <div className="rounded-xl border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/50 dark:to-slate-800/50 shadow-sm p-12 text-center">
-              <div className="rounded-full bg-slate-200/50 dark:bg-slate-700/50 size-16 mx-auto mb-4 flex items-center justify-center">
+          ) : filteredBookings.length === 0 &&
+            vehiclesInsideFactory.length === 0 ? (
+            <div className="rounded-xl border bg-gradient-to-br from-slate-50 to-slate-100 p-12 text-center shadow-sm dark:from-slate-900/50 dark:to-slate-800/50">
+              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-slate-200/50 dark:bg-slate-700/50">
                 <Truck className="size-8 text-slate-400 dark:text-slate-500" />
               </div>
               {searchQuery ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noResultsFound")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noResultsFound')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noResultsDescription")}
+                    {t('noResultsDescription')}
                   </p>
                 </>
               ) : bookings.length === 0 ? (
                 // Show "No bookings found" only when there are NO bookings at all
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noBookingsFound")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noBookingsFound')}
                   </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                    {t("noBookingsDescription")}
+                  <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+                    {t('noBookingsDescription')}
                   </p>
-                  {permissions.canCreateVehicleBooking() && settings?.vehicle_booking_enabled && (
-                    <Button
-                      onClick={() => router.push("/vehicle-bookings/new")}
-                      className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                    >
-                      <Plus className="size-4 mr-2" />
-                      {t("createBooking")}
-                    </Button>
-                  )}
+                  {permissions.canCreateVehicleBooking() &&
+                    settings?.vehicle_booking_enabled && (
+                      <Button
+                        onClick={() => router.push('/vehicle-bookings/new')}
+                        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                      >
+                        <Plus className="mr-2 size-4" />
+                        {t('createBooking')}
+                      </Button>
+                    )}
                 </>
-              ) : statusFilter === "pending" ? (
+              ) : statusFilter === 'pending' ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noPendingApprovals")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noPendingApprovals')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noPendingApprovalsDescription")}
+                    {t('noPendingApprovalsDescription')}
                   </p>
                 </>
-              ) : statusFilter === "booked" ? (
+              ) : statusFilter === 'booked' ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noBookedVehicles")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noBookedVehicles')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noBookedVehiclesDescription")}
+                    {t('noBookedVehiclesDescription')}
                   </p>
                 </>
-              ) : statusFilter === "received" ? (
+              ) : statusFilter === 'received' ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noVehiclesInFactory")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noVehiclesInFactory')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noVehiclesInFactoryDescription")}
+                    {t('noVehiclesInFactoryDescription')}
                   </p>
                 </>
-              ) : statusFilter === "exited" ? (
+              ) : statusFilter === 'exited' ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noExitedVehicles")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noExitedVehicles')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noExitedVehiclesDescription")}
+                    {t('noExitedVehiclesDescription')}
                   </p>
                 </>
-              ) : statusFilter === "rejected" ? (
+              ) : statusFilter === 'rejected' ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noRejectedBookings")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noRejectedBookings')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noRejectedBookingsDescription")}
+                    {t('noRejectedBookingsDescription')}
                   </p>
                 </>
               ) : (
                 // Fallback for "All" tab when there are bookings but none match the current view
                 <>
-                  <h3 className="text-lg font-semibold mb-2 text-slate-900 dark:text-slate-100">
-                    {t("noResultsFound")}
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {t('noResultsFound')}
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("noResultsDescription")}
+                    {t('noResultsDescription')}
                   </p>
                 </>
               )}
@@ -691,52 +802,55 @@ export default function VehicleBookingsPage() {
                   pending: 2, // Second priority - awaiting approval (not actionable)
                   exited: 3, // Third priority - completed vehicles
                   rejected: 4, // Lowest priority - rejected vehicles
-                }
+                };
 
                 // Handle approval-rejected as rejected priority
                 const getPriority = (booking: typeof a) => {
-                  if (booking.approval_status === "rejected") {
-                    return statusPriority["rejected"]
+                  if (booking.approval_status === 'rejected') {
+                    return statusPriority['rejected'];
                   }
-                  return statusPriority[booking.status] || 99
-                }
+                  return statusPriority[booking.status] || 99;
+                };
 
-                const priorityA = getPriority(a)
-                const priorityB = getPriority(b)
+                const priorityA = getPriority(a);
+                const priorityB = getPriority(b);
 
                 // First sort by status priority
                 if (priorityA !== priorityB) {
-                  return priorityA - priorityB
+                  return priorityA - priorityB;
                 }
 
                 // Within same priority group, sort by state-specific date
                 const getDateForStatus = (booking: typeof a) => {
-                  if (booking.status === "exited" && booking.exited_at) {
-                    return booking.exited_at
+                  if (booking.status === 'exited' && booking.exited_at) {
+                    return booking.exited_at;
                   }
-                  if (booking.status === "rejected" && booking.rejected_at) {
-                    return booking.rejected_at
+                  if (booking.status === 'rejected' && booking.rejected_at) {
+                    return booking.rejected_at;
                   }
-                  if (booking.approval_status === "rejected" && booking.approved_at) {
-                    return booking.approved_at // Use approval date for approval-rejected
+                  if (
+                    booking.approval_status === 'rejected' &&
+                    booking.approved_at
+                  ) {
+                    return booking.approved_at; // Use approval date for approval-rejected
                   }
-                  if (booking.status === "booked" && booking.approved_at) {
-                    return booking.approved_at // Use approval date for booked
+                  if (booking.status === 'booked' && booking.approved_at) {
+                    return booking.approved_at; // Use approval date for booked
                   }
                   // Default to entry_datetime for pending and other cases
-                  return booking.entry_datetime || booking.created_at
-                }
+                  return booking.entry_datetime || booking.created_at;
+                };
 
-                const dateA = new Date(getDateForStatus(a)).getTime()
-                const dateB = new Date(getDateForStatus(b)).getTime()
+                const dateA = new Date(getDateForStatus(a)).getTime();
+                const dateB = new Date(getDateForStatus(b)).getTime();
 
                 // For exited status, sort by most recent first (descending) - recent activity visible
-                if (a.status === "exited" && b.status === "exited") {
-                  return dateB - dateA
+                if (a.status === 'exited' && b.status === 'exited') {
+                  return dateB - dateA;
                 }
 
                 // For booked, pending, and rejected: sort oldest first (ascending) - FIFO
-                return dateA - dateB
+                return dateA - dateB;
               })
               .map((booking) => (
                 <BookingCard
@@ -754,7 +868,9 @@ export default function VehicleBookingsPage() {
                   onRejectApproval={handleRejectApproval}
                   onClick={handleViewDetails}
                   isSelected={selectedBookings.has(booking.id)}
-                  onSelectionChange={ENABLE_BULK_SELECTION ? handleSelectionChange : undefined}
+                  onSelectionChange={
+                    ENABLE_BULK_SELECTION ? handleSelectionChange : undefined
+                  }
                 />
               ))
           )}
@@ -850,5 +966,5 @@ export default function VehicleBookingsPage() {
         />
       </div>
     </VehicleBookingGuard>
-  )
+  );
 }

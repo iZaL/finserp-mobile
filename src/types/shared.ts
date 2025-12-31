@@ -132,7 +132,7 @@ export interface BaseFilters {
   page?: number;
   per_page?: number;
   sort_by?: string;
-  sort_order?: "asc" | "desc";
+  sort_order?: 'asc' | 'desc';
 }
 
 /**
@@ -148,10 +148,10 @@ export interface SelectOption {
  * Status Badge Colors
  */
 export type StatusColor =
-  | "default"
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "info";
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info';

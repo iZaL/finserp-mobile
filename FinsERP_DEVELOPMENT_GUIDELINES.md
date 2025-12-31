@@ -1344,7 +1344,7 @@ export default function VehicleBookingPage() {
 ```env
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://tijara.test
+APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1

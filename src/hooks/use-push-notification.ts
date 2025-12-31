@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import {useState, useEffect, useCallback, useRef} from 'react';
 import {
   requestNotificationPermission,
   subscribeToPushNotifications,
@@ -7,14 +7,15 @@ import {
   removeSubscriptionFromBackend,
   hasNotificationPermission,
   isPushNotificationSupported,
-} from "@/lib/services/push-notification";
-import { toast } from "sonner";
+} from '@/lib/services/push-notification';
+import {toast} from 'sonner';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 
 export function usePushNotification() {
   const [isSupported, setIsSupported] = useState(false);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] =
+    useState<NotificationPermission>('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
@@ -24,7 +25,7 @@ export function usePushNotification() {
     const supported = isPushNotificationSupported();
     setIsSupported(supported);
 
-    if (supported && "Notification" in window) {
+    if (supported && 'Notification' in window) {
       setPermission(Notification.permission);
 
       // Check if already subscribed
@@ -37,7 +38,7 @@ export function usePushNotification() {
   }, []);
 
   const checkSubscriptionStatus = async () => {
-    if (!("serviceWorker" in navigator)) return;
+    if (!('serviceWorker' in navigator)) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
@@ -49,20 +50,20 @@ export function usePushNotification() {
       }
     } catch (error) {
       if (isMountedRef.current) {
-        console.error("Failed to check subscription status:", error);
+        console.error('Failed to check subscription status:', error);
       }
     }
   };
 
   const subscribe = useCallback(async () => {
     if (!isSupported) {
-      toast.error("Push notifications are not supported in this browser");
+      toast.error('Push notifications are not supported in this browser');
       return false;
     }
 
     if (!VAPID_PUBLIC_KEY) {
-      console.error("VAPID public key is not configured");
-      toast.error("Push notifications are not configured");
+      console.error('VAPID public key is not configured');
+      toast.error('Push notifications are not configured');
       return false;
     }
 
@@ -75,8 +76,8 @@ export function usePushNotification() {
       if (!isMountedRef.current) return false;
       setPermission(perm);
 
-      if (perm !== "granted") {
-        toast.error("Notification permission denied");
+      if (perm !== 'granted') {
+        toast.error('Notification permission denied');
         return false;
       }
 
@@ -86,7 +87,7 @@ export function usePushNotification() {
       if (!isMountedRef.current) return false;
 
       if (!subscription) {
-        toast.error("Failed to subscribe to notifications");
+        toast.error('Failed to subscribe to notifications');
         return false;
       }
 
@@ -96,12 +97,12 @@ export function usePushNotification() {
       if (!isMountedRef.current) return false;
 
       setIsSubscribed(true);
-      toast.success("Push notifications enabled!");
+      toast.success('Push notifications enabled!');
       return true;
     } catch (error) {
       if (isMountedRef.current) {
-        console.error("Failed to subscribe to push notifications:", error);
-        toast.error("Failed to enable push notifications");
+        console.error('Failed to subscribe to push notifications:', error);
+        toast.error('Failed to enable push notifications');
       }
       return false;
     } finally {
@@ -140,15 +141,15 @@ export function usePushNotification() {
 
       if (success) {
         setIsSubscribed(false);
-        toast.success("Push notifications disabled");
+        toast.success('Push notifications disabled');
         return true;
       }
 
       return false;
     } catch (error) {
       if (isMountedRef.current) {
-        console.error("Failed to unsubscribe from push notifications:", error);
-        toast.error("Failed to disable push notifications");
+        console.error('Failed to unsubscribe from push notifications:', error);
+        toast.error('Failed to disable push notifications');
       }
       return false;
     } finally {

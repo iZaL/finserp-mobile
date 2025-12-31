@@ -1,7 +1,7 @@
-import { QueryClient } from "@tanstack/react-query"
-import { vehicleBookingKeys, fishPurchaseKeys } from "@/lib/query-keys"
-import { vehicleBookingService } from "@/lib/services/vehicle-booking"
-import { fishPurchaseService } from "@/lib/services/fish-purchase"
+import {QueryClient} from '@tanstack/react-query';
+import {vehicleBookingKeys, fishPurchaseKeys} from '@/lib/query-keys';
+import {vehicleBookingService} from '@/lib/services/vehicle-booking';
+import {fishPurchaseService} from '@/lib/services/fish-purchase';
 
 /**
  * Prefetch utilities for warming up React Query cache
@@ -13,24 +13,26 @@ import { fishPurchaseService } from "@/lib/services/fish-purchase"
  * Call this when user is likely to navigate to vehicle bookings page
  * (e.g., from home page, or when hovering over the link)
  */
-export async function prefetchVehicleBookingDashboard(queryClient: QueryClient) {
+export async function prefetchVehicleBookingDashboard(
+  queryClient: QueryClient
+) {
   await Promise.all([
     // Prefetch bookings list
     queryClient.prefetchQuery({
       queryKey: vehicleBookingKeys.list({
-        status: "all",
-        date_filter: "current",
+        status: 'all',
+        date_filter: 'current',
         per_page: 50,
       }),
-      queryFn: async ({ signal }) => {
+      queryFn: async ({signal}) => {
         return vehicleBookingService.getBookings(
           {
-            status: "all",
-            date_filter: "current",
+            status: 'all',
+            date_filter: 'current',
             per_page: 50,
           },
-          { signal }
-        )
+          {signal}
+        );
       },
       staleTime: 2 * 60 * 1000, // 2 minutes
     }),
@@ -38,8 +40,8 @@ export async function prefetchVehicleBookingDashboard(queryClient: QueryClient) 
     // Prefetch daily capacity
     queryClient.prefetchQuery({
       queryKey: vehicleBookingKeys.dailyCapacity(),
-      queryFn: async ({ signal }) => {
-        return vehicleBookingService.getDailyCapacity(undefined, { signal })
+      queryFn: async ({signal}) => {
+        return vehicleBookingService.getDailyCapacity(undefined, {signal});
       },
       staleTime: 1 * 60 * 1000, // 1 minute
     }),
@@ -47,12 +49,12 @@ export async function prefetchVehicleBookingDashboard(queryClient: QueryClient) 
     // Prefetch settings
     queryClient.prefetchQuery({
       queryKey: vehicleBookingKeys.settings(),
-      queryFn: async ({ signal }) => {
-        return vehicleBookingService.getSettings({ signal })
+      queryFn: async ({signal}) => {
+        return vehicleBookingService.getSettings({signal});
       },
       staleTime: 10 * 60 * 1000, // 10 minutes
     }),
-  ])
+  ]);
 }
 
 /**
@@ -65,11 +67,11 @@ export async function prefetchFishPurchaseFormData(queryClient: QueryClient) {
   // Use the optimized combined endpoint - reduces 6 requests to 1
   await queryClient.prefetchQuery({
     queryKey: fishPurchaseKeys.formData(),
-    queryFn: async ({ signal }) => {
-      return fishPurchaseService.getFormData({ signal })
+    queryFn: async ({signal}) => {
+      return fishPurchaseService.getFormData({signal});
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-  })
+  });
 }
 
 /**
@@ -80,10 +82,10 @@ export async function prefetchQuickPicks(queryClient: QueryClient) {
   await queryClient.prefetchQuery({
     queryKey: vehicleBookingKeys.quickPicks(),
     queryFn: async () => {
-      return vehicleBookingService.getQuickPicks()
+      return vehicleBookingService.getQuickPicks();
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
-  })
+  });
 }
 
 /**
@@ -99,7 +101,7 @@ export async function prefetchVehicleBookingDetails(
     queryClient.prefetchQuery({
       queryKey: vehicleBookingKeys.detail(bookingId),
       queryFn: async () => {
-        return vehicleBookingService.getBooking(bookingId)
+        return vehicleBookingService.getBooking(bookingId);
       },
       staleTime: 1 * 60 * 1000, // 1 minute
     }),
@@ -107,12 +109,12 @@ export async function prefetchVehicleBookingDetails(
     // Prefetch booking activities
     queryClient.prefetchQuery({
       queryKey: vehicleBookingKeys.activities(bookingId),
-      queryFn: async ({ signal }) => {
-        return vehicleBookingService.getBookingActivities(bookingId, { signal })
+      queryFn: async ({signal}) => {
+        return vehicleBookingService.getBookingActivities(bookingId, {signal});
       },
       staleTime: 30 * 1000, // 30 seconds
     }),
-  ])
+  ]);
 }
 
 /**
@@ -126,10 +128,10 @@ export async function prefetchFishPurchaseDetails(
   await queryClient.prefetchQuery({
     queryKey: fishPurchaseKeys.detail(purchaseId),
     queryFn: async () => {
-      return fishPurchaseService.getFishPurchase(purchaseId)
+      return fishPurchaseService.getFishPurchase(purchaseId);
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
-  })
+  });
 }
 
 /**
@@ -143,11 +145,11 @@ export async function prefetchCalendarStats(
 ) {
   await queryClient.prefetchQuery({
     queryKey: vehicleBookingKeys.rangeStats(dateFrom, dateTo),
-    queryFn: async ({ signal }) => {
-      return vehicleBookingService.getRangeStats(dateFrom, dateTo, { signal })
+    queryFn: async ({signal}) => {
+      return vehicleBookingService.getRangeStats(dateFrom, dateTo, {signal});
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
-  })
+  });
 }
 
 /**
@@ -159,11 +161,11 @@ export async function prefetchCommonData(queryClient: QueryClient) {
   // This runs silently and doesn't block the UI
   prefetchVehicleBookingDashboard(queryClient).catch((error) => {
     // Silently fail - prefetching is optimization, not critical
-    console.debug("Prefetch failed:", error)
-  })
+    console.debug('Prefetch failed:', error);
+  });
 
   // Prefetch fish purchase form data in background
   prefetchFishPurchaseFormData(queryClient).catch((error) => {
-    console.debug("Prefetch failed:", error)
-  })
+    console.debug('Prefetch failed:', error);
+  });
 }

@@ -1,70 +1,81 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useTranslations } from "next-intl"
-import type { DailyStats } from "@/types/vehicle-booking"
-import { format } from "date-fns"
-import { ar } from "date-fns/locale"
+import * as React from 'react';
+import {Card} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
+import {useTranslations} from 'next-intl';
+import type {DailyStats} from '@/types/vehicle-booking';
+import {format} from 'date-fns';
+import {ar} from 'date-fns/locale';
 
 interface DailyStatsListProps {
-  dailyStats: DailyStats[]
-  locale?: string
-  onDayClick?: (date: string) => void
+  dailyStats: DailyStats[];
+  locale?: string;
+  onDayClick?: (date: string) => void;
 }
 
-export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyStatsListProps) {
-  const t = useTranslations("vehicleBookings.rangeStats")
+export function DailyStatsList({
+  dailyStats,
+  locale = 'en',
+  onDayClick,
+}: DailyStatsListProps) {
+  const t = useTranslations('vehicleBookings.rangeStats');
 
   if (!dailyStats || dailyStats.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <p className="text-sm text-muted-foreground">{t("noDailyStats")}</p>
+        <p className="text-muted-foreground text-sm">{t('noDailyStats')}</p>
       </Card>
-    )
+    );
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return format(date, "EEE, MMM d, yyyy", {
-      locale: locale === "ar" ? ar : undefined,
-    })
-  }
+    const date = new Date(dateString);
+    return format(date, 'EEE, MMM d, yyyy', {
+      locale: locale === 'ar' ? ar : undefined,
+    });
+  };
 
   const formatHours = (hours: number | null) => {
-    if (hours === null || hours === undefined) return t("noData")
+    if (hours === null || hours === undefined) return t('noData');
     if (hours < 1) {
-      return `${Math.round(hours * 60)} ${t("mins")}`
+      return `${Math.round(hours * 60)} ${t('mins')}`;
     }
-    return `${hours.toFixed(1)} ${t("hrs")}`
-  }
+    return `${hours.toFixed(1)} ${t('hrs')}`;
+  };
 
-  const getCapacityVariant = (percent: number): "default" | "secondary" | "destructive" | "outline" => {
-    if (percent >= 100) return "destructive"
-    if (percent >= 80) return "secondary"
-    return "default"
-  }
+  const getCapacityVariant = (
+    percent: number
+  ): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    if (percent >= 100) return 'destructive';
+    if (percent >= 80) return 'secondary';
+    return 'default';
+  };
 
   return (
     <div className="space-y-2">
-      <h3 className="text-xs font-semibold px-1">{t("dailyBreakdown")}</h3>
-      <div className="space-y-2 max-h-[500px] overflow-y-auto">
+      <h3 className="px-1 text-xs font-semibold">{t('dailyBreakdown')}</h3>
+      <div className="max-h-[500px] space-y-2 overflow-y-auto">
         {dailyStats.map((day) => (
           <Card
             key={day.date}
-            className="p-2.5 cursor-pointer hover:bg-accent transition-colors"
+            className="hover:bg-accent cursor-pointer p-2.5 transition-colors"
             onClick={() => onDayClick?.(day.date)}
           >
             {/* Date Header */}
-            <div className="flex items-start justify-between mb-1.5">
+            <div className="mb-1.5 flex items-start justify-between">
               <div className="min-w-0 flex-1">
-                <h4 className="font-medium text-xs leading-tight">{formatDate(day.date)}</h4>
-                <p className="text-[10px] text-muted-foreground">
-                  {day.booking_count} {t("bookings")}
+                <h4 className="text-xs leading-tight font-medium">
+                  {formatDate(day.date)}
+                </h4>
+                <p className="text-muted-foreground text-[10px]">
+                  {day.booking_count} {t('bookings')}
                 </p>
               </div>
-              <Badge variant={getCapacityVariant(day.capacity_percent)} className="text-[10px] h-5 px-1.5 shrink-0">
+              <Badge
+                variant={getCapacityVariant(day.capacity_percent)}
+                className="h-5 shrink-0 px-1.5 text-[10px]"
+              >
                 {Math.round(day.capacity_percent)}%
               </Badge>
             </div>
@@ -73,12 +84,14 @@ export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyS
             <div className="flex items-center gap-3 text-[10px]">
               {/* Wait Time */}
               <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">{t("wait")}:</span>
-                <span className="font-medium">{formatHours(day.avg_wait_hours)}</span>
+                <span className="text-muted-foreground">{t('wait')}:</span>
+                <span className="font-medium">
+                  {formatHours(day.avg_wait_hours)}
+                </span>
               </div>
 
               {/* Status Breakdown */}
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="ml-auto flex items-center gap-2">
                 {day.status_breakdown.exited > 0 && (
                   <span className="text-green-600" title="Exited">
                     ✓ {day.status_breakdown.exited}
@@ -115,5 +128,5 @@ export function DailyStatsList({ dailyStats, locale = "en", onDayClick }: DailyS
         ))}
       </div>
     </div>
-  )
+  );
 }

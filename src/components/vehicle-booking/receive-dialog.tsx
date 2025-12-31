@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { CheckCircle, Loader2, Truck } from "lucide-react"
-import { useReceiveVehicle } from "@/hooks/use-vehicle-bookings"
+} from '@/components/ui/dialog';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {CheckCircle, Loader2, Truck} from 'lucide-react';
+import {useReceiveVehicle} from '@/hooks/use-vehicle-bookings';
 
 interface ReceiveDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function ReceiveDialog({
@@ -27,34 +27,37 @@ export function ReceiveDialog({
   onOpenChange,
   onSuccess,
 }: ReceiveDialogProps) {
-  const tCommon = useTranslations('common')
-  const receiveMutation = useReceiveVehicle()
+  const tCommon = useTranslations('common');
+  const receiveMutation = useReceiveVehicle();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!receiveMutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
     }
-  }
+  };
 
   const handleConfirm = () => {
-    if (!booking) return
+    if (!booking) return;
 
-    receiveMutation.mutate({
-      id: booking.id,
-      data: {},
-    }, {
-      onSuccess: () => {
-        // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
+    receiveMutation.mutate(
+      {
+        id: booking.id,
+        data: {},
       },
-      onError: (error) => {
-        console.error("Error receiving vehicle:", error)
+      {
+        onSuccess: () => {
+          // Close dialog after mutation AND cache updates complete
+          handleOpenChange(false);
+          onSuccess();
+        },
+        onError: (error) => {
+          console.error('Error receiving vehicle:', error);
+        },
       }
-    })
-  }
+    );
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -65,12 +68,13 @@ export function ReceiveDialog({
             Receive Vehicle
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to receive vehicle <strong>{booking.vehicle_number}</strong>?
+            Are you sure you want to receive vehicle{' '}
+            <strong>{booking.vehicle_number}</strong>?
           </DialogDescription>
         </DialogHeader>
 
         {/* Vehicle Summary */}
-        <div className="rounded-lg border p-3 bg-muted/50">
+        <div className="bg-muted/50 rounded-lg border p-3">
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <p className="text-muted-foreground text-xs">Vehicle</p>
@@ -82,7 +86,9 @@ export function ReceiveDialog({
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Weight</p>
-              <p className="font-medium">{Number(booking.weight_tons || 0).toFixed(2)} tons</p>
+              <p className="font-medium">
+                {Number(booking.weight_tons || 0).toFixed(2)} tons
+              </p>
             </div>
             {booking.driver_name && (
               <div>
@@ -104,16 +110,16 @@ export function ReceiveDialog({
           <Button
             onClick={handleConfirm}
             disabled={receiveMutation.isPending}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700"
+            className="bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-700"
           >
             {receiveMutation.isPending ? (
               <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Receiving...
               </>
             ) : (
               <>
-                <CheckCircle className="size-4 mr-2" />
+                <CheckCircle className="mr-2 size-4" />
                 Receive Vehicle
               </>
             )}
@@ -121,5 +127,5 @@ export function ReceiveDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

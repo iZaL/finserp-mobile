@@ -1,4 +1,4 @@
-import { api } from "@/lib/api"
+import {api} from '@/lib/api';
 import type {
   VehicleBooking,
   VehicleActivity,
@@ -20,126 +20,132 @@ import type {
   PaginatedResponse,
   ApiResponse,
   RangeStats,
-} from "@/types/vehicle-booking"
+} from '@/types/vehicle-booking';
 
 export const vehicleBookingService = {
   // Get all bookings with filters and pagination
   getBookings: async (
     filters?: BookingFilters,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<PaginatedResponse<VehicleBooking>> => {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
 
-    if (filters?.search) params.append("search", filters.search)
-    if (filters?.status && filters.status !== "all") params.append("status", filters.status)
-    if (filters?.date_filter) params.append("date_filter", filters.date_filter)
-    if (filters?.date_from) params.append("date_from", filters.date_from)
-    if (filters?.date_to) params.append("date_to", filters.date_to)
-    if (filters?.page) params.append("page", filters.page.toString())
-    if (filters?.per_page) params.append("per_page", filters.per_page.toString())
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.status && filters.status !== 'all')
+      params.append('status', filters.status);
+    if (filters?.date_filter) params.append('date_filter', filters.date_filter);
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.per_page)
+      params.append('per_page', filters.per_page.toString());
 
     const response = await api.get<PaginatedResponse<VehicleBooking>>(
       `/fish-purchase-vehicles?${params.toString()}`,
       config
-    )
-    return response.data
+    );
+    return response.data;
   },
 
   // Get booking by ID
   getBooking: async (id: number): Promise<VehicleBooking> => {
     const response = await api.get<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}`
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get booking activities (edit history)
   getBookingActivities: async (
     id: number,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<VehicleActivity[]> => {
     const response = await api.get<ApiResponse<VehicleActivity[]>>(
       `/fish-purchase-vehicles/${id}/activities`,
       config
-    )
-    return response.data.data || []
+    );
+    return response.data.data || [];
   },
 
   // Get booking statistics
   getStats: async (
     date?: string,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<BookingStats> => {
-    const params = date ? `?date=${date}` : ""
+    const params = date ? `?date=${date}` : '';
     const response = await api.get<ApiResponse<BookingStats>>(
       `/fish-purchase-vehicles/stats${params}`,
       config
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get range statistics
   getRangeStats: async (
     dateFrom: string,
     dateTo: string,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<RangeStats> => {
-    const params = new URLSearchParams()
-    params.append("date_from", dateFrom)
-    params.append("date_to", dateTo)
+    const params = new URLSearchParams();
+    params.append('date_from', dateFrom);
+    params.append('date_to', dateTo);
 
     const response = await api.get<ApiResponse<RangeStats>>(
       `/fish-purchase-vehicles/stats/range?${params.toString()}`,
       config
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get daily capacity info
   getDailyCapacity: async (
     date?: string,
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<DailyCapacity> => {
-    const params = date ? `?date=${date}` : ""
+    const params = date ? `?date=${date}` : '';
     const response = await api.get<ApiResponse<DailyCapacity>>(
       `/fish-purchase-vehicles/daily-capacity${params}`,
       config
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get system settings
-  getSettings: async (config?: { signal?: AbortSignal }): Promise<VehicleBookingSettings> => {
+  getSettings: async (config?: {
+    signal?: AbortSignal;
+  }): Promise<VehicleBookingSettings> => {
     const response = await api.get<ApiResponse<VehicleBookingSettings>>(
       `/fish-purchase-vehicles/settings`,
       config
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get vehicle suggestions/templates
   getSuggestions: async (query: string): Promise<VehicleTemplate[]> => {
     const response = await api.get<ApiResponse<VehicleTemplate[]>>(
       `/fish-purchase-vehicles/suggestions?query=${encodeURIComponent(query)}`
-    )
-    return response.data.data || []
+    );
+    return response.data.data || [];
   },
 
   // Get quick picks (frequently used vehicles)
   getQuickPicks: async (): Promise<VehicleTemplate[]> => {
     const response = await api.get<ApiResponse<VehicleTemplate[]>>(
       `/fish-purchase-vehicles/quick-picks`
-    )
-    return response.data.data || []
+    );
+    return response.data.data || [];
   },
 
   // Create new booking
-  createBooking: async (data: CreateBookingRequest): Promise<VehicleBooking> => {
+  createBooking: async (
+    data: CreateBookingRequest
+  ): Promise<VehicleBooking> => {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Update booking
@@ -150,13 +156,13 @@ export const vehicleBookingService = {
     const response = await api.put<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Delete booking
   deleteBooking: async (id: number): Promise<void> => {
-    await api.delete(`/fish-purchase-vehicles/${id}`)
+    await api.delete(`/fish-purchase-vehicles/${id}`);
   },
 
   // Receive vehicle
@@ -167,8 +173,8 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/receive`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Reject vehicle
@@ -179,24 +185,24 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/reject`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Exit vehicle
   exitVehicle: async (id: number): Promise<VehicleBooking> => {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/exit`
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Undo receive (unreceive)
   unreceiveVehicle: async (id: number): Promise<VehicleBooking> => {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/unreceive`
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Start offloading
@@ -207,8 +213,8 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/start-offloading`,
       data || {}
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Complete offloading
@@ -219,8 +225,8 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/complete-offloading`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Approve vehicle booking
@@ -231,8 +237,8 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/approve`,
       data || {}
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Reject vehicle booking approval
@@ -243,22 +249,25 @@ export const vehicleBookingService = {
     const response = await api.post<ApiResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/${id}/reject-approval`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Bulk actions
   bulkAction: async (data: BulkActionRequest): Promise<void> => {
-    await api.post(`/fish-purchase-vehicles/bulk-action`, data)
+    await api.post(`/fish-purchase-vehicles/bulk-action`, data);
   },
 
   // Update daily limit
-  updateDailyLimit: async (date: string, limit: number): Promise<DailyCapacity> => {
+  updateDailyLimit: async (
+    date: string,
+    limit: number
+  ): Promise<DailyCapacity> => {
     const response = await api.post<ApiResponse<DailyCapacity>>(
       `/fish-purchase-vehicles/daily-limit`,
-      { date, limit }
-    )
-    return response.data.data!
+      {date, limit}
+    );
+    return response.data.data!;
   },
 
   // Update control settings
@@ -268,17 +277,20 @@ export const vehicleBookingService = {
     const response = await api.put<ApiResponse<VehicleBookingSettings>>(
       `/fish-purchase-vehicles/control-settings`,
       data
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Upload media attachment
-  uploadMedia: async (vehicleId: number, file: File): Promise<VehicleBooking> => {
-    const formData = new FormData()
-    formData.append('files[]', file)
-    formData.append('model_type', 'fish_purchase_vehicle')
-    formData.append('model_id', vehicleId.toString())
-    formData.append('collection_name', 'vehicle_bills')
+  uploadMedia: async (
+    vehicleId: number,
+    file: File
+  ): Promise<VehicleBooking> => {
+    const formData = new FormData();
+    formData.append('files[]', file);
+    formData.append('model_type', 'fish_purchase_vehicle');
+    formData.append('model_id', vehicleId.toString());
+    formData.append('collection_name', 'vehicle_bills');
 
     // Use normal API endpoint
     const response = await api.post<ApiResponse<VehicleBooking>>(
@@ -289,16 +301,16 @@ export const vehicleBookingService = {
           'Content-Type': 'multipart/form-data',
         },
       }
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Delete media attachment
   deleteMedia: async (mediaId: number): Promise<VehicleBooking> => {
     const response = await api.delete<ApiResponse<VehicleBooking>>(
       `/media/${mediaId}`
-    )
-    return response.data.data!
+    );
+    return response.data.data!;
   },
 
   // Get bills gallery
@@ -313,24 +325,28 @@ export const vehicleBookingService = {
       entry_date_from?: string;
       entry_date_to?: string;
     },
-    config?: { signal?: AbortSignal }
+    config?: {signal?: AbortSignal}
   ): Promise<PaginatedResponse<VehicleBooking>> => {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
 
-    if (filters?.search) params.append('search', filters.search)
-    if (filters?.page) params.append('page', filters.page.toString())
-    if (filters?.file_type && filters.file_type !== 'all') params.append('file_type', filters.file_type)
-    if (filters?.status && filters.status !== 'all') params.append('status', filters.status)
-    if (filters?.date_from) params.append('date_from', filters.date_from)
-    if (filters?.date_to) params.append('date_to', filters.date_to)
-    if (filters?.entry_date_from) params.append('entry_date_from', filters.entry_date_from)
-    if (filters?.entry_date_to) params.append('entry_date_to', filters.entry_date_to)
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.file_type && filters.file_type !== 'all')
+      params.append('file_type', filters.file_type);
+    if (filters?.status && filters.status !== 'all')
+      params.append('status', filters.status);
+    if (filters?.date_from) params.append('date_from', filters.date_from);
+    if (filters?.date_to) params.append('date_to', filters.date_to);
+    if (filters?.entry_date_from)
+      params.append('entry_date_from', filters.entry_date_from);
+    if (filters?.entry_date_to)
+      params.append('entry_date_to', filters.entry_date_to);
 
     const response = await api.get<PaginatedResponse<VehicleBooking>>(
       `/fish-purchase-vehicles/bills?${params.toString()}`,
       config
-    )
-    return response.data
+    );
+    return response.data;
   },
 
   // Export reports
@@ -343,14 +359,14 @@ export const vehicleBookingService = {
       start_date: dateFrom,
       end_date: dateTo,
       status,
-      format: 'pdf'
-    })
+      format: 'pdf',
+    });
 
     const response = await api.get(
       `/fish-purchase-vehicles/reports/export-pdf?${params.toString()}`,
-      { responseType: 'blob' }
-    )
-    return response.data
+      {responseType: 'blob'}
+    );
+    return response.data;
   },
 
   exportReportExcel: async (
@@ -362,13 +378,13 @@ export const vehicleBookingService = {
       start_date: dateFrom,
       end_date: dateTo,
       status,
-      format: 'excel'
-    })
+      format: 'excel',
+    });
 
     const response = await api.get(
       `/fish-purchase-vehicles/reports/export-excel?${params.toString()}`,
-      { responseType: 'blob' }
-    )
-    return response.data
+      {responseType: 'blob'}
+    );
+    return response.data;
   },
-}
+};

@@ -1,18 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { fishPurchaseService } from "@/lib/services/fish-purchase"
-import { offlineQueueService } from "@/lib/offline-queue"
-import { fishPurchaseKeys } from "@/lib/query-keys"
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {fishPurchaseService} from '@/lib/services/fish-purchase';
+import {offlineQueueService} from '@/lib/offline-queue';
+import {fishPurchaseKeys} from '@/lib/query-keys';
 import type {
   FishPurchase,
   FishPurchaseFilters,
   CreateFishPurchaseRequest,
   UpdateFishPurchaseRequest,
   UpdateStatusRequest,
-} from "@/types/fish-purchase"
-import type { AdvancePaymentRequest } from "@/types/payment"
-import type { PaginatedResponse } from "@/types/shared"
-import { toast } from "sonner"
-import { useNetworkStatus } from "./use-network-status"
+} from '@/types/fish-purchase';
+import type {AdvancePaymentRequest} from '@/types/payment';
+import type {PaginatedResponse} from '@/types/shared';
+import {toast} from 'sonner';
+import {useNetworkStatus} from './use-network-status';
 
 /**
  * Hook to fetch paginated fish purchases with filters
@@ -20,12 +20,12 @@ import { useNetworkStatus } from "./use-network-status"
 export function useFishPurchases(filters?: FishPurchaseFilters) {
   return useQuery({
     queryKey: fishPurchaseKeys.list(filters),
-    queryFn: async ({ signal }) => {
-      return fishPurchaseService.getFishPurchases(filters, { signal })
+    queryFn: async ({signal}) => {
+      return fishPurchaseService.getFishPurchases(filters, {signal});
     },
     // Keep data fresh for 2 minutes
     staleTime: 2 * 60 * 1000,
-  })
+  });
 }
 
 /**
@@ -35,124 +35,124 @@ export function useFishPurchase(id: number | null) {
   return useQuery({
     queryKey: fishPurchaseKeys.detail(id!),
     queryFn: async () => {
-      if (!id) throw new Error("Fish purchase ID is required")
-      return fishPurchaseService.getFishPurchase(id)
+      if (!id) throw new Error('Fish purchase ID is required');
+      return fishPurchaseService.getFishPurchase(id);
     },
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
-  })
+  });
 }
 
 /**
  * Hook to create a new fish purchase
  */
 export function useCreateFishPurchase() {
-  const queryClient = useQueryClient()
-  const { isOnline } = useNetworkStatus()
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
 
   return useMutation({
     mutationFn: async (data: CreateFishPurchaseRequest) => {
       if (!isOnline) {
         // Queue for offline sync
         await offlineQueueService.queueMutation(
-          "POST",
-          "/fish-purchases",
+          'POST',
+          '/fish-purchases',
           data
-        )
-        throw new Error("Queued for offline sync")
+        );
+        throw new Error('Queued for offline sync');
       }
-      return fishPurchaseService.createFishPurchase(data)
+      return fishPurchaseService.createFishPurchase(data);
     },
     onSuccess: async (data) => {
       // 1. Add the new purchase to cache immediately
-      queryClient.setQueryData(fishPurchaseKeys.detail(data.id), data)
+      queryClient.setQueryData(fishPurchaseKeys.detail(data.id), data);
 
       // 2. Invalidate ALL related caches
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
 
       // 3. Wait for active queries to refetch
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.lists(),
-        type: 'active'
-      })
+        type: 'active',
+      });
 
       // 4. Show success after refetch
-      toast.success("Fish purchase created successfully")
+      toast.success('Fish purchase created successfully');
     },
     onError: (error: Error) => {
-      if (error.message === "Queued for offline sync") {
-        toast.success("Fish purchase queued for sync when online")
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Fish purchase queued for sync when online');
       } else {
-        toast.error(error.message || "Failed to create fish purchase")
+        toast.error(error.message || 'Failed to create fish purchase');
       }
     },
-  })
+  });
 }
 
 /**
  * Hook to update a fish purchase
  */
 export function useUpdateFishPurchase() {
-  const queryClient = useQueryClient()
-  const { isOnline } = useNetworkStatus()
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
 
   return useMutation({
     mutationFn: async ({
       id,
       data,
     }: {
-      id: number
-      data: UpdateFishPurchaseRequest
+      id: number;
+      data: UpdateFishPurchaseRequest;
     }) => {
       if (!isOnline) {
         // Queue for offline sync
         await offlineQueueService.queueMutation(
-          "PUT",
+          'PUT',
           `/fish-purchases/${id}`,
           data
-        )
-        throw new Error("Queued for offline sync")
+        );
+        throw new Error('Queued for offline sync');
       }
-      return fishPurchaseService.updateFishPurchase(id, data)
+      return fishPurchaseService.updateFishPurchase(id, data);
     },
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({id, data}) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: fishPurchaseKeys.detail(id) })
+      await queryClient.cancelQueries({queryKey: fishPurchaseKeys.detail(id)});
 
       // Snapshot previous value
       const previousPurchase = queryClient.getQueryData<FishPurchase>(
         fishPurchaseKeys.detail(id)
-      )
+      );
 
       // Optimistically update
       if (previousPurchase) {
-        queryClient.setQueryData<FishPurchase>(
-          fishPurchaseKeys.detail(id),
-          { ...previousPurchase, ...data }
-        )
+        queryClient.setQueryData<FishPurchase>(fishPurchaseKeys.detail(id), {
+          ...previousPurchase,
+          ...data,
+        });
       }
 
-      return { previousPurchase }
+      return {previousPurchase};
     },
     onSuccess: async (data, variables) => {
       // 1. Update cache with server response
-      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
+      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data);
 
       // 2. Invalidate ALL related caches
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
 
       // 3. Wait for active queries to refetch
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.lists(),
-        type: 'active'
-      })
+        type: 'active',
+      });
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.detail(variables.id),
-        type: 'active'
-      })
+        type: 'active',
+      });
 
       // 4. Show success after refetch
-      toast.success("Fish purchase updated successfully")
+      toast.success('Fish purchase updated successfully');
     },
     onError: (error: Error, variables, context) => {
       // Rollback on error
@@ -160,45 +160,45 @@ export function useUpdateFishPurchase() {
         queryClient.setQueryData(
           fishPurchaseKeys.detail(variables.id),
           context.previousPurchase
-        )
+        );
       }
-      if (error.message === "Queued for offline sync") {
-        toast.success("Update queued for sync when online")
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Update queued for sync when online');
       } else {
-        toast.error(error.message || "Failed to update fish purchase")
+        toast.error(error.message || 'Failed to update fish purchase');
       }
     },
-  })
+  });
 }
 
 /**
  * Hook to delete a fish purchase
  */
 export function useDeleteFishPurchase() {
-  const queryClient = useQueryClient()
-  const { isOnline } = useNetworkStatus()
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
 
   return useMutation({
     mutationFn: async (id: number) => {
       if (!isOnline) {
         // Queue for offline sync
         await offlineQueueService.queueMutation(
-          "DELETE",
+          'DELETE',
           `/fish-purchases/${id}`,
           null
-        )
-        throw new Error("Queued for offline sync")
+        );
+        throw new Error('Queued for offline sync');
       }
-      return fishPurchaseService.deleteFishPurchase(id)
+      return fishPurchaseService.deleteFishPurchase(id);
     },
     onMutate: async (id) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: fishPurchaseKeys.lists() })
+      await queryClient.cancelQueries({queryKey: fishPurchaseKeys.lists()});
 
       // Snapshot previous value
-      const previousPurchases = queryClient.getQueryData<PaginatedResponse<FishPurchase>>(
-        fishPurchaseKeys.list()
-      )
+      const previousPurchases = queryClient.getQueryData<
+        PaginatedResponse<FishPurchase>
+      >(fishPurchaseKeys.list());
 
       // Optimistically remove from list
       if (previousPurchases) {
@@ -208,15 +208,15 @@ export function useDeleteFishPurchase() {
             ...previousPurchases,
             data: previousPurchases.data.filter((p) => p.id !== id),
           }
-        )
+        );
       }
 
-      return { previousPurchases }
+      return {previousPurchases};
     },
     onSuccess: () => {
       // Invalidate all queries
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.all })
-      toast.success("Fish purchase deleted successfully")
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.all});
+      toast.success('Fish purchase deleted successfully');
     },
     onError: (error: Error, id, context) => {
       // Rollback on error
@@ -224,125 +224,119 @@ export function useDeleteFishPurchase() {
         queryClient.setQueryData(
           fishPurchaseKeys.list(),
           context.previousPurchases
-        )
+        );
       }
-      if (error.message === "Queued for offline sync") {
-        toast.success("Delete queued for sync when online")
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Delete queued for sync when online');
       } else {
-        toast.error(error.message || "Failed to delete fish purchase")
+        toast.error(error.message || 'Failed to delete fish purchase');
       }
     },
-  })
+  });
 }
 
 /**
  * Hook to update fish purchase status
  */
 export function useUpdateFishPurchaseStatus() {
-  const queryClient = useQueryClient()
-  const { isOnline } = useNetworkStatus()
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: number
-      data: UpdateStatusRequest
-    }) => {
+    mutationFn: async ({id, data}: {id: number; data: UpdateStatusRequest}) => {
       if (!isOnline) {
         // Queue for offline sync
         await offlineQueueService.queueMutation(
-          "POST",
+          'POST',
           `/fish-purchases/${id}/update-status`,
           data
-        )
-        throw new Error("Queued for offline sync")
+        );
+        throw new Error('Queued for offline sync');
       }
-      return fishPurchaseService.updateStatus(id, data)
+      return fishPurchaseService.updateStatus(id, data);
     },
     onSuccess: async (data, variables) => {
       // 1. Update cache with server response
-      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
+      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data);
 
       // 2. Invalidate ALL related caches
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
 
       // 3. Wait for active queries to refetch
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.lists(),
-        type: 'active'
-      })
+        type: 'active',
+      });
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.detail(variables.id),
-        type: 'active'
-      })
+        type: 'active',
+      });
 
       // 4. Show success after refetch
-      toast.success(`Fish purchase ${variables.data.status} successfully`)
+      toast.success(`Fish purchase ${variables.data.status} successfully`);
     },
     onError: (error: Error) => {
-      if (error.message === "Queued for offline sync") {
-        toast.success("Status update queued for sync when online")
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Status update queued for sync when online');
       } else {
-        toast.error(error.message || "Failed to update status")
+        toast.error(error.message || 'Failed to update status');
       }
     },
-  })
+  });
 }
 
 /**
  * Hook to add payment to fish purchase
  */
 export function useAddFishPurchasePayment() {
-  const queryClient = useQueryClient()
-  const { isOnline } = useNetworkStatus()
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
 
   return useMutation({
     mutationFn: async ({
       id,
       data,
     }: {
-      id: number
-      data: AdvancePaymentRequest
+      id: number;
+      data: AdvancePaymentRequest;
     }) => {
       if (!isOnline) {
         // Queue for offline sync
         await offlineQueueService.queueMutation(
-          "POST",
+          'POST',
           `/fish-purchases/${id}/payments`,
           data
-        )
-        throw new Error("Queued for offline sync")
+        );
+        throw new Error('Queued for offline sync');
       }
-      return fishPurchaseService.addPayment(id, data)
+      return fishPurchaseService.addPayment(id, data);
     },
     onSuccess: async (data, variables) => {
       // 1. Update cache with server response
-      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data)
+      queryClient.setQueryData(fishPurchaseKeys.detail(variables.id), data);
 
       // 2. Invalidate ALL related caches
-      queryClient.invalidateQueries({ queryKey: fishPurchaseKeys.lists() })
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
 
       // 3. Wait for active queries to refetch
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.lists(),
-        type: 'active'
-      })
+        type: 'active',
+      });
       await queryClient.refetchQueries({
         queryKey: fishPurchaseKeys.detail(variables.id),
-        type: 'active'
-      })
+        type: 'active',
+      });
 
       // 4. Show success after refetch
-      toast.success("Payment added successfully")
+      toast.success('Payment added successfully');
     },
     onError: (error: Error) => {
-      if (error.message === "Queued for offline sync") {
-        toast.success("Payment queued for sync when online")
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Payment queued for sync when online');
       } else {
-        toast.error(error.message || "Failed to add payment")
+        toast.error(error.message || 'Failed to add payment');
       }
     },
-  })
+  });
 }

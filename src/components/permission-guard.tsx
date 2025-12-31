@@ -1,98 +1,178 @@
-"use client"
+'use client';
 
-import { ReactNode } from 'react'
-import { usePermissions } from '@/lib/stores/permission-store'
-import { AlertTriangle, Lock } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useRouter } from '@/i18n/navigation'
+import {useEffect} from 'react';
+import {useRouter} from '@/i18n/navigation';
+import {usePermissions} from '@/lib/stores/permission-store';
+import {useTranslations} from 'next-intl';
+import {ShieldX} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 
 interface PermissionGuardProps {
-  permissions: string | string[]
-  requireAll?: boolean
-  fallback?: ReactNode
-  showAccessDenied?: boolean
-  children: ReactNode
+  children: React.ReactNode;
+  /** Permission check function - should return true if user has access */
+  check: () => boolean;
+  /** Optional: Redirect to this path instead of showing access denied */
+  redirectTo?: string;
+  /** Optional: Show loading state while checking permissions */
+  fallback?: React.ReactNode;
 }
 
 export function PermissionGuard({
-  permissions,
-  requireAll = false,
-  fallback,
-  showAccessDenied = true,
   children,
+  check,
+  redirectTo,
+  fallback,
 }: PermissionGuardProps) {
-  const { hasAnyPermission, hasAllPermissions } = usePermissions()
-  const router = useRouter()
+  const router = useRouter();
+  const t = useTranslations('common');
+  const hasAccess = check();
 
-  const permissionArray = Array.isArray(permissions) ? permissions : [permissions]
+  useEffect(() => {
+    if (!hasAccess && redirectTo) {
+      router.replace(redirectTo);
+    }
+  }, [hasAccess, redirectTo, router]);
 
-  let hasAccess = false
-
-  if (requireAll) {
-    hasAccess = hasAllPermissions(permissionArray)
-  } else {
-    hasAccess = hasAnyPermission(permissionArray)
-  }
-
-  if (hasAccess) {
-    return <>{children}</>
-  }
-
-  if (fallback) {
-    return <>{fallback}</>
-  }
-
-  if (!showAccessDenied) {
-    return null
-  }
-
-  return (
-    <div className="flex items-center justify-center min-h-[400px] p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader className="pb-4">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
-            <Lock className="h-6 w-6 text-red-600 dark:text-red-400" />
+  if (!hasAccess) {
+    if (redirectTo) {
+      return (
+        fallback || (
+          <div className="flex min-h-[50vh] items-center justify-center">
+            <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
           </div>
-          <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Access Denied
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            You don&apos;t have permission to access this feature. Please contact your administrator if you believe this is an error.
+        )
+      );
+    }
+
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-6 text-center">
+        <div className="bg-destructive/10 rounded-full p-4">
+          <ShieldX className="text-destructive size-12" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">{t('accessDenied')}</h2>
+          <p className="text-muted-foreground max-w-md">
+            {t('accessDeniedDescription')}
           </p>
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-            <AlertTriangle className="h-3 w-3" />
-            <span>Required permissions: {permissionArray.join(', ')}</span>
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            className="w-full"
-          >
-            Go Back
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  )
+        </div>
+        <Button variant="outline" onClick={() => router.push('/')}>
+          {t('backToHome')}
+        </Button>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
-// Convenience component for vehicle booking access
-export function VehicleBookingGuard({ children }: { children: ReactNode }) {
+// Pre-built guards for common use cases
+export function VehicleBookingGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
   return (
-    <PermissionGuard permissions={['viewAny-fish-purchase-vehicle', 'view-fish-purchase-vehicle']}>
+    <PermissionGuard check={() => permissions.canAccessVehicleBookings()}>
       {children}
     </PermissionGuard>
-  )
+  );
 }
 
-// Convenience component for bill attachments access
-export function BillAttachmentsGuard({ children }: { children: ReactNode }) {
+export function VehicleBookingCreateGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const permissions = usePermissions();
   return (
-    <PermissionGuard permissions={['view-vehicle-bill-attachments']}>
+    <PermissionGuard check={() => permissions.canCreateVehicleBooking()}>
       {children}
     </PermissionGuard>
-  )
+  );
+}
+
+export function VehicleBookingReportsGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canViewVehicleBookingReports()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function BillAttachmentsGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canViewBillAttachments()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function ProductionRunsGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canAccessProductionRuns()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function ProductionOutputsGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canAccessProductionOutputs()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function InventoryGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canAccessInventory()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function BatchesGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canAccessBatches()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function FishPurchasesGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canAccessFishPurchases()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function SuppliersGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canViewSuppliers()}>
+      {children}
+    </PermissionGuard>
+  );
+}
+
+export function HandoverGuard({children}: {children: React.ReactNode}) {
+  const permissions = usePermissions();
+  return (
+    <PermissionGuard check={() => permissions.canHandoverShift()}>
+      {children}
+    </PermissionGuard>
+  );
 }

@@ -1,18 +1,24 @@
-"use client"
+'use client';
 
-import { Component, ReactNode } from "react"
-import { AlertCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {Component, ReactNode} from 'react';
+import {AlertCircle} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
-  hasError: boolean
-  error?: Error
+  hasError: boolean;
+  error?: Error;
 }
 
 /**
@@ -21,39 +27,41 @@ interface State {
  */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
-    this.state = { hasError: false }
+    super(props);
+    this.state = {hasError: false};
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return {hasError: true, error};
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("Error boundary caught:", error, errorInfo)
+    console.error('Error boundary caught:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback
+        return this.props.fallback;
       }
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+        <div className="bg-background flex min-h-screen items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader>
-              <div className="mx-auto mb-4 size-12 rounded-full bg-destructive/10 flex items-center justify-center">
-                <AlertCircle className="size-6 text-destructive" />
+              <div className="bg-destructive/10 mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
+                <AlertCircle className="text-destructive size-6" />
               </div>
-              <CardTitle className="text-center text-2xl">Something went wrong</CardTitle>
+              <CardTitle className="text-center text-2xl">
+                Something went wrong
+              </CardTitle>
               <CardDescription className="text-center">
                 An unexpected error occurred. Please try refreshing the page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {this.state.error && (
-                <div className="p-3 rounded-md bg-muted text-sm font-mono text-muted-foreground">
+                <div className="bg-muted text-muted-foreground rounded-md p-3 font-mono text-sm">
                   {this.state.error.message}
                 </div>
               )}
@@ -64,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Refresh Page
               </Button>
               <Button
-                onClick={() => this.setState({ hasError: false })}
+                onClick={() => this.setState({hasError: false})}
                 variant="outline"
                 className="w-full"
               >
@@ -73,9 +81,9 @@ export class ErrorBoundary extends Component<Props, State> {
             </CardContent>
           </Card>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

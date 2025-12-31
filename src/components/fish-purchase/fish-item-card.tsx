@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
-import { useTranslations } from "next-intl";
+import {useState, useEffect, useMemo, useCallback, memo} from 'react';
+import {useTranslations} from 'next-intl';
 import {
   ChevronDown,
   ChevronUp,
@@ -11,22 +11,22 @@ import {
   Plus,
   X,
   Fish,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from 'lucide-react';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { fishPurchaseService } from "@/lib/services/fish-purchase";
-import type { FishSpecies, FishPurchaseItem } from "@/types/fish-purchase";
+} from '@/components/ui/select';
+import {Textarea} from '@/components/ui/textarea';
+import {Card, CardContent, CardHeader} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
+import {fishPurchaseService} from '@/lib/services/fish-purchase';
+import type {FishSpecies, FishPurchaseItem} from '@/types/fish-purchase';
 
 interface FishItemCardProps {
   item: FishPurchaseItem;
@@ -51,8 +51,10 @@ const FishItemCardComponent = ({
   errors = {},
   canRemove = true,
 }: FishItemCardProps) => {
-  const t = useTranslations("fishPurchases.items");
-  const [boxWeights, setBoxWeights] = useState<number[]>(item.box_weights || []);
+  const t = useTranslations('fishPurchases.items');
+  const [boxWeights, setBoxWeights] = useState<number[]>(
+    item.box_weights || []
+  );
 
   // Recalculate when box weights or rate changes
   useEffect(() => {
@@ -74,27 +76,39 @@ const FishItemCardComponent = ({
         net_amount: calculated.netAmount,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [boxWeights, item.rate, item.box_count]);
 
-  const handleFieldChange = useCallback((field: keyof FishPurchaseItem, value: string | number | number[] | undefined) => {
-    onUpdate({ ...item, [field]: value });
-  }, [item, onUpdate]);
+  const handleFieldChange = useCallback(
+    (
+      field: keyof FishPurchaseItem,
+      value: string | number | number[] | undefined
+    ) => {
+      onUpdate({...item, [field]: value});
+    },
+    [item, onUpdate]
+  );
 
   const handleAddBoxWeight = useCallback(() => {
     setBoxWeights([...boxWeights, 0]);
   }, [boxWeights]);
 
-  const handleRemoveBoxWeight = useCallback((weightIndex: number) => {
-    const newWeights = boxWeights.filter((_, i) => i !== weightIndex);
-    setBoxWeights(newWeights);
-  }, [boxWeights]);
+  const handleRemoveBoxWeight = useCallback(
+    (weightIndex: number) => {
+      const newWeights = boxWeights.filter((_, i) => i !== weightIndex);
+      setBoxWeights(newWeights);
+    },
+    [boxWeights]
+  );
 
-  const handleBoxWeightChange = useCallback((weightIndex: number, value: string) => {
-    const newWeights = [...boxWeights];
-    newWeights[weightIndex] = parseFloat(value) || 0;
-    setBoxWeights(newWeights);
-  }, [boxWeights]);
+  const handleBoxWeightChange = useCallback(
+    (weightIndex: number, value: string) => {
+      const newWeights = [...boxWeights];
+      newWeights[weightIndex] = parseFloat(value) || 0;
+      setBoxWeights(newWeights);
+    },
+    [boxWeights]
+  );
 
   const selectedSpecies = useMemo(
     () => fishSpecies.find((s) => s.id === item.fish_species_id),
@@ -102,12 +116,12 @@ const FishItemCardComponent = ({
   );
 
   return (
-    <Card className={expanded ? "border-primary" : ""}>
+    <Card className={expanded ? 'border-primary' : ''}>
       <CardHeader className="p-4 pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex flex-1 items-center gap-3">
             {/* Item Number Badge */}
-            <div className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary font-semibold text-sm">
+            <div className="bg-primary/10 text-primary flex size-8 items-center justify-center rounded-full text-sm font-semibold">
               {index + 1}
             </div>
 
@@ -115,12 +129,12 @@ const FishItemCardComponent = ({
             <div className="flex-1">
               {selectedSpecies ? (
                 <div className="flex items-center gap-2">
-                  <Fish className="size-4 text-primary" />
+                  <Fish className="text-primary size-4" />
                   <span className="font-medium">{selectedSpecies.name}</span>
                 </div>
               ) : (
-                <span className="text-foreground font-semibold text-base">
-                  {t("selectSpecies")}
+                <span className="text-foreground text-base font-semibold">
+                  {t('selectSpecies')}
                 </span>
               )}
             </div>
@@ -129,12 +143,12 @@ const FishItemCardComponent = ({
             {!expanded && item.box_count > 0 && (
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
-                  <Package className="size-3 mr-1" />
+                  <Package className="mr-1 size-3" />
                   {item.box_count}
                 </Badge>
                 {(item.net_weight || 0) > 0 && (
                   <Badge variant="secondary" className="text-xs">
-                    <Scale className="size-3 mr-1" />
+                    <Scale className="mr-1 size-3" />
                     {(item.net_weight || 0).toFixed(2)} kg
                   </Badge>
                 )}
@@ -172,20 +186,26 @@ const FishItemCardComponent = ({
       </CardHeader>
 
       {expanded && (
-        <CardContent className="p-4 pt-0 space-y-4">
+        <CardContent className="space-y-4 p-4 pt-0">
           {/* Fish Species */}
           <div className="space-y-2">
             <Label>
-              {t("species")} <span className="text-destructive">*</span>
+              {t('species')} <span className="text-destructive">*</span>
             </Label>
             <Select
-              value={item.fish_species_id && item.fish_species_id > 0 ? item.fish_species_id.toString() : undefined}
+              value={
+                item.fish_species_id && item.fish_species_id > 0
+                  ? item.fish_species_id.toString()
+                  : undefined
+              }
               onValueChange={(value) =>
-                handleFieldChange("fish_species_id", parseInt(value))
+                handleFieldChange('fish_species_id', parseInt(value))
               }
             >
-              <SelectTrigger className={errors.fish_species_id ? "border-destructive" : ""}>
-                <SelectValue placeholder={t("selectSpecies")} />
+              <SelectTrigger
+                className={errors.fish_species_id ? 'border-destructive' : ''}
+              >
+                <SelectValue placeholder={t('selectSpecies')} />
               </SelectTrigger>
               <SelectContent>
                 {fishSpecies.map((species) => (
@@ -196,7 +216,9 @@ const FishItemCardComponent = ({
               </SelectContent>
             </Select>
             {errors.fish_species_id && (
-              <p className="text-xs text-destructive">{errors.fish_species_id}</p>
+              <p className="text-destructive text-xs">
+                {errors.fish_species_id}
+              </p>
             )}
           </div>
 
@@ -204,41 +226,41 @@ const FishItemCardComponent = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>
-                {t("boxCount")} <span className="text-destructive">*</span>
+                {t('boxCount')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="number"
                 inputMode="numeric"
-                value={item.box_count || ""}
+                value={item.box_count || ''}
                 onChange={(e) =>
-                  handleFieldChange("box_count", parseInt(e.target.value) || 0)
+                  handleFieldChange('box_count', parseInt(e.target.value) || 0)
                 }
                 placeholder="0"
                 min="1"
-                className={errors.box_count ? "border-destructive" : ""}
+                className={errors.box_count ? 'border-destructive' : ''}
               />
               {errors.box_count && (
-                <p className="text-xs text-destructive">{errors.box_count}</p>
+                <p className="text-destructive text-xs">{errors.box_count}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label>
-                {t("rate")} <span className="text-destructive">*</span>
+                {t('rate')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 type="number"
                 inputMode="numeric"
-                value={item.rate || ""}
+                value={item.rate || ''}
                 onChange={(e) =>
-                  handleFieldChange("rate", parseInt(e.target.value) || 0)
+                  handleFieldChange('rate', parseInt(e.target.value) || 0)
                 }
                 placeholder="0"
                 min="1"
-                className={errors.rate ? "border-destructive" : ""}
+                className={errors.rate ? 'border-destructive' : ''}
               />
               {errors.rate && (
-                <p className="text-xs text-destructive">{errors.rate}</p>
+                <p className="text-destructive text-xs">{errors.rate}</p>
               )}
             </div>
           </div>
@@ -247,7 +269,8 @@ const FishItemCardComponent = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>
-                {t("boxWeights")} (kg) <span className="text-destructive">*</span>
+                {t('boxWeights')} (kg){' '}
+                <span className="text-destructive">*</span>
               </Label>
               <Button
                 type="button"
@@ -256,8 +279,8 @@ const FishItemCardComponent = ({
                 onClick={handleAddBoxWeight}
                 className="h-8"
               >
-                <Plus className="size-3 mr-1" />
-                {t("addBox")}
+                <Plus className="mr-1 size-3" />
+                {t('addBox')}
               </Button>
             </div>
 
@@ -268,7 +291,7 @@ const FishItemCardComponent = ({
                     type="number"
                     inputMode="decimal"
                     step="0.1"
-                    value={weight || ""}
+                    value={weight || ''}
                     onChange={(e) =>
                       handleBoxWeightChange(weightIndex, e.target.value)
                     }
@@ -281,7 +304,7 @@ const FishItemCardComponent = ({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveBoxWeight(weightIndex)}
-                    className="absolute right-0 top-0 size-8"
+                    className="absolute top-0 right-0 size-8"
                   >
                     <X className="size-3" />
                   </Button>
@@ -290,59 +313,65 @@ const FishItemCardComponent = ({
             </div>
 
             {boxWeights.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                {t("addBoxWeightsHint")}
+              <p className="text-muted-foreground text-xs">
+                {t('addBoxWeightsHint')}
               </p>
             )}
             {errors.box_weights && (
-              <p className="text-xs text-destructive">{errors.box_weights}</p>
+              <p className="text-destructive text-xs">{errors.box_weights}</p>
             )}
           </div>
 
           {/* Calculated Values (Read-only) */}
           {boxWeights.length > 0 && (
-            <div className="grid grid-cols-3 gap-4 p-3 bg-muted rounded-lg">
+            <div className="bg-muted grid grid-cols-3 gap-4 rounded-lg p-3">
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">{t("avgBoxWeight")}</p>
-                <p className="text-lg font-bold">
-                  {item.average_box_weight?.toFixed(2) || "0.00"}
+                <p className="text-muted-foreground text-xs">
+                  {t('avgBoxWeight')}
                 </p>
-                <p className="text-xs text-muted-foreground">kg</p>
+                <p className="text-lg font-bold">
+                  {item.average_box_weight?.toFixed(2) || '0.00'}
+                </p>
+                <p className="text-muted-foreground text-xs">kg</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">{t("netWeight")}</p>
-                <p className="text-lg font-bold">
-                  {item.net_weight?.toFixed(2) || "0.00"}
+                <p className="text-muted-foreground text-xs">
+                  {t('netWeight')}
                 </p>
-                <p className="text-xs text-muted-foreground">kg</p>
+                <p className="text-lg font-bold">
+                  {item.net_weight?.toFixed(2) || '0.00'}
+                </p>
+                <p className="text-muted-foreground text-xs">kg</p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-muted-foreground">{t("netAmount")}</p>
-                <p className="text-lg font-bold text-primary">
-                  {item.net_amount?.toFixed(2) || "0.00"}
+                <p className="text-muted-foreground text-xs">
+                  {t('netAmount')}
                 </p>
-                <p className="text-xs text-muted-foreground">OMR</p>
+                <p className="text-primary text-lg font-bold">
+                  {item.net_amount?.toFixed(2) || '0.00'}
+                </p>
+                <p className="text-muted-foreground text-xs">OMR</p>
               </div>
             </div>
           )}
 
           {/* Fish Count (Optional) */}
           <div className="space-y-2">
-            <Label>{t("fishCount")}</Label>
+            <Label>{t('fishCount')}</Label>
             <Input
-              value={item.fish_count || ""}
-              onChange={(e) => handleFieldChange("fish_count", e.target.value)}
-              placeholder={t("fishCountPlaceholder")}
+              value={item.fish_count || ''}
+              onChange={(e) => handleFieldChange('fish_count', e.target.value)}
+              placeholder={t('fishCountPlaceholder')}
             />
           </div>
 
           {/* Remarks (Optional) */}
           <div className="space-y-2">
-            <Label>{t("remarks")}</Label>
+            <Label>{t('remarks')}</Label>
             <Textarea
-              value={item.remarks || ""}
-              onChange={(e) => handleFieldChange("remarks", e.target.value)}
-              placeholder={t("remarksPlaceholder")}
+              value={item.remarks || ''}
+              onChange={(e) => handleFieldChange('remarks', e.target.value)}
+              placeholder={t('remarksPlaceholder')}
               rows={2}
             />
           </div>
@@ -350,7 +379,7 @@ const FishItemCardComponent = ({
       )}
     </Card>
   );
-}
+};
 
 // Memoize component to prevent unnecessary re-renders
 // Only re-render when props actually change

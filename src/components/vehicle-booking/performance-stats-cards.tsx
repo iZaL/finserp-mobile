@@ -1,67 +1,70 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { StatsKPICard } from "./stats-kpi-card"
-import { Clock, CheckCircle2 } from "lucide-react"
-import { useTranslations } from "next-intl"
-import type { RangeStats } from "@/types/vehicle-booking"
+import * as React from 'react';
+import {StatsKPICard} from './stats-kpi-card';
+import {Clock, CheckCircle2} from 'lucide-react';
+import {useTranslations} from 'next-intl';
+import type {RangeStats} from '@/types/vehicle-booking';
 
 interface PerformanceStatsCardsProps {
-  stats: RangeStats | undefined
-  isLoading?: boolean
+  stats: RangeStats | undefined;
+  isLoading?: boolean;
 }
 
-export function PerformanceStatsCards({ stats, isLoading }: PerformanceStatsCardsProps) {
-  const t = useTranslations("vehicleBookings.rangeStats")
+export function PerformanceStatsCards({
+  stats,
+  isLoading,
+}: PerformanceStatsCardsProps) {
+  const t = useTranslations('vehicleBookings.rangeStats');
 
   if (isLoading || !stats) {
     return (
       <div className="grid grid-cols-2 gap-3">
-        <div className="h-32 bg-muted animate-pulse rounded-lg" />
-        <div className="h-32 bg-muted animate-pulse rounded-lg" />
+        <div className="bg-muted h-32 animate-pulse rounded-lg" />
+        <div className="bg-muted h-32 animate-pulse rounded-lg" />
       </div>
-    )
+    );
   }
 
   const formatHours = (hours: number | null) => {
-    if (hours === null || hours === undefined) return t("noData")
+    if (hours === null || hours === undefined) return t('noData');
     if (hours < 1) {
-      return `${Math.round(hours * 60)} ${t("mins")}`
+      return `${Math.round(hours * 60)} ${t('mins')}`;
     }
-    return `${hours.toFixed(1)} ${t("hrs")}`
-  }
+    return `${hours.toFixed(1)} ${t('hrs')}`;
+  };
 
   const formatPercent = (value: number) => {
-    return `${Math.round(value)}%`
-  }
+    return `${Math.round(value)}%`;
+  };
 
   const getWaitTimeTrend = () => {
     if (stats.vs_previous_period?.wait_time_change_percent !== undefined) {
       return {
         value: stats.vs_previous_period.wait_time_change_percent,
-        label: t("vsPrevious"),
-      }
+        label: t('vsPrevious'),
+      };
     }
-    return undefined
-  }
+    return undefined;
+  };
 
   return (
     <div className="grid grid-cols-2 gap-3">
       {/* Card 1: Wait Times */}
       <StatsKPICard
         icon={<Clock className="h-4 w-4" />}
-        title={t("waitTimes")}
+        title={t('waitTimes')}
         value={formatHours(stats.avg_wait_time_hours)}
         subtitle={
           stats.avg_offloading_time_hours
-            ? t("offloadingTime", {
+            ? t('offloadingTime', {
                 time: formatHours(stats.avg_offloading_time_hours),
               })
             : stats.avg_processing_time_hours
-            ? t("processingTime", {
-                time: formatHours(stats.avg_processing_time_hours),
-              })
-            : undefined
+              ? t('processingTime', {
+                  time: formatHours(stats.avg_processing_time_hours),
+                })
+              : undefined
         }
         trend={getWaitTimeTrend()}
       />
@@ -69,14 +72,15 @@ export function PerformanceStatsCards({ stats, isLoading }: PerformanceStatsCard
       {/* Card 2: Throughput */}
       <StatsKPICard
         icon={<CheckCircle2 className="h-4 w-4" />}
-        title={t("throughput")}
+        title={t('throughput')}
         value={stats.completed_vehicles.toLocaleString()}
-        subtitle={t("vehiclesCompleted")}
+        subtitle={t('vehiclesCompleted')}
         badge={{
           label: formatPercent(stats.completion_rate_percent),
-          variant: stats.completion_rate_percent >= 80 ? "default" : "secondary",
+          variant:
+            stats.completion_rate_percent >= 80 ? 'default' : 'secondary',
         }}
       />
     </div>
-  )
+  );
 }

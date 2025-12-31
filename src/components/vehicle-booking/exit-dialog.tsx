@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useState} from 'react';
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,18 +10,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useExitVehicle } from "@/hooks/use-vehicle-bookings"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { LogOut, Loader2 } from "lucide-react"
+} from '@/components/ui/dialog';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {useExitVehicle} from '@/hooks/use-vehicle-bookings';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {LogOut, Loader2} from 'lucide-react';
 
 interface ExitDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function ExitDialog({
@@ -30,36 +30,36 @@ export function ExitDialog({
   onOpenChange,
   onSuccess,
 }: ExitDialogProps) {
-  const t = useTranslations('vehicleBookings.exitDialog')
-  const tCommon = useTranslations('common')
-  const [notes, setNotes] = useState("")
-  const mutation = useExitVehicle()
+  const t = useTranslations('vehicleBookings.exitDialog');
+  const tCommon = useTranslations('common');
+  const [notes, setNotes] = useState('');
+  const mutation = useExitVehicle();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!mutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
       if (!newOpen) {
         // Reset form when closing
-        setNotes("")
+        setNotes('');
       }
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!booking) return
+    if (!booking) return;
 
     mutation.mutate(booking.id, {
       onSuccess: () => {
         // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
-      }
-    })
-  }
+        handleOpenChange(false);
+        onSuccess();
+      },
+    });
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -70,17 +70,19 @@ export function ExitDialog({
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
           <DialogDescription>
-            {t('description', { vehicle: booking.vehicle_number })}
+            {t('description', {vehicle: booking.vehicle_number})}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* Vehicle Info */}
-            <div className="rounded-lg border p-3 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">{t('vehicleNumber')}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('vehicleNumber')}
+                  </p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -89,8 +91,12 @@ export function ExitDialog({
                 </div>
                 {booking.actual_box_count && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">{t('receivedBoxes')}</p>
-                    <p className="font-medium">{booking.actual_box_count} {t('boxes')}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {t('receivedBoxes')}
+                    </p>
+                    <p className="font-medium">
+                      {booking.actual_box_count} {t('boxes')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -98,7 +104,9 @@ export function ExitDialog({
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="exit_notes">{t('exitNotes')} ({tCommon('optional')})</Label>
+              <Label htmlFor="exit_notes">
+                {t('exitNotes')} ({tCommon('optional')})
+              </Label>
               <Textarea
                 id="exit_notes"
                 value={notes}
@@ -107,18 +115,19 @@ export function ExitDialog({
                 rows={3}
                 maxLength={500}
               />
-              <p className="text-xs text-muted-foreground">
-                {t('charactersCount', { count: notes.length })}
+              <p className="text-muted-foreground text-xs">
+                {t('charactersCount', {count: notes.length})}
               </p>
             </div>
 
             {/* Info */}
-            <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/10 p-3">
-              <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/10">
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
                 ℹ️ {t('title')}
               </p>
-              <p className="text-xs text-blue-600/80 dark:text-blue-400/80 mt-1">
-                The vehicle will be marked as exited and removed from the active queue.
+              <p className="mt-1 text-xs text-blue-600/80 dark:text-blue-400/80">
+                The vehicle will be marked as exited and removed from the active
+                queue.
               </p>
             </div>
           </div>
@@ -132,18 +141,15 @@ export function ExitDialog({
             >
               {tCommon('cancel')}
             </Button>
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-            >
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   {t('exiting')}
                 </>
               ) : (
                 <>
-                  <LogOut className="size-4 mr-2" />
+                  <LogOut className="mr-2 size-4" />
                   {t('exit')}
                 </>
               )}
@@ -152,5 +158,5 @@ export function ExitDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,14 +1,18 @@
-"use client"
+'use client';
 
-import { Fish } from "lucide-react"
+import {Fish} from 'lucide-react';
 
 interface FishSwimmingAnimationProps {
-  className?: string
+  className?: string;
 }
 
-export function FishSwimmingAnimation({ className = "" }: FishSwimmingAnimationProps) {
+export function FishSwimmingAnimation({
+  className = '',
+}: FishSwimmingAnimationProps) {
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+    <div
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+    >
       <style jsx>{`
         @keyframes swim {
           0% {
@@ -96,23 +100,38 @@ export function FishSwimmingAnimation({ className = "" }: FishSwimmingAnimationP
       `}</style>
 
       <div className="fish">
-        <Fish className="size-5 text-blue-600 dark:text-blue-400" strokeWidth={2} />
+        <Fish
+          className="size-5 text-blue-600 dark:text-blue-400"
+          strokeWidth={2}
+        />
       </div>
       <div className="fish">
-        <Fish className="size-4 text-cyan-600 dark:text-cyan-400" strokeWidth={2} />
+        <Fish
+          className="size-4 text-cyan-600 dark:text-cyan-400"
+          strokeWidth={2}
+        />
       </div>
       <div className="fish">
-        <Fish className="size-6 text-blue-700 dark:text-blue-500" strokeWidth={2} />
+        <Fish
+          className="size-6 text-blue-700 dark:text-blue-500"
+          strokeWidth={2}
+        />
       </div>
       <div className="fish">
-        <Fish className="size-4 text-sky-600 dark:text-sky-400" strokeWidth={2} />
+        <Fish
+          className="size-4 text-sky-600 dark:text-sky-400"
+          strokeWidth={2}
+        />
       </div>
       <div className="fish">
-        <Fish className="size-5 text-blue-600 dark:text-blue-400" strokeWidth={2} />
+        <Fish
+          className="size-5 text-blue-600 dark:text-blue-400"
+          strokeWidth={2}
+        />
       </div>
     </div>
-  )
+  );
 }
 
 // Keep the old name as an alias for backward compatibility
-export { FishSwimmingAnimation as ConveyorAnimation }
+export {FishSwimmingAnimation as ConveyorAnimation};

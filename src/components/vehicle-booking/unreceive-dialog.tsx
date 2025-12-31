@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
+import {useTranslations} from 'next-intl';
+import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,16 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useUnreceiveVehicle } from "@/hooks/use-vehicle-bookings"
-import type { VehicleBooking } from "@/types/vehicle-booking"
-import { RotateCcw, Loader2 } from "lucide-react"
+} from '@/components/ui/dialog';
+import {useUnreceiveVehicle} from '@/hooks/use-vehicle-bookings';
+import type {VehicleBooking} from '@/types/vehicle-booking';
+import {RotateCcw, Loader2} from 'lucide-react';
 
 interface UnreceiveDialogProps {
-  booking: VehicleBooking | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSuccess: () => void
+  booking: VehicleBooking | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess: () => void;
 }
 
 export function UnreceiveDialog({
@@ -27,31 +27,31 @@ export function UnreceiveDialog({
   onOpenChange,
   onSuccess,
 }: UnreceiveDialogProps) {
-  const t = useTranslations('vehicleBookings')
-  const tCommon = useTranslations('common')
-  const mutation = useUnreceiveVehicle()
+  const t = useTranslations('vehicleBookings');
+  const tCommon = useTranslations('common');
+  const mutation = useUnreceiveVehicle();
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!mutation.isPending) {
-      onOpenChange(newOpen)
+      onOpenChange(newOpen);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!booking) return
+    if (!booking) return;
 
     mutation.mutate(booking.id, {
       onSuccess: () => {
         // Close dialog after mutation AND cache updates complete
-        handleOpenChange(false)
-        onSuccess()
-      }
-    })
-  }
+        handleOpenChange(false);
+        onSuccess();
+      },
+    });
+  };
 
-  if (!booking) return null
+  if (!booking) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -59,17 +59,19 @@ export function UnreceiveDialog({
         <DialogHeader>
           <DialogTitle>Unreceive Vehicle</DialogTitle>
           <DialogDescription>
-            {t('unreceiveConfirm', { vehicle: booking.vehicle_number })}
+            {t('unreceiveConfirm', {vehicle: booking.vehicle_number})}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             {/* Vehicle Info */}
-            <div className="rounded-lg border p-3 bg-muted/50">
+            <div className="bg-muted/50 rounded-lg border p-3">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground text-xs">Vehicle Number</p>
+                  <p className="text-muted-foreground text-xs">
+                    Vehicle Number
+                  </p>
                   <p className="font-medium">{booking.vehicle_number}</p>
                 </div>
                 <div>
@@ -78,20 +80,25 @@ export function UnreceiveDialog({
                 </div>
                 {booking.actual_box_count && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground text-xs">Received Boxes</p>
-                    <p className="font-medium">{booking.actual_box_count} {t('bookingCard.boxes')}</p>
+                    <p className="text-muted-foreground text-xs">
+                      Received Boxes
+                    </p>
+                    <p className="font-medium">
+                      {booking.actual_box_count} {t('bookingCard.boxes')}
+                    </p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Info */}
-            <div className="rounded-lg border border-orange-800 dark:border-orange-800 p-3">
-              <p className="text-sm text-orange-600 dark:text-orange-400 font-medium">
+            <div className="rounded-lg border border-orange-800 p-3 dark:border-orange-800">
+              <p className="text-sm font-medium text-orange-600 dark:text-orange-400">
                 ⚠️ Confirm Action
               </p>
-              <p className="text-xs text-orange-600/80 dark:text-orange-400/80 mt-1">
-                This will revert the vehicle back to booked status and remove the received information.
+              <p className="mt-1 text-xs text-orange-600/80 dark:text-orange-400/80">
+                This will revert the vehicle back to booked status and remove
+                the received information.
               </p>
             </div>
           </div>
@@ -108,16 +115,16 @@ export function UnreceiveDialog({
             <Button
               type="submit"
               disabled={mutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-600 dark:hover:bg-orange-700"
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700"
             >
               {mutation.isPending ? (
                 <>
-                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                   Reverting...
                 </>
               ) : (
                 <>
-                  <RotateCcw className="size-4 mr-2" />
+                  <RotateCcw className="mr-2 size-4" />
                   Unreceive
                 </>
               )}
@@ -126,5 +133,5 @@ export function UnreceiveDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

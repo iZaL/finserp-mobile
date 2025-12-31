@@ -1,5 +1,5 @@
-import { QueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import {QueryClient} from '@tanstack/react-query';
+import {toast} from 'sonner';
 
 /**
  * Helper utilities for React Query mutations
@@ -21,10 +21,10 @@ export async function invalidateTargetedCaches(
     keys.map((key) =>
       queryClient.invalidateQueries({
         queryKey: key,
-        refetchType: "active", // Only refetch active queries
+        refetchType: 'active', // Only refetch active queries
       })
     )
-  )
+  );
 }
 
 /**
@@ -42,10 +42,10 @@ export async function refetchTargetedQueries(
     keys.map((key) =>
       queryClient.refetchQueries({
         queryKey: key,
-        type: "active", // Only refetch active queries
+        type: 'active', // Only refetch active queries
       })
     )
-  )
+  );
 }
 
 /**
@@ -58,36 +58,36 @@ export async function refetchTargetedQueries(
 export async function handleMutationSuccess(
   queryClient: QueryClient,
   options: {
-    invalidateKeys?: unknown[][]
-    refetchKeys?: unknown[][]
-    successMessage?: string
+    invalidateKeys?: unknown[][];
+    refetchKeys?: unknown[][];
+    successMessage?: string;
     updateDetailCache?: {
-      key: unknown[]
-      data: unknown
-    }
+      key: unknown[];
+      data: unknown;
+    };
   }
 ): Promise<void> {
-  const { invalidateKeys, refetchKeys, successMessage, updateDetailCache } =
-    options
+  const {invalidateKeys, refetchKeys, successMessage, updateDetailCache} =
+    options;
 
   // Update detail cache optimistically if provided
   if (updateDetailCache) {
-    queryClient.setQueryData(updateDetailCache.key, updateDetailCache.data)
+    queryClient.setQueryData(updateDetailCache.key, updateDetailCache.data);
   }
 
   // Invalidate caches
   if (invalidateKeys && invalidateKeys.length > 0) {
-    await invalidateTargetedCaches(queryClient, invalidateKeys)
+    await invalidateTargetedCaches(queryClient, invalidateKeys);
   }
 
   // Refetch specific queries
   if (refetchKeys && refetchKeys.length > 0) {
-    await refetchTargetedQueries(queryClient, refetchKeys)
+    await refetchTargetedQueries(queryClient, refetchKeys);
   }
 
   // Show success message
   if (successMessage) {
-    toast.success(successMessage)
+    toast.success(successMessage);
   }
 }
 
@@ -102,10 +102,9 @@ export function handleMutationError(
   error: unknown,
   fallbackMessage: string
 ): void {
-  const message =
-    error instanceof Error ? error.message : fallbackMessage
+  const message = error instanceof Error ? error.message : fallbackMessage;
 
-  toast.error(message)
+  toast.error(message);
 }
 
 /**
@@ -121,12 +120,12 @@ export async function createOptimisticContext<T>(
   queryKey: unknown[]
 ): Promise<T | undefined> {
   // Cancel outgoing queries
-  await queryClient.cancelQueries({ queryKey })
+  await queryClient.cancelQueries({queryKey});
 
   // Get previous data for rollback
-  const previousData = queryClient.getQueryData<T>(queryKey)
+  const previousData = queryClient.getQueryData<T>(queryKey);
 
-  return previousData
+  return previousData;
 }
 
 /**
@@ -142,6 +141,6 @@ export function rollbackOptimisticUpdate<T>(
   previousData: T | undefined
 ): void {
   if (previousData) {
-    queryClient.setQueryData(queryKey, previousData)
+    queryClient.setQueryData(queryKey, previousData);
   }
 }

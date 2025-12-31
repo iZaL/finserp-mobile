@@ -1,8 +1,8 @@
 // Fish Purchase Types - Copied from erp-web and adapted for mobile
 // Source: erp-web/resources/js/types.ts
 
-import type { Contact, Address, Media, Bank } from "./shared";
-import type { Payment, PaymentAccount } from "./payment";
+import type {Contact, Address, Media, Bank} from './shared';
+import type {Payment, PaymentAccount} from './payment';
 
 /**
  * Fish Species
@@ -18,12 +18,12 @@ export interface FishSpecies {
  * Fish Purchase Status
  */
 export type FishPurchaseStatus =
-  | "draft"
-  | "pending"
-  | "approved"
-  | "paid"
-  | "closed"
-  | "rejected";
+  | 'draft'
+  | 'pending'
+  | 'approved'
+  | 'paid'
+  | 'closed'
+  | 'rejected';
 
 /**
  * Fish Box Weight (array of individual box weights)
@@ -209,14 +209,14 @@ export interface CreateFishPurchaseItemRequest {
 /**
  * Update Fish Purchase Request
  */
-export type UpdateFishPurchaseRequest = Partial<CreateFishPurchaseRequest>
+export type UpdateFishPurchaseRequest = Partial<CreateFishPurchaseRequest>;
 
 /**
  * Fish Purchase Filters for List/Search
  */
 export interface FishPurchaseFilters {
   search?: string;
-  status?: "all" | FishPurchaseStatus;
+  status?: 'all' | FishPurchaseStatus;
   date_from?: string;
   date_to?: string;
   supplier_id?: number;
@@ -344,7 +344,7 @@ export interface SupplierWithBank extends Contact {
 /**
  * Form Step IDs
  */
-export type FishPurchaseFormStep = "supplier" | "details" | "items" | "review";
+export type FishPurchaseFormStep = 'supplier' | 'details' | 'items' | 'review';
 
 /**
  * Form Validation Errors

@@ -3,36 +3,36 @@
  * Queues mutations when offline and syncs them when connection is restored
  */
 
-import { api } from "./api"
+import {api} from './api';
 import {
   addToOfflineQueue,
   getOfflineQueue,
   removeFromOfflineQueue,
   updateQueueRetry,
-} from "./indexeddb"
+} from './indexeddb';
 
-const MAX_RETRIES = 3
+const MAX_RETRIES = 3;
 
 export interface QueuedMutation {
-  id: string
-  method: string
-  url: string
-  data: unknown
-  timestamp: number
-  retries: number
+  id: string;
+  method: string;
+  url: string;
+  data: unknown;
+  timestamp: number;
+  retries: number;
 }
 
 class OfflineQueueService {
-  private isProcessing = false
-  private listeners: Set<(count: number) => void> = new Set()
-  private syncInterval: NodeJS.Timeout | null = null
+  private isProcessing = false;
+  private listeners: Set<(count: number) => void> = new Set();
+  private syncInterval: NodeJS.Timeout | null = null;
 
   /**
    * Check if device is online
    */
   private isOnline(): boolean {
-    if (typeof window === "undefined") return true
-    return navigator.onLine
+    if (typeof window === 'undefined') return true;
+    return navigator.onLine;
   }
 
   /**
@@ -43,9 +43,9 @@ class OfflineQueueService {
     url: string,
     data: unknown
   ): Promise<string> {
-    const id = await addToOfflineQueue(method, url, data)
-    this.notifyListeners()
-    return id
+    const id = await addToOfflineQueue(method, url, data);
+    this.notifyListeners();
+    return id;
   }
 
   /**
@@ -53,80 +53,82 @@ class OfflineQueueService {
    */
   async processQueue(): Promise<void> {
     if (this.isProcessing || !this.isOnline()) {
-      return
+      return;
     }
 
-    this.isProcessing = true
+    this.isProcessing = true;
 
     try {
-      const queue = await getOfflineQueue()
+      const queue = await getOfflineQueue();
 
       if (queue.length === 0) {
-        this.isProcessing = false
-        this.notifyListeners()
-        return
+        this.isProcessing = false;
+        this.notifyListeners();
+        return;
       }
 
       // Process mutations in order
       for (const mutation of queue) {
         if (!this.isOnline()) {
-          break // Stop processing if we go offline
+          break; // Stop processing if we go offline
         }
 
         try {
           // Execute the mutation
           switch (mutation.method.toUpperCase()) {
-            case "POST":
-              await api.post(mutation.url, mutation.data)
-              break
-            case "PUT":
-            case "PATCH":
-              await api.put(mutation.url, mutation.data)
-              break
-            case "DELETE":
-              await api.delete(mutation.url)
-              break
+            case 'POST':
+              await api.post(mutation.url, mutation.data);
+              break;
+            case 'PUT':
+            case 'PATCH':
+              await api.put(mutation.url, mutation.data);
+              break;
+            case 'DELETE':
+              await api.delete(mutation.url);
+              break;
             default:
-              console.warn(`Unsupported method: ${mutation.method}`)
-              await removeFromOfflineQueue(mutation.id)
-              continue
+              console.warn(`Unsupported method: ${mutation.method}`);
+              await removeFromOfflineQueue(mutation.id);
+              continue;
           }
 
           // Success - remove from queue
-          await removeFromOfflineQueue(mutation.id)
-          console.log(`Successfully synced mutation ${mutation.id}`)
+          await removeFromOfflineQueue(mutation.id);
+          console.log(`Successfully synced mutation ${mutation.id}`);
         } catch (error: unknown) {
           // Check if it's a network error or timeout
-          const errorObj = error as { isNetworkError?: boolean; isTimeout?: boolean; response?: unknown }
+          const errorObj = error as {
+            isNetworkError?: boolean;
+            isTimeout?: boolean;
+            response?: unknown;
+          };
           const isNetworkError =
-            errorObj.isNetworkError ||
-            errorObj.isTimeout ||
-            !errorObj.response
+            errorObj.isNetworkError || errorObj.isTimeout || !errorObj.response;
 
           if (isNetworkError && mutation.retries < MAX_RETRIES) {
             // Retry later
-            await updateQueueRetry(mutation.id, mutation.retries + 1)
+            await updateQueueRetry(mutation.id, mutation.retries + 1);
             console.log(
               `Failed to sync mutation ${mutation.id}, will retry (attempt ${mutation.retries + 1}/${MAX_RETRIES})`
-            )
+            );
           } else {
             // Max retries reached or non-network error - remove from queue
-            await removeFromOfflineQueue(mutation.id)
+            await removeFromOfflineQueue(mutation.id);
             console.error(
               `Failed to sync mutation ${mutation.id} after ${mutation.retries} retries:`,
               error
-            )
+            );
           }
         }
 
         // Small delay between mutations to avoid overwhelming the server
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     } catch (error) {
-      console.error("Error processing offline queue:", error)
+      console.error('Error processing offline queue:', error);
     } finally {
-      this.isProcessing = false
-      this.notifyListeners()
+      this.isProcessing = false;
+      this.notifyListeners();
     }
   }
 
@@ -134,8 +136,8 @@ class OfflineQueueService {
    * Get current queue count
    */
   async getQueueCount(): Promise<number> {
-    const queue = await getOfflineQueue()
-    return queue.length
+    const queue = await getOfflineQueue();
+    return queue.length;
   }
 
   /**
@@ -143,27 +145,27 @@ class OfflineQueueService {
    */
   startAutoSync(): void {
     if (this.syncInterval) {
-      return // Already started
+      return; // Already started
     }
 
     // Process queue immediately if online
     if (this.isOnline()) {
-      this.processQueue()
+      this.processQueue();
     }
 
     // Process queue every 5 seconds when online
     this.syncInterval = setInterval(() => {
       if (this.isOnline()) {
-        this.processQueue()
+        this.processQueue();
       }
-    }, 5000)
+    }, 5000);
 
     // Also process when connection is restored
-    if (typeof window !== "undefined") {
-      window.addEventListener("online", () => {
-        console.log("Connection restored, processing offline queue...")
-        this.processQueue()
-      })
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => {
+        console.log('Connection restored, processing offline queue...');
+        this.processQueue();
+      });
     }
   }
 
@@ -172,8 +174,8 @@ class OfflineQueueService {
    */
   stopAutoSync(): void {
     if (this.syncInterval) {
-      clearInterval(this.syncInterval)
-      this.syncInterval = null
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
     }
   }
 
@@ -181,31 +183,30 @@ class OfflineQueueService {
    * Subscribe to queue count changes
    */
   subscribe(listener: (count: number) => void): () => void {
-    this.listeners.add(listener)
+    this.listeners.add(listener);
 
     // Immediately notify with current count
-    this.getQueueCount().then((count) => listener(count))
+    this.getQueueCount().then((count) => listener(count));
 
     // Return unsubscribe function
     return () => {
-      this.listeners.delete(listener)
-    }
+      this.listeners.delete(listener);
+    };
   }
 
   /**
    * Notify all listeners of queue count change
    */
   private async notifyListeners(): Promise<void> {
-    const count = await this.getQueueCount()
-    this.listeners.forEach((listener) => listener(count))
+    const count = await this.getQueueCount();
+    this.listeners.forEach((listener) => listener(count));
   }
 }
 
 // Export singleton instance
-export const offlineQueueService = new OfflineQueueService()
+export const offlineQueueService = new OfflineQueueService();
 
 // Start auto-sync when module loads (if in browser)
-if (typeof window !== "undefined") {
-  offlineQueueService.startAutoSync()
+if (typeof window !== 'undefined') {
+  offlineQueueService.startAutoSync();
 }
-

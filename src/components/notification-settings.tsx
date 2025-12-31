@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Bell, BellOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {useState} from 'react';
+import {Bell, BellOff} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,13 +12,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { usePushNotification } from "@/hooks/use-push-notification";
-import { useTranslations } from "next-intl";
+} from '@/components/ui/alert-dialog';
+import {usePushNotification} from '@/hooks/use-push-notification';
+import {useTranslations} from 'next-intl';
 
 export function NotificationSettings() {
   const t = useTranslations();
-  const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotification();
+  const {isSupported, isSubscribed, isLoading, subscribe, unsubscribe} =
+    usePushNotification();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   if (!isSupported) {
@@ -43,12 +44,14 @@ export function NotificationSettings() {
             size="default"
             onClick={handleDisableClick}
             disabled={isLoading}
-            title={t("notifications.disable", { defaultMessage: "Disable Notifications" })}
-            className="w-11 h-11 px-0 md:w-auto md:px-3"
+            title={t('notifications.disable', {
+              defaultMessage: 'Disable Notifications',
+            })}
+            className="h-11 w-11 px-0 md:w-auto md:px-3"
           >
             <BellOff className="h-5 w-5 md:mr-0" />
             <span className="hidden md:inline">
-              {t("notifications.disable", { defaultMessage: "Disable" })}
+              {t('notifications.disable', {defaultMessage: 'Disable'})}
             </span>
           </Button>
         ) : (
@@ -57,12 +60,14 @@ export function NotificationSettings() {
             size="default"
             onClick={subscribe}
             disabled={isLoading}
-            title={t("notifications.enable", { defaultMessage: "Enable Notifications" })}
-            className="w-11 h-11 px-0 md:w-auto md:px-3"
+            title={t('notifications.enable', {
+              defaultMessage: 'Enable Notifications',
+            })}
+            className="h-11 w-11 px-0 md:w-auto md:px-3"
           >
             <Bell className="h-5 w-5 md:mr-0" />
             <span className="hidden md:inline">
-              {t("notifications.enable", { defaultMessage: "Enable" })}
+              {t('notifications.enable', {defaultMessage: 'Enable'})}
             </span>
           </Button>
         )}
@@ -72,20 +77,25 @@ export function NotificationSettings() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("notifications.disableConfirm.title", { defaultMessage: "Disable Notifications?" })}
+              {t('notifications.disableConfirm.title', {
+                defaultMessage: 'Disable Notifications?',
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("notifications.disableConfirm.description", {
-                defaultMessage: "You will no longer receive push notifications for vehicle bookings. You can re-enable them at any time."
+              {t('notifications.disableConfirm.description', {
+                defaultMessage:
+                  'You will no longer receive push notifications for vehicle bookings. You can re-enable them at any time.',
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {t("common.cancel", { defaultMessage: "Cancel" })}
+              {t('common.cancel', {defaultMessage: 'Cancel'})}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDisable}>
-              {t("notifications.disableConfirm.confirm", { defaultMessage: "Disable" })}
+              {t('notifications.disableConfirm.confirm', {
+                defaultMessage: 'Disable',
+              })}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
