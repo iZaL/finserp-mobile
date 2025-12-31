@@ -1,7 +1,7 @@
 'use client';
 
 import {useMemo} from 'react';
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
 import {Droplet, Wheat} from 'lucide-react';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -19,6 +19,19 @@ import type {
   ProductionPackageType,
   Warehouse,
 } from '@/types/production-output';
+
+// Helper to safely extract name from potentially localized object
+function getDisplayName(
+  name: string | Record<string, string> | undefined | null,
+  locale: string = 'en'
+): string {
+  if (!name) return '';
+  if (typeof name === 'string') return name;
+  if (typeof name === 'object') {
+    return name[locale] || name['en'] || Object.values(name)[0] || '';
+  }
+  return String(name);
+}
 
 export interface ProductOutputEntryData {
   productTypeId: number;
@@ -47,6 +60,7 @@ export function ProductOutputEntryCard({
   className,
 }: ProductOutputEntryCardProps) {
   const t = useTranslations('productionOutputs.entry');
+  const locale = useLocale();
   const isFishmeal = productType.code === 'fishmeal';
   const Icon = isFishmeal ? Wheat : Droplet;
 
@@ -121,7 +135,7 @@ export function ProductOutputEntryCard({
         <div className="flex w-full items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base leading-none">
             <Icon className={cn('size-5 shrink-0', iconColor)} />
-            <span>{productType.name}</span>
+            <span>{getDisplayName(productType.name, locale)}</span>
           </CardTitle>
           {hasData && (
             <div className="text-primary text-sm font-semibold">
@@ -150,7 +164,7 @@ export function ProductOutputEntryCard({
                 <SelectContent>
                   {filteredPackageTypes.map((pt) => (
                     <SelectItem key={pt.id} value={pt.id.toString()}>
-                      {pt.name} ({pt.default_weight} kg)
+                      {getDisplayName(pt.name, locale)} ({pt.default_weight} kg)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -234,7 +248,7 @@ export function ProductOutputEntryCard({
               <SelectContent>
                 {warehouses.map((w) => (
                   <SelectItem key={w.id} value={w.id.toString()}>
-                    {w.name}
+                    {getDisplayName(w.name, locale)}
                   </SelectItem>
                 ))}
               </SelectContent>

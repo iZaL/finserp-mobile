@@ -3,7 +3,7 @@
 import {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useSearchParams} from 'next/navigation';
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
 import {ChevronLeft, Loader2, Save, Factory} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -31,10 +31,24 @@ import type {
 } from '@/types/production-output';
 import {ProductionOutputsGuard} from '@/components/permission-guard';
 
+// Helper to safely extract name from potentially localized object
+function getDisplayName(
+  name: string | Record<string, string> | undefined | null,
+  locale: string = 'en'
+): string {
+  if (!name) return '';
+  if (typeof name === 'string') return name;
+  if (typeof name === 'object') {
+    return name[locale] || name['en'] || Object.values(name)[0] || '';
+  }
+  return String(name);
+}
+
 export default function CreateProductionOutputPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations('productionOutputs.new');
+  const locale = useLocale();
   const {data: formDataOptions, isLoading: isLoadingFormData} =
     useProductionOutputFormData();
   const bulkCreateMutation = useBulkCreateProductionOutputs();
@@ -287,7 +301,7 @@ export default function CreateProductionOutputPage() {
                       <SelectItem value="none">{t('noShift')}</SelectItem>
                       {formDataOptions?.shifts.map((shift) => (
                         <SelectItem key={shift.id} value={shift.id.toString()}>
-                          {shift.name}
+                          {getDisplayName(shift.name, locale)}
                         </SelectItem>
                       ))}
                     </SelectContent>
