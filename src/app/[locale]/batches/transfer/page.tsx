@@ -3,9 +3,9 @@
 import {useSearchParams} from 'next/navigation';
 import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
-import {ArrowLeft, ArrowRightLeft} from 'lucide-react';
+import {ArrowLeft} from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Card, CardContent} from '@/components/ui/card';
 import {TransferForm} from '@/components/inventory/transfer-form';
 import {InventoryGuard} from '@/components/permission-guard';
 
@@ -20,7 +20,7 @@ export default function TransferPage() {
     : undefined;
 
   const handleSuccess = () => {
-    router.push('/inventory');
+    router.push('/batches');
   };
 
   return (
@@ -33,19 +33,16 @@ export default function TransferPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{t('title')}</h1>
-            <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
+            <p className="text-muted-foreground text-sm">
+              {t('batchOnlySubtitle') ||
+                'Select a batch to transfer between warehouses'}
+            </p>
           </div>
         </div>
 
         {/* Form */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ArrowRightLeft className="size-4 text-blue-600" />
-              {t('title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <TransferForm
               initialBatchId={initialBatchId}
               onSuccess={handleSuccess}

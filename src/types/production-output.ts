@@ -81,6 +81,11 @@ export interface ProductionOutput {
   production_date_formatted?: string;
   shift_id?: number;
   shift?: ProductionShift;
+  production_run_id?: number;
+  production_run?: {
+    id: number;
+    name: string;
+  };
   storage_type: StorageType;
   packaging_item_id?: number;
   packaging_item?: {

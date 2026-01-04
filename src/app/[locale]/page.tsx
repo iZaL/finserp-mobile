@@ -11,9 +11,7 @@ import {
   FileText,
   Lock,
   Factory,
-  Package,
   ChevronRight,
-  Boxes,
 } from 'lucide-react';
 import {usePermissions} from '@/lib/stores/permission-store';
 import {BookingStatusBanner} from '@/components/booking-status-banner';
@@ -238,7 +236,7 @@ export default function Home() {
                 icon={ClipboardList}
                 title={t('viewBookings')}
                 description={t('manageVehicles')}
-                gradient="from-blue-500 to-indigo-600"
+                gradient="from-blue-400 to-blue-500"
                 onClick={() => router.push('/vehicle-bookings')}
               />
             )}
@@ -248,7 +246,7 @@ export default function Home() {
                 icon={Plus}
                 title={t('newBooking')}
                 description={t('addNewBooking')}
-                gradient="from-emerald-500 to-teal-600"
+                gradient="from-teal-400 to-cyan-500"
                 onClick={() => router.push('/vehicle-bookings/new')}
                 disabled={!isBookingEnabled}
                 locked={!isBookingEnabled}
@@ -261,7 +259,7 @@ export default function Home() {
                 icon={BarChart3}
                 title={t('statistics')}
                 description={t('viewStatistics')}
-                gradient="from-violet-500 to-purple-600"
+                gradient="from-violet-400 to-purple-500"
                 onClick={() => router.push('/vehicle-bookings/calendar')}
               />
             )}
@@ -271,7 +269,7 @@ export default function Home() {
                 icon={FileText}
                 title={t('vehicleBills')}
                 description={t('manageBills')}
-                gradient="from-amber-500 to-orange-600"
+                gradient="from-amber-400 to-amber-500"
                 onClick={() => router.push('/vehicle-bookings/bills')}
               />
             )}
@@ -285,37 +283,17 @@ export default function Home() {
           <SectionHeader
             icon={Factory}
             title={t('production')}
-            gradient="from-amber-500 to-orange-600"
+            gradient="from-stone-400 to-stone-500"
           />
 
           <div className="grid gap-3 sm:grid-cols-2">
             {permissions.canAccessProductionRuns() && (
               <ActionCard
-                icon={ClipboardList}
-                title={t('viewProduction')}
-                description={t('manageProduction')}
-                gradient="from-amber-500 to-orange-600"
-                onClick={() => router.push('/production-runs')}
-              />
-            )}
-
-            {permissions.canAccessProductionOutputs() && (
-              <ActionCard
-                icon={Boxes}
-                title={t('productionOutputs')}
-                description={t('viewProductionOutputs')}
-                gradient="from-indigo-500 to-violet-600"
-                onClick={() => router.push('/production-outputs')}
-              />
-            )}
-
-            {permissions.canAccessInventory() && (
-              <ActionCard
-                icon={Package}
-                title={t('inventory')}
-                description={t('manageInventory')}
-                gradient="from-cyan-500 to-blue-600"
-                onClick={() => router.push('/inventory')}
+                icon={Factory}
+                title={t('productionHub')}
+                description={t('productionHubDesc')}
+                gradient="from-emerald-500 to-green-600"
+                onClick={() => router.push('/production-hub')}
               />
             )}
           </div>

@@ -327,10 +327,7 @@ export default function WarehouseDetailPage() {
           <Warehouse className="text-muted-foreground mb-4 size-16" />
           <h1 className="text-xl font-semibold">{t('notFound.title')}</h1>
           <p className="text-muted-foreground">{t('notFound.description')}</p>
-          <Button
-            className="mt-4"
-            onClick={() => router.push('/inventory/warehouses')}
-          >
+          <Button className="mt-4" onClick={() => router.push('/batches')}>
             {t('notFound.backToList')}
           </Button>
         </div>
@@ -348,7 +345,7 @@ export default function WarehouseDetailPage() {
               variant="ghost"
               size="icon"
               className="shrink-0"
-              onClick={() => router.push('/inventory/warehouses')}
+              onClick={() => router.push('/batches')}
             >
               <ArrowLeft className="size-5" />
             </Button>
@@ -525,7 +522,7 @@ export default function WarehouseDetailPage() {
                     <Button
                       variant="outline"
                       className="mt-4 w-full"
-                      onClick={() => router.push('/inventory/movements')}
+                      onClick={() => router.push('/batches/movements')}
                     >
                       {tInventory('viewAll')}
                       <ChevronRight className="ml-1 size-4" />

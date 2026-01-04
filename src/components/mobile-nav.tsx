@@ -3,7 +3,7 @@
 import * as React from 'react';
 import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
-import {Home, Calendar, Users, Settings} from 'lucide-react';
+import {Home, Calendar, Factory, Settings} from 'lucide-react';
 import {cn} from '@/lib/utils';
 
 const navItems = [
@@ -13,14 +13,14 @@ const navItems = [
     icon: Home,
   },
   {
+    key: 'production',
+    href: '/production-hub',
+    icon: Factory,
+  },
+  {
     key: 'bookings',
     href: '/vehicle-bookings',
     icon: Calendar,
-  },
-  {
-    key: 'suppliers',
-    href: '/suppliers',
-    icon: Users,
   },
   {
     key: 'more',

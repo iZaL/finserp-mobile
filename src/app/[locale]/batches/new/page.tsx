@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useEffect} from 'react';
+import {useMemo, useEffect, useState} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {useQuery} from '@tanstack/react-query';
 import {format} from 'date-fns';
@@ -13,9 +13,12 @@ import {
   Loader2,
   AlertTriangle,
   BoxSelect,
+  Tag,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {Skeleton} from '@/components/ui/skeleton';
 import {productionOutputService} from '@/lib/services/production-output';
 import {useCreateBatch} from '@/hooks/use-batches';
@@ -27,6 +30,7 @@ import type {CreateBatchRequest} from '@/types/batch';
 export default function CreateBatchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [batchName, setBatchName] = useState('');
 
   const outputIds = useMemo(() => {
     const ids = searchParams.get('output_ids');
@@ -109,9 +113,10 @@ export default function CreateBatchPage() {
   }, [outputIds, router, hasCreateBatchPermission]);
 
   const handleSubmit = async () => {
-    if (!productType || hasMultipleProductTypes) return;
+    if (!productType || hasMultipleProductTypes || !batchName.trim()) return;
 
     const request: CreateBatchRequest = {
+      name: batchName.trim(),
       production_date: format(new Date(), 'yyyy-MM-dd'),
       products: [
         {
@@ -210,6 +215,24 @@ export default function CreateBatchPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Batch Name Input */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="batchName"
+                    className="flex items-center gap-2"
+                  >
+                    <Tag className="size-4" />
+                    Batch Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="batchName"
+                    value={batchName}
+                    onChange={(e) => setBatchName(e.target.value)}
+                    placeholder="Enter batch name"
+                    required
+                  />
+                </div>
+
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
                     <Package className="text-muted-foreground size-4 shrink-0" />
@@ -299,7 +322,11 @@ export default function CreateBatchPage() {
               <Button
                 className="h-12 w-full text-lg"
                 onClick={handleSubmit}
-                disabled={createBatch.isPending || hasMultipleProductTypes}
+                disabled={
+                  createBatch.isPending ||
+                  hasMultipleProductTypes ||
+                  !batchName.trim()
+                }
               >
                 {createBatch.isPending ? (
                   <>

@@ -57,7 +57,19 @@
     "productionOutputs": "مخرجات الإنتاج",
     "viewProductionOutputs": "عرض وإدارة المخرجات",
     "inventory": "المخزون",
-    "manageInventory": "تتبع المخزون والحركات"
+    "manageInventory": "تتبع المخزون والحركات",
+    "warehouses": "المستودعات",
+    "manageWarehouses": "عرض مواقع المستودعات",
+    "recordProduction": "سجل الإنتاج",
+    "recordProductionDesc": "تسجيل المخرجات من الدورة النشطة",
+    "todaysOutput": "إنتاج اليوم",
+    "todaysOutputDesc": "عرض الإنتاج المسجل اليوم",
+    "checkStock": "تحقق من المخزون",
+    "checkStockDesc": "عرض مستويات المخزون",
+    "moveStock": "نقل المخزون",
+    "moveStockDesc": "النقل بين المستودعات",
+    "productionHub": "مركز الإنتاج",
+    "productionHubDesc": "سير عمل الإنتاج الكامل"
   },
   "vehicleBookings": {
     "title": "حجوزات السيارات",
@@ -594,7 +606,9 @@
       "cycles": "دورات",
       "total": "الإجمالي",
       "warehouse": "المستودع",
-      "selectWarehouse": "اختر المستودع"
+      "selectWarehouse": "اختر المستودع",
+      "warehouseRequired": "المستودع مطلوب",
+      "fillCyclesRequired": "دورات التعبئة مطلوبة"
     }
   },
   "language": {
@@ -605,6 +619,7 @@
     "home": "الرئيسية",
     "bookings": "الحجوزات",
     "suppliers": "الموردين",
+    "production": "الإنتاج",
     "productionOutputs": "الإنتاج",
     "inventory": "المخزون",
     "more": "الإعدادات",
@@ -660,6 +675,7 @@
   "suppliers": {
     "title": "الموردين",
     "subtitle": "{count} مورد متاح",
+    "description": "إدارة موردي الأسماك",
     "searchPlaceholder": "البحث بالاسم أو رقم الهاتف...",
     "suppliers": "الموردين",
     "lastBooking": "آخر حجز",
@@ -927,6 +943,7 @@
   "productionRuns": {
     "title": "دورات الإنتاج",
     "subtitle": "إدارة دورات الإنتاج والورديات",
+    "outputsTitle": "مخرجات الإنتاج",
     "dashboard": "لوحة الإنتاج",
     "dashboardDescription": "مراقبة الدورات وعمليات الورديات",
     "viewRuns": "عرض الدورات",
@@ -968,6 +985,12 @@
       "productionLines": "خطوط الإنتاج",
       "total": "الإجمالي",
       "notes": "ملاحظات"
+    },
+    "dateGroups": {
+      "today": "اليوم",
+      "yesterday": "أمس",
+      "thisWeek": "هذا الأسبوع",
+      "earlier": "سابقاً"
     },
     "list": {
       "title": "دورات الإنتاج الأخيرة",
@@ -1077,6 +1100,12 @@
     "transfer": {
       "title": "تحويل المخزون",
       "subtitle": "نقل المخزون بين المستودعات",
+      "batchOnlySubtitle": "اختر دفعة لنقلها بين المستودعات",
+      "batch": "الدفعة",
+      "selectBatch": "اختر الدفعة للتحويل",
+      "searchBatch": "البحث بكود الدفعة أو المنتج أو المستودع...",
+      "noBatchesFound": "لا توجد دفعات مطابقة لبحثك",
+      "noBatches": "لا توجد دفعات متاحة للتحويل",
       "productType": "نوع المنتج",
       "selectProductType": "اختر نوع المنتج",
       "sourceWarehouse": "من المستودع",
@@ -1091,13 +1120,16 @@
       "submitting": "جاري التحويل...",
       "success": "تم التحويل بنجاح",
       "error": "فشل في تحويل المخزون",
+      "transferAll": "تحويل الكل",
+      "transferHalf": "النصف",
       "validation": {
         "productTypeRequired": "نوع المنتج مطلوب",
         "sourceWarehouseRequired": "المستودع المصدر مطلوب",
         "destinationWarehouseRequired": "المستودع الهدف مطلوب",
         "sameWarehouse": "المصدر والهدف لا يمكن أن يكونا نفس المستودع",
         "quantityRequired": "الكمية يجب أن تكون أكبر من 0",
-        "insufficientStock": "المخزون غير كافٍ في المستودع المصدر"
+        "insufficientStock": "المخزون غير كافٍ في المستودع المصدر",
+        "batchRequired": "الرجاء اختيار دفعة"
       }
     },
     "adjustment": {
@@ -1196,6 +1228,64 @@
         }
       }
     }
+  },
+  "productionHub": {
+    "title": "مركز الإنتاج",
+    "subtitle": "سير عمل الإنتاج الخاص بك",
+    "activeRun": "الدورة النشطة",
+    "noActiveRun": "لا توجد دورة نشطة",
+    "startRunPrompt": "ابدأ دورة إنتاج للبدء",
+    "workflow": {
+      "run": "الدورة",
+      "runs": "الدورات",
+      "output": "المخرج",
+      "outputs": "المخرجات",
+      "batch": "الدفعة",
+      "batches": "الدفعات",
+      "transfer": "النقل",
+      "transfers": "التحويلات"
+    },
+    "quickActions": {
+      "startRun": "بدء الدورة",
+      "recordOutput": "تسجيل المخرج",
+      "createBatch": "إنشاء دفعة",
+      "transferStock": "نقل المخزون",
+      "viewDetails": "عرض التفاصيل",
+      "viewRuns": "عرض الدورات",
+      "recordMore": "تسجيل المزيد",
+      "viewInventory": "عرض المخزون"
+    },
+    "todaySummary": {
+      "title": "ملخص اليوم",
+      "outputRecorded": "المخرجات المسجلة",
+      "batchesCreated": "الدفعات المنشأة",
+      "transfers": "عمليات النقل",
+      "movements": "الحركات"
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "empty": "لا يوجد نشاط حديث",
+      "outputRecorded": "تم تسجيل المخرج",
+      "batchCreated": "تم إنشاء الدفعة",
+      "transferCompleted": "تم إكمال النقل",
+      "runStarted": "بدأت الدورة",
+      "runCompleted": "اكتملت الدورة"
+    },
+    "guidance": {
+      "noRun": "ابدأ دورة إنتاج لبدء التسجيل",
+      "recording": "سجل المخرجات من دورتك النشطة",
+      "readyToBatch": "أنشئ دفعات من إنتاج اليوم",
+      "readyToTransfer": "انقل الدفعات إلى المستودعات"
+    },
+    "states": {
+      "noRun": "لا توجد دورة نشطة",
+      "recording": "تسجيل المخرجات",
+      "batching": "إنشاء الدفعات",
+      "transferring": "نقل المخزون"
+    },
+    "inventory": "المخزون",
+    "batches": "الدفعات",
+    "transferStock": "نقل المخزون"
   },
   "fishPurchases": {
     "title": "مشتريات الأسماك",

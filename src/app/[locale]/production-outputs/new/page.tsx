@@ -155,13 +155,25 @@ export default function CreateProductionOutputPage() {
 
   // Check if any product has data
   const hasAnyData = useMemo(() => {
-    return Object.values(productEntries).some((entry) => {
-      return (
-        (entry.packageCount && entry.packageCount > 0) ||
-        (entry.fillCycles && entry.fillCycles > 0)
+    if (!formDataOptions) return false;
+
+    return Object.entries(productEntries).some(([productTypeIdStr, entry]) => {
+      const productTypeId = parseInt(productTypeIdStr);
+      const productType = formDataOptions.product_types.find(
+        (pt) => pt.id === productTypeId
       );
+      if (!productType) return false;
+
+      // For packaged: needs package_count > 0
+      // For tank/bulk: needs both tank_capacity > 0 AND fill_cycles > 0
+      return productType.can_be_packaged
+        ? entry.packageCount && entry.packageCount > 0
+        : entry.tankCapacity &&
+            entry.tankCapacity > 0 &&
+            entry.fillCycles &&
+            entry.fillCycles > 0;
     });
-  }, [productEntries]);
+  }, [productEntries, formDataOptions]);
 
   const handleSubmit = async () => {
     if (!formDataOptions || !hasAnyData) return;
@@ -177,9 +189,14 @@ export default function CreateProductionOutputPage() {
       if (!productType) return;
 
       // Check if this entry has data
+      // For packaged: needs package_count > 0
+      // For tank/bulk: needs both tank_capacity > 0 AND fill_cycles > 0
       const hasData = productType.can_be_packaged
         ? entry.packageCount && entry.packageCount > 0
-        : entry.fillCycles && entry.fillCycles > 0;
+        : entry.tankCapacity &&
+          entry.tankCapacity > 0 &&
+          entry.fillCycles &&
+          entry.fillCycles > 0;
 
       if (!hasData) return;
 

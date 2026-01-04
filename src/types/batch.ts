@@ -71,6 +71,7 @@ export interface SourcePurchase {
 }
 
 export interface CreateBatchRequest {
+  name?: string;
   type?: BatchType;
   production_date: string;
   production_run_ids?: number[];

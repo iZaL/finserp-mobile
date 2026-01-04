@@ -416,6 +416,7 @@ export default function ProductionRunDetailPage() {
                   showBatchingCard={true}
                   showEmptyState={true}
                   compact={true}
+                  onlyBatchable={true}
                 />
               </div>
             </>

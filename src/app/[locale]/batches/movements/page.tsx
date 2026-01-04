@@ -92,7 +92,7 @@ export default function MovementsPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push('/inventory')}
+            onClick={() => router.push('/batches')}
           >
             <ArrowLeft className="size-5" />
           </Button>

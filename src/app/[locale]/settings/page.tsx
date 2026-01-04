@@ -23,7 +23,9 @@ import {
   Power,
   CheckCircle,
   Shield,
+  Users,
 } from 'lucide-react';
+import {useRouter} from '@/i18n/navigation';
 import {toast} from 'sonner';
 import {api} from '@/lib/api';
 import {useUpdateControlSettings} from '@/hooks/use-vehicle-bookings';
@@ -31,6 +33,7 @@ import axios from 'axios';
 
 export default function SettingsPage() {
   const t = useTranslations();
+  const router = useRouter();
   const updateControlSettings = useUpdateControlSettings();
   const [boxLimit, setBoxLimit] = useState<number>(5000);
   const [isLoading, setIsLoading] = useState(false);
@@ -299,6 +302,25 @@ export default function SettingsPage() {
 
         {/* Settings Menu */}
         <div className="bg-card divide-y rounded-lg border">
+          {/* Suppliers Menu Item */}
+          <button
+            onClick={() => router.push('/suppliers')}
+            className="hover:bg-accent flex w-full items-center justify-between px-4 py-4 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10">
+                <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="text-start">
+                <div className="font-medium">{t('navigation.suppliers')}</div>
+                <div className="text-muted-foreground text-sm">
+                  {t('suppliers.description')}
+                </div>
+              </div>
+            </div>
+            <ChevronRight className="text-muted-foreground h-5 w-5" />
+          </button>
+
           {/* Daily Limit Menu Item */}
           <button
             onClick={() => setShowLimitDialog(true)}

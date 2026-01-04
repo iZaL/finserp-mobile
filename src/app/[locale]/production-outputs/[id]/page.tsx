@@ -20,6 +20,7 @@ import {
   User,
   ChevronRight,
   Link2,
+  Layers,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -38,6 +39,7 @@ import {
   useProductionOutput,
   useConfirmProductionOutput,
 } from '@/hooks/use-production-outputs';
+import {usePermissionStore} from '@/lib/stores/permission-store';
 import type {
   ProductionOutputStatus,
   StorageType,
@@ -95,6 +97,14 @@ export default function ProductionOutputDetailsPage({
   const {data: output, isLoading: loading} = useProductionOutput(parseInt(id));
   const confirmMutation = useConfirmProductionOutput();
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const {canCreateBatch} = usePermissionStore();
+
+  // Check if this output can have a batch created
+  const canCreateBatchFromOutput =
+    output &&
+    canCreateBatch() &&
+    (!output.batch_allocations || output.batch_allocations.length === 0) &&
+    output.status !== 'voided';
 
   const getStatusConfig = (status: ProductionOutputStatus) => {
     switch (status) {
@@ -486,6 +496,36 @@ export default function ProductionOutputDetailsPage({
                     )}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Create Batch Card - Show when no batch is linked */}
+          {canCreateBatchFromOutput && (
+            <Card className="overflow-hidden border-0 shadow-md">
+              <div className="flex items-center gap-3 border-b px-4 py-3">
+                <div className="rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 p-2 text-white">
+                  <Layers className="size-4" />
+                </div>
+                <h3 className="font-semibold">Batch Status</h3>
+                <Badge className="ml-auto bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  Not Allocated
+                </Badge>
+              </div>
+              <CardContent className="p-4">
+                <p className="text-muted-foreground mb-4 text-sm">
+                  This output has not been allocated to a batch yet. Create a
+                  batch to track this production in inventory.
+                </p>
+                <Button
+                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
+                  onClick={() =>
+                    router.push(`/batches/new?output_ids=${output.id}`)
+                  }
+                >
+                  <Layers className="mr-2 size-4" />
+                  Create Batch
+                </Button>
               </CardContent>
             </Card>
           )}

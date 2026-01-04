@@ -56,12 +56,21 @@ export function TransferForm({
 
   // Queries
   const {data: warehouses, isLoading: warehousesLoading} = useBatchWarehouses();
-  const {data: allBatches} = useBatchStock();
-  const {data: batches, isLoading: batchesLoading} = useBatchStock({
-    warehouse_id: sourceWarehouseId ?? undefined,
-    search: batchSearch || undefined,
-  });
+  const {data: allBatches, isLoading: allBatchesLoading} = useBatchStock();
   const batchTransfer = useBatchTransfer();
+
+  // Filter batches by search term
+  const filteredBatches = useMemo(() => {
+    if (!allBatches) return [];
+    if (!batchSearch) return allBatches;
+    const searchLower = batchSearch.toLowerCase();
+    return allBatches.filter(
+      (b) =>
+        b.batch_code.toLowerCase().includes(searchLower) ||
+        b.product_type.toLowerCase().includes(searchLower) ||
+        b.warehouse_name.toLowerCase().includes(searchLower)
+    );
+  }, [allBatches, batchSearch]);
 
   // Initialize from initialBatchId
   useEffect(() => {
@@ -77,30 +86,23 @@ export function TransferForm({
   // Get selected batch
   const selectedBatch = useMemo(() => {
     if (!selectedBatchId) return null;
-    // Look in allBatches first (for initialBatchId case), then in filtered batches
-    const fromAll = allBatches?.find((b) => b.id === selectedBatchId);
-    if (fromAll) return fromAll;
-    return batches?.find((b) => b.id === selectedBatchId) || null;
-  }, [selectedBatchId, batches, allBatches]);
+    return allBatches?.find((b) => b.id === selectedBatchId) || null;
+  }, [selectedBatchId, allBatches]);
+
+  // Handle batch selection - auto-populate source warehouse
+  const handleBatchSelect = (batch: BatchStock) => {
+    setSelectedBatchId(batch.id);
+    setSourceWarehouseId(batch.warehouse_id);
+    setErrors((prev) => ({...prev, batch: ''}));
+  };
 
   // Available stock for selected batch
   const availableStock = selectedBatch?.quantity ?? 0;
   const unit = selectedBatch?.unit ?? 'kg';
 
-  // Reset batch when warehouse changes
-  const handleSourceWarehouseChange = (value: string) => {
-    setSourceWarehouseId(parseInt(value));
-    setSelectedBatchId(null);
-    setQuantity(0);
-    setErrors((prev) => ({...prev, sourceWarehouse: '', batch: ''}));
-  };
-
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!sourceWarehouseId) {
-      newErrors.sourceWarehouse = t('validation.sourceWarehouseRequired');
-    }
     if (!selectedBatchId) {
       newErrors.batch =
         t('validation.batchRequired') || 'Please select a batch';
@@ -147,7 +149,7 @@ export function TransferForm({
     }
   };
 
-  if (warehousesLoading) {
+  if (warehousesLoading || allBatchesLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-10 w-full" />
@@ -160,146 +162,126 @@ export function TransferForm({
 
   return (
     <div className="space-y-4">
-      {/* Source Warehouse */}
+      {/* Batch Selection - First */}
       <div className="space-y-2">
-        <Label>{t('sourceWarehouse')}</Label>
-        <Select
-          value={sourceWarehouseId?.toString() || ''}
-          onValueChange={handleSourceWarehouseChange}
+        <Label>{t('selectBatch') || 'Select Batch to Transfer'}</Label>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            className="pl-9"
+            placeholder={
+              t('searchBatch') ||
+              'Search by batch code, product, or warehouse...'
+            }
+            value={batchSearch}
+            onChange={(e) => setBatchSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Batch List */}
+        <div
+          className={`max-h-56 space-y-2 overflow-y-auto rounded-md border p-2 ${errors.batch ? 'border-destructive' : ''}`}
         >
-          <SelectTrigger
-            className={errors.sourceWarehouse ? 'border-destructive' : ''}
-          >
-            <SelectValue placeholder={t('selectSourceWarehouse')} />
-          </SelectTrigger>
-          <SelectContent>
-            {warehouses?.map((wh) => (
-              <SelectItem key={wh.id} value={wh.id.toString()}>
-                {wh.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.sourceWarehouse && (
-          <p className="text-destructive text-sm">{errors.sourceWarehouse}</p>
+          {filteredBatches.length > 0 ? (
+            filteredBatches.map((batch) => (
+              <BatchOption
+                key={batch.id}
+                batch={batch}
+                isSelected={selectedBatchId === batch.id}
+                onSelect={() => handleBatchSelect(batch)}
+                showWarehouse={true}
+              />
+            ))
+          ) : (
+            <div className="text-muted-foreground py-4 text-center text-sm">
+              {allBatches && allBatches.length === 0
+                ? t('noBatches') || 'No batches available for transfer'
+                : t('noBatchesFound') ||
+                  'No batches found matching your search'}
+            </div>
+          )}
+        </div>
+        {errors.batch && (
+          <p className="text-destructive text-sm">{errors.batch}</p>
+        )}
+
+        {/* Selected batch info */}
+        {selectedBatch && (
+          <div className="bg-primary/5 border-primary/20 rounded-md border p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">
+                  {selectedBatch.batch_code}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {selectedBatch.product_type} • {selectedBatch.warehouse_name}
+                </p>
+              </div>
+              <Badge variant="secondary" className="font-semibold">
+                {availableStock.toLocaleString()} {unit}
+              </Badge>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Batch Selection */}
-      {sourceWarehouseId && (
+      {/* Destination Warehouse - Only show after batch is selected */}
+      {selectedBatch && (
         <div className="space-y-2">
-          <Label>{t('selectBatch') || 'Select Batch'}</Label>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              className="pl-9"
-              placeholder={t('searchBatch') || 'Search batches...'}
-              value={batchSearch}
-              onChange={(e) => setBatchSearch(e.target.value)}
-            />
-          </div>
-
-          {/* Batch List */}
-          <div
-            className={`max-h-48 space-y-2 overflow-y-auto rounded-md border p-2 ${errors.batch ? 'border-destructive' : ''}`}
+          <Label>{t('destinationWarehouse')}</Label>
+          <Select
+            value={destinationWarehouseId?.toString() || ''}
+            onValueChange={(value) => {
+              setDestinationWarehouseId(parseInt(value));
+              setErrors((prev) => ({...prev, destinationWarehouse: ''}));
+            }}
           >
-            {batchesLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-14 w-full" />
-                <Skeleton className="h-14 w-full" />
-              </div>
-            ) : batches && batches.length > 0 ? (
-              batches.map((batch) => (
-                <BatchOption
-                  key={batch.id}
-                  batch={batch}
-                  isSelected={selectedBatchId === batch.id}
-                  onSelect={() => {
-                    setSelectedBatchId(batch.id);
-                    setErrors((prev) => ({...prev, batch: ''}));
-                  }}
-                />
-              ))
-            ) : (
-              <div className="text-muted-foreground py-4 text-center text-sm">
-                {t('noBatchesFound') || 'No batches found in this warehouse'}
-              </div>
-            )}
-          </div>
-          {errors.batch && (
-            <p className="text-destructive text-sm">{errors.batch}</p>
-          )}
-
-          {/* Selected batch info */}
-          {selectedBatch && (
-            <div className="bg-muted/50 rounded-md p-3">
-              <p className="text-sm font-medium">
-                {selectedBatch.batch_code} - {selectedBatch.product_type}
-              </p>
-              <p className="text-muted-foreground text-sm">
-                {t('availableStock', {
-                  quantity: availableStock.toLocaleString(),
-                  unit: unit,
-                })}
-              </p>
-            </div>
+            <SelectTrigger
+              className={
+                errors.destinationWarehouse ? 'border-destructive' : ''
+              }
+            >
+              <SelectValue placeholder={t('selectDestinationWarehouse')} />
+            </SelectTrigger>
+            <SelectContent>
+              {warehouses
+                ?.filter((wh) => wh.id !== sourceWarehouseId)
+                .map((wh) => (
+                  <SelectItem key={wh.id} value={wh.id.toString()}>
+                    {wh.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {errors.destinationWarehouse && (
+            <p className="text-destructive text-sm">
+              {errors.destinationWarehouse}
+            </p>
           )}
         </div>
       )}
 
-      {/* Destination Warehouse */}
-      <div className="space-y-2">
-        <Label>{t('destinationWarehouse')}</Label>
-        <Select
-          value={destinationWarehouseId?.toString() || ''}
-          onValueChange={(value) => {
-            setDestinationWarehouseId(parseInt(value));
-            setErrors((prev) => ({...prev, destinationWarehouse: ''}));
-          }}
-        >
-          <SelectTrigger
-            className={errors.destinationWarehouse ? 'border-destructive' : ''}
-          >
-            <SelectValue placeholder={t('selectDestinationWarehouse')} />
-          </SelectTrigger>
-          <SelectContent>
-            {warehouses
-              ?.filter((wh) => wh.id !== sourceWarehouseId)
-              .map((wh) => (
-                <SelectItem key={wh.id} value={wh.id.toString()}>
-                  {wh.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-        {errors.destinationWarehouse && (
-          <p className="text-destructive text-sm">
-            {errors.destinationWarehouse}
-          </p>
-        )}
-      </div>
-
-      {/* Quantity */}
-      <div className="space-y-2">
-        <Label>
-          {t('quantity')} ({unit})
-        </Label>
-        <Input
-          type="number"
-          value={quantity || ''}
-          onChange={(e) => {
-            setQuantity(parseFloat(e.target.value) || 0);
-            setErrors((prev) => ({...prev, quantity: ''}));
-          }}
-          className={errors.quantity ? 'border-destructive' : ''}
-          max={availableStock}
-        />
-        {errors.quantity && (
-          <p className="text-destructive text-sm">{errors.quantity}</p>
-        )}
-        {selectedBatch && (
+      {/* Quantity - Only show after batch is selected */}
+      {selectedBatch && (
+        <div className="space-y-2">
+          <Label>
+            {t('quantity')} ({unit})
+          </Label>
+          <Input
+            type="number"
+            value={quantity || ''}
+            onChange={(e) => {
+              setQuantity(parseFloat(e.target.value) || 0);
+              setErrors((prev) => ({...prev, quantity: ''}));
+            }}
+            className={errors.quantity ? 'border-destructive' : ''}
+            max={availableStock}
+          />
+          {errors.quantity && (
+            <p className="text-destructive text-sm">{errors.quantity}</p>
+          )}
           <div className="flex gap-2">
             <Button
               type="button"
@@ -318,21 +300,23 @@ export function TransferForm({
               {t('transferHalf') || 'Half'}
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Notes */}
-      <div className="space-y-2">
-        <Label>
-          {t('notes')} ({tCommon('optional')})
-        </Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder={t('notesPlaceholder')}
-          rows={3}
-        />
-      </div>
+      {/* Notes - Only show after batch is selected */}
+      {selectedBatch && (
+        <div className="space-y-2">
+          <Label>
+            {t('notes')} ({tCommon('optional')})
+          </Label>
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder={t('notesPlaceholder')}
+            rows={3}
+          />
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-2 pt-2">
@@ -373,10 +357,12 @@ function BatchOption({
   batch,
   isSelected,
   onSelect,
+  showWarehouse = false,
 }: {
   batch: BatchStock;
   isSelected: boolean;
   onSelect: () => void;
+  showWarehouse?: boolean;
 }) {
   return (
     <button
@@ -390,7 +376,10 @@ function BatchOption({
         <Package className="text-muted-foreground size-5" />
         <div>
           <p className="text-sm font-medium">{batch.batch_code}</p>
-          <p className="text-muted-foreground text-xs">{batch.product_type}</p>
+          <p className="text-muted-foreground text-xs">
+            {batch.product_type}
+            {showWarehouse && ` • ${batch.warehouse_name}`}
+          </p>
         </div>
       </div>
       <Badge variant="secondary">

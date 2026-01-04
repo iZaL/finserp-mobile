@@ -42,6 +42,46 @@ export interface ProductOutputEntryData {
   warehouseId?: number;
 }
 
+export interface ProductOutputEntryValidation {
+  warehouseRequired: boolean;
+  warehouseMissing: boolean;
+  fillCyclesRequired: boolean;
+  fillCyclesMissing: boolean;
+}
+
+// Validation helper based on product type's can_be_packaged flag
+export function validateProductEntry(
+  productType: ProductionProductType,
+  data: ProductOutputEntryData
+): ProductOutputEntryValidation {
+  // For packagable products: if bags produced > 0, warehouse is required
+  const hasBagsProduced =
+    productType.can_be_packaged && (data.packageCount ?? 0) > 0;
+
+  // For non-packagable products: if tank_capacity > 0, fill_cycles is required
+  const hasTankCapacity =
+    !productType.can_be_packaged && (data.tankCapacity ?? 0) > 0;
+  const hasFillCycles = (data.fillCycles ?? 0) > 0;
+
+  // Warehouse is required when:
+  // - packagable and bags > 0
+  // - OR non-packagable and tank_capacity > 0 and fill_cycles > 0
+  const warehouseRequired =
+    hasBagsProduced || (hasTankCapacity && hasFillCycles);
+  const warehouseMissing = warehouseRequired && !data.warehouseId;
+
+  // Fill cycles is required when tank_capacity > 0 (for non-packagable)
+  const fillCyclesRequired = hasTankCapacity;
+  const fillCyclesMissing = fillCyclesRequired && !hasFillCycles;
+
+  return {
+    warehouseRequired,
+    warehouseMissing,
+    fillCyclesRequired,
+    fillCyclesMissing,
+  };
+}
+
 interface ProductOutputEntryCardProps {
   productType: ProductionProductType;
   packageTypes: ProductionPackageType[];
@@ -49,6 +89,7 @@ interface ProductOutputEntryCardProps {
   data: ProductOutputEntryData;
   onChange: (data: ProductOutputEntryData) => void;
   className?: string;
+  showValidation?: boolean;
 }
 
 export function ProductOutputEntryCard({
@@ -58,11 +99,18 @@ export function ProductOutputEntryCard({
   data,
   onChange,
   className,
+  showValidation = false,
 }: ProductOutputEntryCardProps) {
   const t = useTranslations('productionOutputs.entry');
   const locale = useLocale();
   const isFishmeal = productType.code === 'fishmeal';
   const Icon = isFishmeal ? Wheat : Droplet;
+
+  // Validation state
+  const validation = useMemo(
+    () => validateProductEntry(productType, data),
+    [productType, data]
+  );
 
   const filteredPackageTypes = useMemo(
     () => packageTypes.filter((pt) => pt.product_type_id === productType.id),
@@ -201,7 +249,12 @@ export function ProductOutputEntryCard({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">{t('fillCycles')}</Label>
+              <Label className="text-xs">
+                {t('fillCycles')}
+                {validation.fillCyclesRequired && (
+                  <span className="text-destructive ms-0.5">*</span>
+                )}
+              </Label>
               <Input
                 type="number"
                 inputMode="numeric"
@@ -209,8 +262,18 @@ export function ProductOutputEntryCard({
                 placeholder="0"
                 value={data.fillCycles ?? ''}
                 onChange={(e) => handleFillCyclesChange(e.target.value)}
-                className="h-9"
+                className={cn(
+                  'h-9',
+                  showValidation &&
+                    validation.fillCyclesMissing &&
+                    'border-destructive ring-destructive/20 ring-1'
+                )}
               />
+              {showValidation && validation.fillCyclesMissing && (
+                <p className="text-destructive text-xs">
+                  {t('fillCyclesRequired')}
+                </p>
+              )}
             </div>
 
             <div className="bg-muted/50 text-muted-foreground rounded p-2 text-xs">
@@ -237,12 +300,24 @@ export function ProductOutputEntryCard({
 
         <div className="mt-auto border-t pt-3">
           <div className="space-y-1.5">
-            <Label className="text-xs">{t('warehouse')}</Label>
+            <Label className="text-xs">
+              {t('warehouse')}
+              {validation.warehouseRequired && (
+                <span className="text-destructive ms-0.5">*</span>
+              )}
+            </Label>
             <Select
               value={data.warehouseId?.toString() || ''}
               onValueChange={handleWarehouseChange}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger
+                className={cn(
+                  'h-9',
+                  showValidation &&
+                    validation.warehouseMissing &&
+                    'border-destructive ring-destructive/20 ring-1'
+                )}
+              >
                 <SelectValue placeholder={t('selectWarehouse')} />
               </SelectTrigger>
               <SelectContent>
@@ -253,6 +328,11 @@ export function ProductOutputEntryCard({
                 ))}
               </SelectContent>
             </Select>
+            {showValidation && validation.warehouseMissing && (
+              <p className="text-destructive text-xs">
+                {t('warehouseRequired')}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>

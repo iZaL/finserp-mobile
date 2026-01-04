@@ -1,13 +1,12 @@
 'use client';
 
-import {Fragment, useMemo, useState, useCallback} from 'react';
+import {Fragment, useMemo, useState, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import {
   Package,
   ChevronRight,
   Layers,
-  X,
   Calendar,
   Wheat,
   Droplet,
@@ -40,6 +39,8 @@ interface ProductionOutputsTableProps {
   compact?: boolean;
   title?: string;
   subtitle?: string;
+  onlyBatchable?: boolean; // Only show outputs that can be used for batch creation
+  defaultExpanded?: boolean; // Expand all date groups by default
 }
 
 // Get product type styling
@@ -66,67 +67,120 @@ export function ProductionOutputsTable({
   compact = false,
   title,
   subtitle,
+  onlyBatchable = false,
+  defaultExpanded = false,
 }: ProductionOutputsTableProps) {
   const router = useRouter();
   const t = useTranslations('productionOutputs');
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
-  const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const {data, isLoading, error} = useProductionOutputs(filters);
   const {canCreateBatch: hasCreateBatchPermission} = usePermissionStore();
 
-  const {productTypes, groupedByDate, totals, allOutputs} = useMemo(() => {
-    if (!data?.data?.length)
-      return {
-        productTypes: [],
-        groupedByDate: [] as GroupedData[],
-        totals: {},
-        allOutputs: [] as ProductionOutput[],
-      };
-
-    const types = [
-      ...new Set(data.data.map((o) => o.product_type?.name).filter(Boolean)),
-    ] as string[];
-    const byDate: Record<
-      string,
-      Record<string, {total: number; records: ProductionOutput[]}>
-    > = {};
-    const totalsByType: Record<string, number> = {};
-
-    data.data.forEach((output) => {
-      const date = output.production_date;
-      const typeName = output.product_type?.name || 'Other';
-
-      if (!byDate[date]) byDate[date] = {};
-      if (!byDate[date][typeName])
-        byDate[date][typeName] = {total: 0, records: []};
-
-      byDate[date][typeName].total += output.total_quantity;
-      byDate[date][typeName].records.push(output);
-      totalsByType[typeName] =
-        (totalsByType[typeName] || 0) + output.total_quantity;
-    });
-
-    const grouped: GroupedData[] = Object.entries(byDate)
-      .sort(([a], [b]) => b.localeCompare(a))
-      .map(([date, byType]) => {
-        const allRecords = Object.values(byType).flatMap((t) => t.records);
+  const {productTypes, groupedByDate, totals, allOutputs, latestOutputId} =
+    useMemo(() => {
+      if (!data?.data?.length)
         return {
-          date,
-          byType,
-          totalRecords: allRecords.length,
-          allRecords,
+          productTypes: [],
+          groupedByDate: [] as GroupedData[],
+          totals: {},
+          allOutputs: [] as ProductionOutput[],
+          latestOutputId: null as number | null,
         };
+
+      // Filter to only batchable outputs if requested
+      const filteredData = onlyBatchable
+        ? data.data.filter(
+            (o) =>
+              (o.available_quantity ?? o.total_quantity) > 0 &&
+              o.status !== 'voided' &&
+              o.status !== 'verified'
+          )
+        : data.data;
+
+      if (filteredData.length === 0)
+        return {
+          productTypes: [],
+          groupedByDate: [] as GroupedData[],
+          totals: {},
+          allOutputs: [] as ProductionOutput[],
+          latestOutputId: null as number | null,
+        };
+
+      const types = [
+        ...new Set(
+          filteredData.map((o) => o.product_type?.name).filter(Boolean)
+        ),
+      ] as string[];
+      const byDate: Record<
+        string,
+        Record<string, {total: number; records: ProductionOutput[]}>
+      > = {};
+      const totalsByType: Record<string, number> = {};
+
+      // Find the latest output (most recently created)
+      const latestOutput = filteredData.reduce(
+        (latest, current) => {
+          if (!latest) return current;
+          return new Date(current.created_at) > new Date(latest.created_at)
+            ? current
+            : latest;
+        },
+        null as ProductionOutput | null
+      );
+
+      filteredData.forEach((output) => {
+        const date = output.production_date;
+        const typeName = output.product_type?.name || 'Other';
+
+        if (!byDate[date]) byDate[date] = {};
+        if (!byDate[date][typeName])
+          byDate[date][typeName] = {total: 0, records: []};
+
+        byDate[date][typeName].total += output.total_quantity;
+        byDate[date][typeName].records.push(output);
+        totalsByType[typeName] =
+          (totalsByType[typeName] || 0) + output.total_quantity;
       });
 
-    return {
-      productTypes: types,
-      groupedByDate: grouped,
-      totals: totalsByType,
-      allOutputs: data.data,
-    };
-  }, [data?.data]);
+      // Sort records within each type group by created_at descending (newest first)
+      Object.values(byDate).forEach((dateGroup) => {
+        Object.values(dateGroup).forEach((typeGroup) => {
+          typeGroup.records.sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          );
+        });
+      });
+
+      const grouped: GroupedData[] = Object.entries(byDate)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .map(([date, byType]) => {
+          const allRecords = Object.values(byType)
+            .flatMap((t) => t.records)
+            .sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+            );
+          return {
+            date,
+            byType,
+            totalRecords: allRecords.length,
+            allRecords,
+          };
+        });
+
+      return {
+        productTypes: types,
+        groupedByDate: grouped,
+        totals: totalsByType,
+        allOutputs: filteredData,
+        latestOutputId: latestOutput?.id ?? null,
+      };
+    }, [data?.data, onlyBatchable]);
 
   const selectableOutputs = useMemo(() => {
     return allOutputs.filter(
@@ -151,6 +205,23 @@ export function ProductionOutputsTable({
     selectedOutputs.length > 0 && selectedProductTypes.length === 1;
   const mixedProductTypes = selectedProductTypes.length > 1;
 
+  // Selection is always enabled when batching is available
+  const canSelect =
+    showBatchingCard &&
+    selectableOutputs.length > 0 &&
+    hasCreateBatchPermission();
+
+  // Auto-expand all dates when defaultExpanded is true
+  useEffect(() => {
+    if (
+      defaultExpanded &&
+      groupedByDate.length > 0 &&
+      expandedDates.size === 0
+    ) {
+      setExpandedDates(new Set(groupedByDate.map((g) => g.date)));
+    }
+  }, [defaultExpanded, groupedByDate, expandedDates.size]);
+
   const toggleDate = (date: string) => {
     setExpandedDates((prev) => {
       const next = new Set(prev);
@@ -167,21 +238,6 @@ export function ProductionOutputsTable({
       else next.add(id);
       return next;
     });
-  }, []);
-
-  const enterSelectionMode = useCallback(() => {
-    setSelectionMode(true);
-    // Auto-expand all dates that have multiple records
-    const datesToExpand = groupedByDate
-      .filter((group) => group.totalRecords > 1)
-      .map((group) => group.date);
-    setExpandedDates(new Set(datesToExpand));
-  }, [groupedByDate]);
-
-  const exitSelectionMode = useCallback(() => {
-    setSelectionMode(false);
-    setSelectedIds(new Set());
-    setExpandedDates(new Set());
   }, []);
 
   const handleCreateBatch = useCallback(() => {
@@ -335,92 +391,8 @@ export function ProductionOutputsTable({
         </div>
       )}
 
-      {/* Batching card */}
-      {showBatchingCard &&
-        selectableOutputs.length > 0 &&
-        hasCreateBatchPermission() && (
-          <Card
-            className={cn(
-              'overflow-hidden border-0 shadow-md transition-all',
-              selectionMode
-                ? 'bg-gradient-to-r from-slate-700 to-slate-800'
-                : 'bg-gradient-to-r from-indigo-500 to-violet-600'
-            )}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between text-white">
-                <div>
-                  {selectionMode ? (
-                    <>
-                      <p className="font-semibold">
-                        {selectedIds.size === 0
-                          ? 'Select outputs to batch'
-                          : `${selectedIds.size} output${selectedIds.size !== 1 ? 's' : ''} selected`}
-                      </p>
-                      <p className="text-sm text-white/80">
-                        {mixedProductTypes
-                          ? 'Select same product type only'
-                          : canCreateBatch
-                            ? 'Ready to create batch'
-                            : 'Tap rows to select'}
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold">Create Batch from Outputs</p>
-                      <p className="text-sm text-white/80">
-                        {selectableOutputs.length} output
-                        {selectableOutputs.length !== 1 ? 's' : ''} available
-                      </p>
-                    </>
-                  )}
-                </div>
-                {selectionMode ? (
-                  <Button
-                    onClick={exitSelectionMode}
-                    variant="secondary"
-                    className="bg-white/20 text-white hover:bg-white/30"
-                  >
-                    <X className="me-2 size-4" />
-                    Cancel
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={enterSelectionMode}
-                    variant="secondary"
-                    className="bg-white/20 text-white hover:bg-white/30"
-                  >
-                    <Layers className="me-2 size-4" />
-                    {t('select')}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
       {/* Records List */}
       <Card className="overflow-hidden border-0 shadow-md">
-        {/* Header */}
-        <div className="bg-muted/50 flex items-center border-b px-4 py-3">
-          <div className="flex-1">
-            <span className="text-sm font-semibold">{t('list.date')}</span>
-          </div>
-          {productTypes.map((type) => {
-            const style = getProductTypeStyle(type);
-            const Icon = style.icon;
-            return (
-              <div
-                key={type}
-                className="flex w-28 items-center justify-end gap-1.5"
-              >
-                <Icon className={cn('size-4', style.textColor)} />
-                <span className="text-sm font-semibold">{type}</span>
-              </div>
-            );
-          })}
-        </div>
-
         {/* Rows */}
         <div className="divide-y">
           {groupedByDate.map((group) => {
@@ -435,7 +407,7 @@ export function ProductionOutputsTable({
             const isPartiallySelected = isGroupPartiallySelected(group);
 
             const handleRowClick = () => {
-              if (selectionMode) {
+              if (canSelect) {
                 if (hasMultiple) {
                   toggleDate(group.date);
                 } else if (singleRecord && isOutputSelectable(singleRecord)) {
@@ -456,12 +428,12 @@ export function ProductionOutputsTable({
                   className={cn(
                     'group flex cursor-pointer items-center px-4 py-3 transition-colors',
                     'hover:bg-muted/50',
-                    selectionMode && isFullySelected && 'bg-primary/5'
+                    canSelect && isFullySelected && 'bg-primary/5'
                   )}
                   onClick={handleRowClick}
                 >
                   {/* Selection checkbox */}
-                  {selectionMode && (
+                  {canSelect && (
                     <div className="mr-3" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={isFullySelected}
@@ -505,42 +477,37 @@ export function ProductionOutputsTable({
                         <span className="text-muted-foreground text-xs">
                           {hasMultiple
                             ? t('list.records', {count: group.totalRecords})
-                            : singleRecord?.record_number}
+                            : singleRecord?.product_type?.name}
                         </span>
-                        {singleRecord?.batch_allocations &&
-                          singleRecord.batch_allocations.length > 0 && (
-                            <>
-                              {singleRecord.batch_allocations
-                                .slice(0, 2)
-                                .map((alloc) => (
-                                  <Badge
-                                    key={alloc.id}
-                                    variant="secondary"
-                                    className="px-1.5 py-0 text-[10px]"
-                                  >
-                                    {alloc.batch?.batch_code}
-                                  </Badge>
-                                ))}
-                              {singleRecord.batch_allocations.length > 2 && (
-                                <Badge
-                                  variant="outline"
-                                  className="px-1.5 py-0 text-[10px]"
-                                >
-                                  +{singleRecord.batch_allocations.length - 2}
-                                </Badge>
-                              )}
-                            </>
-                          )}
-                        {selectionMode &&
-                          selectableCount > 0 &&
-                          hasMultiple && (
+                        {!hasMultiple &&
+                          singleRecord &&
+                          (singleRecord.available_quantity !== undefined &&
+                          singleRecord.available_quantity === 0 ? (
                             <Badge
-                              variant="outline"
+                              variant="secondary"
                               className="px-1.5 py-0 text-[10px]"
                             >
-                              {selectableCount} available
+                              Batched
                             </Badge>
-                          )}
+                          ) : singleRecord.available_quantity !== undefined &&
+                            singleRecord.available_quantity <
+                              singleRecord.total_quantity ? (
+                            <Badge className="bg-amber-500 px-1.5 py-0 text-[10px] text-white">
+                              Partial
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
+                              Available
+                            </Badge>
+                          ))}
+                        {canSelect && selectableCount > 0 && hasMultiple && (
+                          <Badge
+                            variant="outline"
+                            className="px-1.5 py-0 text-[10px]"
+                          >
+                            {selectableCount} available
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -602,20 +569,20 @@ export function ProductionOutputsTable({
                                 className={cn(
                                   'flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors',
                                   'hover:bg-background/80',
-                                  selectionMode && isSelected && 'bg-primary/10'
+                                  canSelect && isSelected && 'bg-primary/10'
                                 )}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (selectionMode && selectable) {
+                                  if (canSelect && selectable) {
                                     toggleSelection(record.id);
-                                  } else if (!selectionMode) {
+                                  } else if (!canSelect) {
                                     router.push(
                                       `/production-outputs/${record.id}`
                                     );
                                   }
                                 }}
                               >
-                                {selectionMode && (
+                                {canSelect && (
                                   <Checkbox
                                     checked={isSelected}
                                     disabled={!selectable}
@@ -644,38 +611,21 @@ export function ProductionOutputsTable({
                                       className={cn(
                                         'text-sm font-medium',
                                         !selectable &&
-                                          selectionMode &&
+                                          canSelect &&
                                           'text-muted-foreground'
                                       )}
                                     >
-                                      {record.record_number}
-                                    </span>
-                                    {record.batch_allocations &&
-                                      record.batch_allocations.length > 0 && (
-                                        <>
-                                          {record.batch_allocations
-                                            .slice(0, 2)
-                                            .map((alloc) => (
-                                              <Badge
-                                                key={alloc.id}
-                                                variant="secondary"
-                                                className="px-1.5 py-0 text-[10px]"
-                                              >
-                                                {alloc.batch?.batch_code}
-                                              </Badge>
-                                            ))}
-                                        </>
-                                      )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-muted-foreground text-xs">
                                       {typeName}
                                     </span>
-                                    <span className="text-muted-foreground text-xs">
-                                      •
-                                    </span>
-                                    <Clock className="text-muted-foreground size-3" />
-                                    <span className="text-muted-foreground text-xs">
+                                    {record.id === latestOutputId && (
+                                      <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
+                                        Latest
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                                    <Clock className="size-3" />
+                                    <span>
                                       {new Date(
                                         record.created_at
                                       ).toLocaleTimeString([], {
@@ -683,30 +633,73 @@ export function ProductionOutputsTable({
                                         minute: '2-digit',
                                       })}
                                     </span>
+                                    {record.operator && (
+                                      <>
+                                        <span>•</span>
+                                        <span>{record.operator.name}</span>
+                                      </>
+                                    )}
+                                    {record.production_run && (
+                                      <>
+                                        <span>•</span>
+                                        <span>
+                                          {record.production_run.name}
+                                        </span>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
 
-                                <div className="text-right">
-                                  <span
-                                    className={cn(
-                                      'text-sm font-semibold tabular-nums',
-                                      style.textColor,
-                                      !selectable &&
-                                        selectionMode &&
-                                        'opacity-50'
-                                    )}
-                                  >
-                                    {record.total_quantity.toLocaleString()}{' '}
-                                    {record.unit}
-                                  </span>
-                                  {record.available_quantity !== undefined &&
-                                    record.available_quantity <
-                                      record.total_quantity && (
-                                      <p className="text-muted-foreground text-xs">
-                                        {record.available_quantity.toLocaleString()}{' '}
-                                        avail
-                                      </p>
-                                    )}
+                                <div className="flex items-center gap-2">
+                                  <div className="text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                      <span
+                                        className={cn(
+                                          'text-sm font-semibold tabular-nums',
+                                          style.textColor,
+                                          !selectable &&
+                                            canSelect &&
+                                            'opacity-50'
+                                        )}
+                                      >
+                                        {record.storage_type === 'packaged' &&
+                                        record.package_count ? (
+                                          <>{record.package_count} bags</>
+                                        ) : (
+                                          <>
+                                            {record.total_quantity.toLocaleString()}{' '}
+                                            {record.unit}
+                                          </>
+                                        )}
+                                      </span>
+                                      {/* Status badge */}
+                                      {record.available_quantity !==
+                                        undefined &&
+                                      record.available_quantity === 0 ? (
+                                        <Badge
+                                          variant="secondary"
+                                          className="px-1.5 py-0 text-[10px]"
+                                        >
+                                          Batched
+                                        </Badge>
+                                      ) : record.available_quantity !==
+                                          undefined &&
+                                        record.available_quantity <
+                                          record.total_quantity ? (
+                                        <Badge className="bg-amber-500 px-1.5 py-0 text-[10px] text-white">
+                                          Partial
+                                        </Badge>
+                                      ) : (
+                                        <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
+                                          Available
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-muted-foreground text-xs tabular-nums">
+                                      {record.total_quantity.toLocaleString()}{' '}
+                                      kg
+                                    </p>
+                                  </div>
                                 </div>
 
                                 <ChevronRight className="text-muted-foreground size-4" />
@@ -725,7 +718,7 @@ export function ProductionOutputsTable({
         {/* Footer totals */}
         <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-4 py-3 dark:from-slate-800 dark:to-slate-700">
           <div className="flex items-center">
-            {selectionMode && <div className="mr-3 w-5" />}
+            {canSelect && <div className="mr-3 w-5" />}
             <div className="flex flex-1 items-center gap-3">
               <div className="size-10" />
               <span className="font-bold">{t('list.total')}</span>
@@ -751,7 +744,7 @@ export function ProductionOutputsTable({
       </Card>
 
       {/* Selection mode footer */}
-      {selectionMode && (
+      {canSelect && (
         <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">

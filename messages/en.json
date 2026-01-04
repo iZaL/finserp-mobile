@@ -57,7 +57,19 @@
     "productionOutputs": "Production Outputs",
     "viewProductionOutputs": "View and manage outputs",
     "inventory": "Inventory",
-    "manageInventory": "Track stock and movements"
+    "manageInventory": "Track stock and movements",
+    "warehouses": "Warehouses",
+    "manageWarehouses": "View warehouse locations",
+    "recordProduction": "Record Production",
+    "recordProductionDesc": "Log output from active run",
+    "todaysOutput": "Today's Output",
+    "todaysOutputDesc": "View production recorded today",
+    "checkStock": "Check Stock",
+    "checkStockDesc": "View inventory levels",
+    "moveStock": "Move Stock",
+    "moveStockDesc": "Transfer between warehouses",
+    "productionHub": "Production Hub",
+    "productionHubDesc": "Full production workflow"
   },
   "vehicleBookings": {
     "title": "Vehicle Bookings",
@@ -597,7 +609,9 @@
       "cycles": "cycles",
       "total": "Total",
       "warehouse": "Warehouse",
-      "selectWarehouse": "Select warehouse"
+      "selectWarehouse": "Select warehouse",
+      "warehouseRequired": "Warehouse is required",
+      "fillCyclesRequired": "Fill cycles is required"
     }
   },
   "language": {
@@ -608,6 +622,7 @@
     "home": "Home",
     "bookings": "Bookings",
     "suppliers": "Suppliers",
+    "production": "Production",
     "productionOutputs": "Production",
     "inventory": "Inventory",
     "more": "Settings",
@@ -663,6 +678,7 @@
   "suppliers": {
     "title": "Suppliers",
     "subtitle": "{count} suppliers available",
+    "description": "Manage fish suppliers",
     "searchPlaceholder": "Search by name or phone...",
     "suppliers": "suppliers",
     "lastBooking": "Last booking",
@@ -930,6 +946,7 @@
   "productionRuns": {
     "title": "Production Runs",
     "subtitle": "Manage production runs and shifts",
+    "outputsTitle": "Production Outputs",
     "dashboard": "Production Dashboard",
     "dashboardDescription": "Monitor runs and shift operations",
     "viewRuns": "View Runs",
@@ -971,6 +988,12 @@
       "productionLines": "Production Lines",
       "total": "Total",
       "notes": "Notes"
+    },
+    "dateGroups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This Week",
+      "earlier": "Earlier"
     },
     "list": {
       "title": "Recent Production Runs",
@@ -1118,10 +1141,12 @@
     "transfer": {
       "title": "Transfer Stock",
       "subtitle": "Move stock between warehouses",
+      "batchOnlySubtitle": "Select a batch to transfer between warehouses",
       "batch": "Batch",
-      "selectBatch": "Select batch",
-      "searchBatch": "Search batches...",
-      "noBatchesFound": "No batches found",
+      "selectBatch": "Select Batch to Transfer",
+      "searchBatch": "Search by batch code, product, or warehouse...",
+      "noBatchesFound": "No batches found matching your search",
+      "noBatches": "No batches available for transfer",
       "productType": "Product Type",
       "selectProductType": "Select product type",
       "sourceWarehouse": "From Warehouse",
@@ -1244,6 +1269,64 @@
         }
       }
     }
+  },
+  "productionHub": {
+    "title": "Production Hub",
+    "subtitle": "Your production workflow",
+    "activeRun": "Active Run",
+    "noActiveRun": "No Active Run",
+    "startRunPrompt": "Start a production run to begin",
+    "workflow": {
+      "run": "Run",
+      "runs": "Runs",
+      "output": "Output",
+      "outputs": "Outputs",
+      "batch": "Batch",
+      "batches": "Batches",
+      "transfer": "Transfer",
+      "transfers": "Transfers"
+    },
+    "quickActions": {
+      "startRun": "Start Run",
+      "recordOutput": "Record Output",
+      "createBatch": "Create Batch",
+      "transferStock": "Transfer Stock",
+      "viewDetails": "View Details",
+      "viewRuns": "View Runs",
+      "recordMore": "Record More",
+      "viewInventory": "View Inventory"
+    },
+    "todaySummary": {
+      "title": "Today's Summary",
+      "outputRecorded": "Output Recorded",
+      "batchesCreated": "Batches Created",
+      "transfers": "Transfers",
+      "movements": "Movements"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "empty": "No recent activity",
+      "outputRecorded": "Output recorded",
+      "batchCreated": "Batch created",
+      "transferCompleted": "Transfer completed",
+      "runStarted": "Run started",
+      "runCompleted": "Run completed"
+    },
+    "guidance": {
+      "noRun": "Start a production run to begin recording",
+      "recording": "Record output from your active run",
+      "readyToBatch": "Create batches from today's output",
+      "readyToTransfer": "Transfer batches to warehouses"
+    },
+    "states": {
+      "noRun": "No active run",
+      "recording": "Recording outputs",
+      "batching": "Creating batches",
+      "transferring": "Transferring stock"
+    },
+    "inventory": "Inventory",
+    "batches": "Batches",
+    "transferStock": "Transfer Stock"
   },
   "fishPurchases": {
     "title": "Fish Purchases",

@@ -118,7 +118,7 @@ export default function AdjustmentPage() {
 
     try {
       await batchAdjustment.mutateAsync(data);
-      router.push('/inventory');
+      router.push('/batches');
     } catch {
       // Error handled by mutation
     }
