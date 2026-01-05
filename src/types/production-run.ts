@@ -75,6 +75,7 @@ export interface ShiftHandover {
 
 export interface ProductionDashboard {
   current_shift: ProductionShift | null;
+  current_operator: Operator | null;
   active_run: ActiveProductionRun | null;
   pending_handovers: PendingHandover[];
 }

@@ -3,9 +3,8 @@
 import {useSearchParams} from 'next/navigation';
 import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
-import {ArrowLeft} from 'lucide-react';
+import {ArrowLeft, ArrowRightLeft, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import {Card, CardContent} from '@/components/ui/card';
 import {TransferForm} from '@/components/inventory/transfer-form';
 import {InventoryGuard} from '@/components/permission-guard';
 
@@ -25,30 +24,56 @@ export default function TransferPage() {
 
   return (
     <InventoryGuard>
-      <div className="container mx-auto space-y-4 p-4 pb-24">
+      <div className="flex min-h-screen flex-col pb-32">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="size-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{t('title')}</h1>
-            <p className="text-muted-foreground text-sm">
-              {t('batchOnlySubtitle') ||
-                'Select a batch to transfer between warehouses'}
-            </p>
+        <div className="bg-background sticky top-0 z-10 border-b">
+          <div className="container mx-auto flex items-center gap-3 px-4 py-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="size-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold">{t('title')}</h1>
+              <p className="text-muted-foreground text-xs">
+                {t('batchOnlySubtitle') ||
+                  'Select a batch to transfer between warehouses'}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Form */}
-        <Card>
-          <CardContent className="pt-6">
-            <TransferForm
-              initialBatchId={initialBatchId}
-              onSuccess={handleSuccess}
-            />
-          </CardContent>
-        </Card>
+        <div className="container mx-auto flex min-h-0 flex-1 flex-col p-4">
+          <TransferForm
+            initialBatchId={initialBatchId}
+            onSuccess={handleSuccess}
+            fullHeight
+            renderActions={({onSubmit, isSubmitting, isValid}) => (
+              <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm">
+                <Button
+                  className="h-12 w-full text-lg"
+                  onClick={onSubmit}
+                  disabled={isSubmitting || !isValid}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="me-2 size-5 animate-spin" />
+                      {t('submitting')}
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRightLeft className="me-2 size-5" />
+                      {t('submit')}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          />
+        </div>
       </div>
     </InventoryGuard>
   );

@@ -49,19 +49,19 @@
     "vehicleBills": "فواتير السيارات",
     "manageBills": "تصفح وإدارة مرفقات الفواتير",
     "production": "الإنتاج",
-    "productionRuns": "دورات الإنتاج",
-    "manageProduction": "إدارة الدورات وعمليات الورديات",
+    "productionRuns": "الإنتاج",
+    "manageProduction": "إدارة الإنتاج والورديات",
     "viewProduction": "عرض الإنتاج",
-    "startRun": "بدء الدورة",
-    "startNewRun": "بدء دورة إنتاج جديدة",
+    "startRun": "بدء الإنتاج",
+    "startNewRun": "بدء إنتاج جديد",
     "productionOutputs": "مخرجات الإنتاج",
     "viewProductionOutputs": "عرض وإدارة المخرجات",
     "inventory": "المخزون",
     "manageInventory": "تتبع المخزون والحركات",
     "warehouses": "المستودعات",
     "manageWarehouses": "عرض مواقع المستودعات",
-    "recordProduction": "سجل الإنتاج",
-    "recordProductionDesc": "تسجيل المخرجات من الدورة النشطة",
+    "recordProduction": "تسجيل الناتج",
+    "recordProductionDesc": "تسجيل الناتج من الإنتاج النشط",
     "todaysOutput": "إنتاج اليوم",
     "todaysOutputDesc": "عرض الإنتاج المسجل اليوم",
     "checkStock": "تحقق من المخزون",
@@ -577,7 +577,7 @@
       "total": "الإجمالي"
     },
     "new": {
-      "title": "تسجيل مخرجات الإنتاج",
+      "title": "تسجيل الناتج",
       "subtitle": "تتبع الإنتاج اليومي",
       "activeRunBanner": "التسجيل لدورة إنتاج نشطة",
       "runNumber": "دورة #{runId}",
@@ -945,14 +945,14 @@
     "subtitle": "إدارة دورات الإنتاج والورديات",
     "outputsTitle": "مخرجات الإنتاج",
     "dashboard": "لوحة الإنتاج",
-    "dashboardDescription": "مراقبة الدورات وعمليات الورديات",
-    "viewRuns": "عرض الدورات",
-    "manageRuns": "إدارة جميع دورات الإنتاج",
-    "createNew": "دورة جديدة",
-    "createFirst": "بدء أول دورة",
-    "noActiveRun": "لا توجد دورة نشطة",
-    "noActiveRunDescription": "ابدأ دورة إنتاج لبدء التتبع",
-    "currentRun": "الدورة الحالية",
+    "dashboardDescription": "مراقبة الإنتاج وعمليات الورديات",
+    "viewRuns": "عرض الكل",
+    "manageRuns": "إدارة الإنتاج",
+    "createNew": "إنتاج جديد",
+    "createFirst": "بدء أول إنتاج",
+    "noActiveRun": "لا يوجد إنتاج نشط",
+    "noActiveRunDescription": "ابدأ الإنتاج للبدء في التتبع",
+    "currentRun": "الإنتاج الحالي",
     "runStatus": {
       "planned": "مخطط",
       "in_progress": "قيد التنفيذ",
@@ -960,10 +960,10 @@
       "canceled": "ملغي"
     },
     "actions": {
-      "startRun": "بدء الدورة",
-      "stopRun": "إيقاف الدورة",
-      "completeRun": "إكمال الدورة",
-      "recordOutput": "تسجيل الإنتاج"
+      "startRun": "بدء الإنتاج",
+      "stopRun": "إيقاف الإنتاج",
+      "completeRun": "إنهاء الإنتاج",
+      "recordOutput": "تسجيل الناتج"
     },
     "shift": {
       "shift": "الشيفت",
@@ -993,7 +993,7 @@
       "earlier": "سابقاً"
     },
     "list": {
-      "title": "دورات الإنتاج الأخيرة",
+      "title": "دورات الإنتاج",
       "run": "الدورة",
       "status": "الحالة",
       "planned": "المخطط",
@@ -1003,11 +1003,11 @@
       "viewDetails": "عرض التفاصيل"
     },
     "dialog": {
-      "completeTitle": "إكمال دورة الإنتاج",
-      "completeDescription": "هل أنت متأكد من أنك تريد إكمال دورة الإنتاج \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
-      "completionNotesPlaceholder": "اختياري: إضافة ملاحظات الإكمال...",
-      "completing": "جاري الإكمال...",
-      "completeButton": "إكمال الدورة"
+      "completeTitle": "إنهاء الإنتاج",
+      "completeDescription": "هل أنت متأكد من أنك تريد إنهاء الإنتاج \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+      "completionNotesPlaceholder": "اختياري: إضافة ملاحظات الإنهاء...",
+      "completing": "جاري الإنهاء...",
+      "completeButton": "إنهاء الإنتاج"
     },
     "outputs": {
       "title": "مخرجات الإنتاج",
@@ -1021,6 +1021,9 @@
       "fromShift": "من الشيفت",
       "toShift": "إلى الشيفت",
       "selectShift": "اختر الشيفت",
+      "handingOverTo": "تسليم إلى",
+      "toOperator": "المشغل القادم",
+      "selectOperator": "اختر المشغل",
       "pendingTasks": "المهام المعلقة",
       "add": "إضافة",
       "noPendingTasks": "لا توجد مهام معلقة للتسليم",
@@ -1040,16 +1043,16 @@
       "accept": "قبول"
     },
     "search": {
-      "placeholder": "البحث حسب اسم الدورة..."
+      "placeholder": "البحث في الإنتاج..."
     },
     "empty": {
-      "title": "لا توجد دورات إنتاج",
-      "description": "ابدأ بإنشاء أول دورة إنتاج"
+      "title": "لا يوجد إنتاج بعد",
+      "description": "ابدأ بإنشاء أول إنتاج"
     },
     "new": {
-      "title": "بدء دورة إنتاج",
-      "subtitle": "تكوين وبدء دورة إنتاج جديدة",
-      "runName": "اسم الدورة",
+      "title": "بدء الإنتاج",
+      "subtitle": "تكوين وبدء إنتاج جديد",
+      "runName": "اسم الإنتاج",
       "runNamePlaceholder": "يتم إنشاؤه تلقائياً أو أدخل اسماً مخصصاً",
       "selectOperator": "اختر المشغل",
       "selectOperatorPlaceholder": "اختر مشغل الوردية",
@@ -1057,23 +1060,26 @@
       "selectProductionLinePlaceholder": "اختر خط الإنتاج",
       "plannedCapacity": "السعة المخططة",
       "notes": "ملاحظات",
-      "notesPlaceholder": "ملاحظات اختيارية حول هذه الدورة...",
-      "startButton": "بدء دورة الإنتاج",
+      "notesPlaceholder": "ملاحظات اختيارية حول هذا الإنتاج...",
+      "startButton": "بدء الإنتاج",
       "starting": "جاري البدء...",
       "comingSoon": "قريباً",
-      "comingSoonDescription": "هذه الميزة قيد التطوير. قريباً ستتمكن من بدء وإدارة دورات الإنتاج مباشرة من جهازك المحمول.",
+      "comingSoonDescription": "هذه الميزة قيد التطوير. قريباً ستتمكن من بدء وإدارة الإنتاج مباشرة من جهازك المحمول.",
       "linesSelected": "{count} مختار",
       "maxCapacity": "الحد الأقصى: {capacity} كجم",
       "max": "الحد الأقصى",
-      "startImmediatelyDescription": "بدء الدورة مباشرة بعد الإنشاء",
+      "startImmediatelyDescription": "بدء الإنتاج مباشرة بعد الإنشاء",
       "summaryLines": "خطوط الإنتاج",
       "summaryCapacity": "إجمالي السعة المخططة",
       "failedToLoad": "فشل في تحميل بيانات النموذج"
     }
   },
   "inventory": {
-    "title": "المخزون",
+    "title": "الدفعات",
     "subtitle": "نظرة عامة على مخزون الإنتاج",
+    "search": {
+      "placeholder": "البحث عن الدفعات..."
+    },
     "totalStock": "الإجمالي: {quantity} {unit}",
     "total": "إجمالي",
     "warehouseCount": "{count} مستودعات",
@@ -1232,12 +1238,12 @@
   "productionHub": {
     "title": "مركز الإنتاج",
     "subtitle": "سير عمل الإنتاج الخاص بك",
-    "activeRun": "الدورة النشطة",
-    "noActiveRun": "لا توجد دورة نشطة",
-    "startRunPrompt": "ابدأ دورة إنتاج للبدء",
+    "activeRun": "الإنتاج النشط",
+    "noActiveRun": "لا يوجد إنتاج نشط",
+    "startRunPrompt": "ابدأ الإنتاج للبدء",
     "workflow": {
-      "run": "الدورة",
-      "runs": "الدورات",
+      "run": "الإنتاج",
+      "runs": "الإنتاج",
       "output": "المخرج",
       "outputs": "المخرجات",
       "batch": "الدفعة",
@@ -1246,12 +1252,12 @@
       "transfers": "التحويلات"
     },
     "quickActions": {
-      "startRun": "بدء الدورة",
-      "recordOutput": "تسجيل المخرج",
+      "startRun": "بدء الإنتاج",
+      "recordOutput": "تسجيل الناتج",
       "createBatch": "إنشاء دفعة",
       "transferStock": "نقل المخزون",
       "viewDetails": "عرض التفاصيل",
-      "viewRuns": "عرض الدورات",
+      "viewRuns": "عرض الإنتاج",
       "recordMore": "تسجيل المزيد",
       "viewInventory": "عرض المخزون"
     },
@@ -1273,7 +1279,7 @@
     },
     "guidance": {
       "noRun": "ابدأ دورة إنتاج لبدء التسجيل",
-      "recording": "سجل المخرجات من دورتك النشطة",
+      "recording": "سجل الناتج من إنتاجك النشط",
       "readyToBatch": "أنشئ دفعات من إنتاج اليوم",
       "readyToTransfer": "انقل الدفعات إلى المستودعات"
     },

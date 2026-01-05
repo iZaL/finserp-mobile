@@ -10,7 +10,6 @@ import {
   Calendar,
   Wheat,
   Droplet,
-  Clock,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
@@ -20,6 +19,7 @@ import {Badge} from '@/components/ui/badge';
 import {cn} from '@/lib/utils';
 import {useProductionOutputs} from '@/hooks/use-production-outputs';
 import {usePermissionStore} from '@/lib/stores/permission-store';
+import {ProductionOutputRow} from '@/components/production-output-row';
 import type {
   ProductionOutput,
   ProductionOutputFilters,
@@ -426,7 +426,7 @@ export function ProductionOutputsTable({
               <Fragment key={group.date}>
                 <div
                   className={cn(
-                    'group flex cursor-pointer items-center px-4 py-3 transition-colors',
+                    'group flex cursor-pointer items-center px-3 py-2 transition-colors',
                     'hover:bg-muted/50',
                     canSelect && isFullySelected && 'bg-primary/5'
                   )}
@@ -434,7 +434,7 @@ export function ProductionOutputsTable({
                 >
                   {/* Selection checkbox */}
                   {canSelect && (
-                    <div className="mr-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="mr-2" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={isFullySelected}
                         disabled={!hasSelectable}
@@ -455,14 +455,14 @@ export function ProductionOutputsTable({
                   )}
 
                   {/* Date info */}
-                  <div className="flex flex-1 items-center gap-3">
+                  <div className="flex flex-1 items-center gap-2">
                     <div
                       className={cn(
-                        'flex size-10 items-center justify-center rounded-xl',
+                        'flex size-9 items-center justify-center rounded-lg',
                         'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
                       )}
                     >
-                      <Calendar className="text-muted-foreground size-5" />
+                      <Calendar className="text-muted-foreground size-4" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -517,7 +517,7 @@ export function ProductionOutputsTable({
                     const style = getProductTypeStyle(type);
                     const value = group.byType[type]?.total;
                     return (
-                      <div key={type} className="w-28 text-right">
+                      <div key={type} className="w-24 text-right">
                         {value ? (
                           <span
                             className={cn(
@@ -537,7 +537,7 @@ export function ProductionOutputsTable({
                   })}
 
                   {/* Expand indicator */}
-                  <div className="ml-2 w-6">
+                  <div className="ml-1 w-5">
                     {hasMultiple && (
                       <div
                         className={cn(
@@ -545,7 +545,7 @@ export function ProductionOutputsTable({
                           isExpanded && 'rotate-90'
                         )}
                       >
-                        <ChevronRight className="size-5" />
+                        <ChevronRight className="size-4" />
                       </div>
                     )}
                   </div>
@@ -553,159 +553,34 @@ export function ProductionOutputsTable({
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="bg-muted/30 border-t px-4 py-2">
-                    <div className="space-y-2">
-                      {Object.entries(group.byType).flatMap(
-                        ([typeName, typeData]) =>
-                          typeData.records.map((record) => {
-                            const selectable = isOutputSelectable(record);
-                            const isSelected = selectedIds.has(record.id);
-                            const style = getProductTypeStyle(typeName);
-                            const Icon = style.icon;
+                  <div className="bg-muted/30 border-t px-2 py-1">
+                    <div className="space-y-0.5">
+                      {Object.entries(group.byType).flatMap(([, typeData]) =>
+                        typeData.records.map((record) => {
+                          const selectable = isOutputSelectable(record);
+                          const isSelected = selectedIds.has(record.id);
 
-                            return (
-                              <div
-                                key={record.id}
-                                className={cn(
-                                  'flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors',
-                                  'hover:bg-background/80',
-                                  canSelect && isSelected && 'bg-primary/10'
-                                )}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (canSelect && selectable) {
-                                    toggleSelection(record.id);
-                                  } else if (!canSelect) {
-                                    router.push(
-                                      `/production-outputs/${record.id}`
-                                    );
-                                  }
-                                }}
-                              >
-                                {canSelect && (
-                                  <Checkbox
-                                    checked={isSelected}
-                                    disabled={!selectable}
-                                    className={cn(!selectable && 'opacity-30')}
-                                    onCheckedChange={() =>
-                                      toggleSelection(record.id)
-                                    }
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-                                )}
-
-                                <div
-                                  className={cn(
-                                    'flex size-8 items-center justify-center rounded-lg',
-                                    style.bgColor
-                                  )}
-                                >
-                                  <Icon
-                                    className={cn('size-4', style.textColor)}
-                                  />
-                                </div>
-
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className={cn(
-                                        'text-sm font-medium',
-                                        !selectable &&
-                                          canSelect &&
-                                          'text-muted-foreground'
-                                      )}
-                                    >
-                                      {typeName}
-                                    </span>
-                                    {record.id === latestOutputId && (
-                                      <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
-                                        Latest
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-                                    <Clock className="size-3" />
-                                    <span>
-                                      {new Date(
-                                        record.created_at
-                                      ).toLocaleTimeString([], {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })}
-                                    </span>
-                                    {record.operator && (
-                                      <>
-                                        <span>•</span>
-                                        <span>{record.operator.name}</span>
-                                      </>
-                                    )}
-                                    {record.production_run && (
-                                      <>
-                                        <span>•</span>
-                                        <span>
-                                          {record.production_run.name}
-                                        </span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                  <div className="text-right">
-                                    <div className="flex items-center justify-end gap-1.5">
-                                      <span
-                                        className={cn(
-                                          'text-sm font-semibold tabular-nums',
-                                          style.textColor,
-                                          !selectable &&
-                                            canSelect &&
-                                            'opacity-50'
-                                        )}
-                                      >
-                                        {record.storage_type === 'packaged' &&
-                                        record.package_count ? (
-                                          <>{record.package_count} bags</>
-                                        ) : (
-                                          <>
-                                            {record.total_quantity.toLocaleString()}{' '}
-                                            {record.unit}
-                                          </>
-                                        )}
-                                      </span>
-                                      {/* Status badge */}
-                                      {record.available_quantity !==
-                                        undefined &&
-                                      record.available_quantity === 0 ? (
-                                        <Badge
-                                          variant="secondary"
-                                          className="px-1.5 py-0 text-[10px]"
-                                        >
-                                          Batched
-                                        </Badge>
-                                      ) : record.available_quantity !==
-                                          undefined &&
-                                        record.available_quantity <
-                                          record.total_quantity ? (
-                                        <Badge className="bg-amber-500 px-1.5 py-0 text-[10px] text-white">
-                                          Partial
-                                        </Badge>
-                                      ) : (
-                                        <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
-                                          Available
-                                        </Badge>
-                                      )}
-                                    </div>
-                                    <p className="text-muted-foreground text-xs tabular-nums">
-                                      {record.total_quantity.toLocaleString()}{' '}
-                                      kg
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <ChevronRight className="text-muted-foreground size-4" />
-                              </div>
-                            );
-                          })
+                          return (
+                            <ProductionOutputRow
+                              key={record.id}
+                              output={record}
+                              mode={canSelect ? 'select' : 'display'}
+                              selected={isSelected}
+                              onSelect={toggleSelection}
+                              isLatest={record.id === latestOutputId}
+                              disabled={canSelect && !selectable}
+                              onClick={() => {
+                                if (canSelect && selectable) {
+                                  toggleSelection(record.id);
+                                } else if (!canSelect) {
+                                  router.push(
+                                    `/production-outputs/${record.id}`
+                                  );
+                                }
+                              }}
+                            />
+                          );
+                        })
                       )}
                     </div>
                   </div>
@@ -716,17 +591,17 @@ export function ProductionOutputsTable({
         </div>
 
         {/* Footer totals */}
-        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-4 py-3 dark:from-slate-800 dark:to-slate-700">
+        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-3 py-2 dark:from-slate-800 dark:to-slate-700">
           <div className="flex items-center">
-            {canSelect && <div className="mr-3 w-5" />}
-            <div className="flex flex-1 items-center gap-3">
-              <div className="size-10" />
-              <span className="font-bold">{t('list.total')}</span>
+            {canSelect && <div className="mr-2 w-5" />}
+            <div className="flex flex-1 items-center gap-2">
+              <div className="size-9" />
+              <span className="text-sm font-bold">{t('list.total')}</span>
             </div>
             {productTypes.map((type) => {
               const style = getProductTypeStyle(type);
               return (
-                <div key={type} className="w-28 text-right">
+                <div key={type} className="w-24 text-right">
                   <span
                     className={cn(
                       'text-sm font-bold tabular-nums',
@@ -738,15 +613,15 @@ export function ProductionOutputsTable({
                 </div>
               );
             })}
-            <div className="ml-2 w-6" />
+            <div className="ml-1 w-5" />
           </div>
         </div>
       </Card>
 
       {/* Selection mode footer */}
       {canSelect && (
-        <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-4">
+        <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t px-3 py-2.5 shadow-lg backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
               <div className="font-semibold">
                 {selectedIds.size} output{selectedIds.size !== 1 ? 's' : ''}{' '}

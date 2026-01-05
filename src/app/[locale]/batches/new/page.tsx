@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   Layers,
   Package,
-  Warehouse,
+  Warehouse as WarehouseIcon,
   Scale,
   Loader2,
   AlertTriangle,
@@ -21,16 +21,27 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Skeleton} from '@/components/ui/skeleton';
 import {productionOutputService} from '@/lib/services/production-output';
+import {batchInventoryService} from '@/lib/services/inventory';
 import {useCreateBatch} from '@/hooks/use-batches';
 import {usePermissionStore} from '@/lib/stores/permission-store';
 import {BatchesGuard} from '@/components/permission-guard';
-import type {ProductionOutput} from '@/types/production-output';
+import {
+  ProductionOutputRow,
+  type OutputAllocation,
+} from '@/components/production-output-row';
+import type {ProductionOutput, Warehouse} from '@/types/production-output';
 import type {CreateBatchRequest} from '@/types/batch';
 
 export default function CreateBatchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [batchName, setBatchName] = useState('');
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
+    null
+  );
+  const [allocations, setAllocations] = useState<
+    Record<number, OutputAllocation>
+  >({});
 
   const outputIds = useMemo(() => {
     const ids = searchParams.get('output_ids');
@@ -39,8 +50,8 @@ export default function CreateBatchPage() {
 
   const {
     data: outputsData,
-    isLoading,
-    error,
+    isLoading: outputsLoading,
+    error: outputsError,
   } = useQuery({
     queryKey: ['outputs-for-batch', outputIds],
     queryFn: async () => {
@@ -56,29 +67,99 @@ export default function CreateBatchPage() {
     enabled: outputIds.length > 0,
   });
 
-  const outputs = outputsData?.data || [];
+  const {data: warehousesData, isLoading: warehousesLoading} = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: () => batchInventoryService.getWarehouses(),
+  });
 
-  const {totalQuantity, productType, warehouse, packageType, packageCount} =
+  const outputs = outputsData?.data || [];
+  const warehouses: Warehouse[] = warehousesData || [];
+  const isLoading = outputsLoading || warehousesLoading;
+  const error = outputsError;
+
+  // Initialize allocations when outputs are loaded - use AVAILABLE bags, not total
+  useEffect(() => {
+    if (outputs.length > 0 && Object.keys(allocations).length === 0) {
+      const initialAllocations: Record<number, OutputAllocation> = {};
+      outputs.forEach((o: ProductionOutput) => {
+        const weightPerBag = o.weight_per_package || 50;
+        // Calculate available bags from available_quantity
+        // Use round() instead of floor() to avoid floating point precision issues
+        const availableQty = o.available_quantity ?? o.total_quantity;
+        const availableBags = Math.round(availableQty / weightPerBag);
+        initialAllocations[o.id] = {
+          bags: availableBags,
+          quantity: availableBags * weightPerBag,
+        };
+      });
+      setAllocations(initialAllocations);
+    }
+  }, [outputs, allocations]);
+
+  const handleAllocationChange = (id: number, bags: number) => {
+    const output = outputs.find((o: ProductionOutput) => o.id === id);
+    if (!output) return;
+
+    const weightPerBag = output.weight_per_package || 50;
+    setAllocations((prev) => ({
+      ...prev,
+      [id]: {
+        bags,
+        quantity: bags * weightPerBag,
+      },
+    }));
+  };
+
+  // Check if outputs are from multiple warehouses
+  const outputWarehouseIds = useMemo(() => {
+    const ids = new Set<number>();
+    outputs.forEach((o: ProductionOutput) => {
+      if (o.warehouse?.id) {
+        ids.add(o.warehouse.id);
+      }
+    });
+    return ids;
+  }, [outputs]);
+
+  const hasMultipleSourceWarehouses = outputWarehouseIds.size > 1;
+
+  // Auto-select first warehouse when outputs load
+  useEffect(() => {
+    if (warehouses.length > 0 && selectedWarehouseId === null) {
+      setSelectedWarehouseId(warehouses[0].id);
+    }
+  }, [warehouses, selectedWarehouseId]);
+
+  // Get the selected warehouse object
+  const selectedWarehouse = useMemo(() => {
+    return warehouses.find((w) => w.id === selectedWarehouseId) || null;
+  }, [warehouses, selectedWarehouseId]);
+
+  const {totalQuantity, productType, packageType, packageCount} =
     useMemo(() => {
       if (!outputs.length) {
         return {
           totalQuantity: 0,
           productType: null,
-          warehouse: null,
           packageType: null,
           packageCount: 0,
         };
       }
 
-      const total = outputs.reduce(
-        (sum: number, o: ProductionOutput) =>
-          sum + (o.available_quantity ?? o.total_quantity),
-        0
-      );
-      const packages = outputs.reduce(
-        (sum: number, o: ProductionOutput) => sum + (o.package_count || 0),
-        0
-      );
+      // Calculate based on allocations for all outputs
+      let total = 0;
+      let packages = 0;
+
+      outputs.forEach((o: ProductionOutput) => {
+        const alloc = allocations[o.id];
+        if (alloc) {
+          total += alloc.quantity;
+          packages += alloc.bags;
+        } else {
+          total += o.available_quantity ?? o.total_quantity;
+          packages += o.package_count || 0;
+        }
+      });
 
       const firstPackageType = outputs.find(
         (o: ProductionOutput) => o.package_type
@@ -87,11 +168,10 @@ export default function CreateBatchPage() {
       return {
         totalQuantity: total,
         productType: outputs[0]?.product_type,
-        warehouse: outputs[0]?.warehouse,
         packageType: firstPackageType,
         packageCount: packages,
       };
-    }, [outputs]);
+    }, [outputs, allocations]);
 
   const productTypes = useMemo(() => {
     return [
@@ -113,7 +193,13 @@ export default function CreateBatchPage() {
   }, [outputIds, router, hasCreateBatchPermission]);
 
   const handleSubmit = async () => {
-    if (!productType || hasMultipleProductTypes || !batchName.trim()) return;
+    if (
+      !productType ||
+      hasMultipleProductTypes ||
+      !selectedWarehouseId ||
+      !batchName.trim()
+    )
+      return;
 
     const request: CreateBatchRequest = {
       name: batchName.trim(),
@@ -121,13 +207,20 @@ export default function CreateBatchPage() {
       products: [
         {
           product_type_id: productType.id,
-          warehouse_id: warehouse?.id,
+          warehouse_id: selectedWarehouseId,
           package_type_id: packageType?.id,
-          output_allocations: outputs.map((o: ProductionOutput) => ({
-            output_id: o.id,
-            quantity: o.available_quantity ?? o.total_quantity,
-            package_count: o.package_count,
-          })),
+          output_allocations: outputs
+            .map((o: ProductionOutput) => {
+              const alloc = allocations[o.id];
+              const bags = alloc?.bags ?? o.package_count ?? 0;
+              const weightPerBag = o.weight_per_package || 50;
+              return {
+                output_id: o.id,
+                quantity: bags * weightPerBag,
+                package_count: bags,
+              };
+            })
+            .filter((a) => a.package_count > 0),
         },
       ],
     };
@@ -207,6 +300,23 @@ export default function CreateBatchPage() {
               </Card>
             )}
 
+            {hasMultipleSourceWarehouses && (
+              <Card className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+                <CardContent className="flex items-center gap-3 py-4">
+                  <WarehouseIcon className="size-5 shrink-0 text-amber-600" />
+                  <div>
+                    <p className="font-medium text-amber-700 dark:text-amber-400">
+                      Multiple source warehouses
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Outputs from {outputWarehouseIds.size} different
+                      warehouses. Select destination warehouse below.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -233,22 +343,39 @@ export default function CreateBatchPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                {/* Warehouse selector */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <WarehouseIcon className="size-4" />
+                    Batch Warehouse
+                    {hasMultipleSourceWarehouses && (
+                      <span className="text-muted-foreground text-xs font-normal">
+                        (select destination)
+                      </span>
+                    )}
+                  </Label>
+                  <select
+                    value={selectedWarehouseId || ''}
+                    onChange={(e) =>
+                      setSelectedWarehouseId(Number(e.target.value))
+                    }
+                    className="border-input bg-background ring-offset-background focus:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                  >
+                    {warehouses.map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
                     <Package className="text-muted-foreground size-4 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-muted-foreground text-xs">Product</p>
                       <p className="truncate text-sm font-medium">
                         {productType?.name || 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-muted/50 flex items-center gap-2 rounded-lg p-3">
-                    <Warehouse className="text-muted-foreground size-4 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-muted-foreground text-xs">Warehouse</p>
-                      <p className="truncate text-sm font-medium">
-                        {warehouse?.name || 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -283,36 +410,26 @@ export default function CreateBatchPage() {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Selected Outputs ({outputs.length})</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center justify-between">
+                  <span>Allocate Bags ({outputs.length})</span>
+                  <span className="text-muted-foreground text-sm font-normal">
+                    Select bags to include
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="divide-y">
                   {outputs.map((output: ProductionOutput) => (
-                    <div
+                    <ProductionOutputRow
                       key={output.id}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div>
-                        <p className="font-medium">{output.record_number}</p>
-                        <p className="text-muted-foreground text-xs">
-                          {output.production_date} • {output.product_type?.name}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium tabular-nums">
-                          {(
-                            output.available_quantity ?? output.total_quantity
-                          ).toLocaleString()}{' '}
-                          kg
-                        </p>
-                        {output.package_count && (
-                          <p className="text-muted-foreground text-xs">
-                            {output.package_count} pkgs
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                      output={output}
+                      mode="allocate"
+                      allocation={allocations[output.id]}
+                      onAllocationChange={handleAllocationChange}
+                      showWarehouse={hasMultipleSourceWarehouses}
+                      showChevron={false}
+                    />
                   ))}
                 </div>
               </CardContent>
@@ -325,7 +442,9 @@ export default function CreateBatchPage() {
                 disabled={
                   createBatch.isPending ||
                   hasMultipleProductTypes ||
-                  !batchName.trim()
+                  !selectedWarehouseId ||
+                  !batchName.trim() ||
+                  packageCount === 0
                 }
               >
                 {createBatch.isPending ? (

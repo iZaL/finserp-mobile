@@ -41,6 +41,11 @@ export interface BatchStock {
   unit: string;
   production_date?: string;
   status: string;
+  // Package info for batches that can be packaged
+  can_be_packaged?: boolean;
+  package_count?: number;
+  weight_per_package?: number;
+  package_type_name?: string;
 }
 
 /**

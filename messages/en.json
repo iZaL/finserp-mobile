@@ -49,19 +49,19 @@
     "vehicleBills": "Vehicle Bills",
     "manageBills": "Browse and manage bill attachments",
     "production": "Production",
-    "productionRuns": "Production Runs",
-    "manageProduction": "Manage runs and shift operations",
-    "viewProduction": "View Production Runs",
-    "startRun": "Start Run",
-    "startNewRun": "Start a new production run",
+    "productionRuns": "Production",
+    "manageProduction": "Manage production and shifts",
+    "viewProduction": "View Production",
+    "startRun": "Start Production",
+    "startNewRun": "Start a new production",
     "productionOutputs": "Production Outputs",
     "viewProductionOutputs": "View and manage outputs",
     "inventory": "Inventory",
     "manageInventory": "Track stock and movements",
     "warehouses": "Warehouses",
     "manageWarehouses": "View warehouse locations",
-    "recordProduction": "Record Production",
-    "recordProductionDesc": "Log output from active run",
+    "recordProduction": "Record Yield",
+    "recordProductionDesc": "Log yield from active production",
     "todaysOutput": "Today's Output",
     "todaysOutputDesc": "View production recorded today",
     "checkStock": "Check Stock",
@@ -580,7 +580,7 @@
       "total": "Total"
     },
     "new": {
-      "title": "Record Production Output",
+      "title": "Record Yield",
       "subtitle": "Track daily production",
       "activeRunBanner": "Recording for active production run",
       "runNumber": "Run #{runId}",
@@ -948,14 +948,14 @@
     "subtitle": "Manage production runs and shifts",
     "outputsTitle": "Production Outputs",
     "dashboard": "Production Dashboard",
-    "dashboardDescription": "Monitor runs and shift operations",
-    "viewRuns": "View Runs",
-    "manageRuns": "Manage all production runs",
-    "createNew": "New Run",
-    "createFirst": "Start First Run",
-    "noActiveRun": "No Active Run",
-    "noActiveRunDescription": "Start a production run to begin tracking",
-    "currentRun": "Current Run",
+    "dashboardDescription": "Monitor production and shift operations",
+    "viewRuns": "View All",
+    "manageRuns": "Manage all production",
+    "createNew": "New Production",
+    "createFirst": "Start First Production",
+    "noActiveRun": "No Active Production",
+    "noActiveRunDescription": "Start production to begin tracking",
+    "currentRun": "Current Production",
     "runStatus": {
       "planned": "Planned",
       "in_progress": "In Progress",
@@ -963,10 +963,10 @@
       "canceled": "Canceled"
     },
     "actions": {
-      "startRun": "Start Run",
-      "stopRun": "Stop Run",
-      "completeRun": "Complete Run",
-      "recordOutput": "Record Output"
+      "startRun": "Start Production",
+      "stopRun": "Stop Production",
+      "completeRun": "End Production",
+      "recordOutput": "Record Yield"
     },
     "shift": {
       "shift": "Shift",
@@ -996,7 +996,7 @@
       "earlier": "Earlier"
     },
     "list": {
-      "title": "Recent Production Runs",
+      "title": "Production Runs",
       "run": "Run",
       "status": "Status",
       "planned": "Planned",
@@ -1006,11 +1006,11 @@
       "viewDetails": "View Details"
     },
     "dialog": {
-      "completeTitle": "Complete Production Run",
-      "completeDescription": "Are you sure you want to complete the production run \"{name}\"? This action cannot be undone.",
+      "completeTitle": "End Production",
+      "completeDescription": "Are you sure you want to end production \"{name}\"? This action cannot be undone.",
       "completionNotesPlaceholder": "Optional: Add completion notes...",
-      "completing": "Completing...",
-      "completeButton": "Complete Run"
+      "completing": "Ending...",
+      "completeButton": "End Production"
     },
     "outputs": {
       "title": "Production Outputs",
@@ -1024,6 +1024,9 @@
       "fromShift": "From Shift",
       "toShift": "To Shift",
       "selectShift": "Select shift",
+      "handingOverTo": "Hand over to",
+      "toOperator": "Incoming Operator",
+      "selectOperator": "Select operator",
       "pendingTasks": "Pending Tasks",
       "add": "Add",
       "noPendingTasks": "No pending tasks to hand over",
@@ -1043,16 +1046,16 @@
       "accept": "Accept"
     },
     "search": {
-      "placeholder": "Search by run name..."
+      "placeholder": "Search production..."
     },
     "empty": {
-      "title": "No Production Runs",
-      "description": "Get started by creating your first production run"
+      "title": "No Production Yet",
+      "description": "Get started by starting your first production"
     },
     "new": {
-      "title": "Start Production Run",
-      "subtitle": "Configure and start a new production run",
-      "runName": "Run Name",
+      "title": "Start Production",
+      "subtitle": "Configure and start a new production",
+      "runName": "Production Name",
       "runNamePlaceholder": "Auto-generated or enter custom name",
       "selectOperator": "Select Operator",
       "selectOperatorPlaceholder": "Choose the shift operator",
@@ -1060,23 +1063,26 @@
       "selectProductionLinePlaceholder": "Choose production line",
       "plannedCapacity": "Planned Capacity",
       "notes": "Notes",
-      "notesPlaceholder": "Optional notes about this run...",
-      "startButton": "Start Production Run",
+      "notesPlaceholder": "Optional notes about this production...",
+      "startButton": "Start Production",
       "starting": "Starting...",
       "comingSoon": "Coming Soon",
-      "comingSoonDescription": "This feature is under development. Soon you will be able to start and manage production runs directly from your mobile device.",
+      "comingSoonDescription": "This feature is under development. Soon you will be able to start and manage production directly from your mobile device.",
       "linesSelected": "{count} selected",
       "maxCapacity": "Max: {capacity} kg",
       "max": "Max",
-      "startImmediatelyDescription": "Start the run immediately after creation",
+      "startImmediatelyDescription": "Start production immediately after creation",
       "summaryLines": "Production Lines",
       "summaryCapacity": "Total Planned Capacity",
       "failedToLoad": "Failed to load form data"
     }
   },
   "inventory": {
-    "title": "Inventory",
+    "title": "Batches",
     "subtitle": "Production stock overview",
+    "search": {
+      "placeholder": "Search batches..."
+    },
     "totalStock": "Total Stock",
     "totalBatches": "Batches",
     "stockByProductType": "Stock by Product Type",
@@ -1273,12 +1279,12 @@
   "productionHub": {
     "title": "Production Hub",
     "subtitle": "Your production workflow",
-    "activeRun": "Active Run",
-    "noActiveRun": "No Active Run",
-    "startRunPrompt": "Start a production run to begin",
+    "activeRun": "Active Production",
+    "noActiveRun": "No Active Production",
+    "startRunPrompt": "Start production to begin",
     "workflow": {
-      "run": "Run",
-      "runs": "Runs",
+      "run": "Production",
+      "runs": "Production",
       "output": "Output",
       "outputs": "Outputs",
       "batch": "Batch",
@@ -1287,12 +1293,12 @@
       "transfers": "Transfers"
     },
     "quickActions": {
-      "startRun": "Start Run",
-      "recordOutput": "Record Output",
+      "startRun": "Start Production",
+      "recordOutput": "Record Yield",
       "createBatch": "Create Batch",
       "transferStock": "Transfer Stock",
       "viewDetails": "View Details",
-      "viewRuns": "View Runs",
+      "viewRuns": "View Production",
       "recordMore": "Record More",
       "viewInventory": "View Inventory"
     },
@@ -1314,7 +1320,7 @@
     },
     "guidance": {
       "noRun": "Start a production run to begin recording",
-      "recording": "Record output from your active run",
+      "recording": "Record yield from your active production",
       "readyToBatch": "Create batches from today's output",
       "readyToTransfer": "Transfer batches to warehouses"
     },

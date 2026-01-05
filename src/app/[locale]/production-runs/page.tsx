@@ -341,7 +341,7 @@ export default function ProductionRunsPage() {
                 variant="ghost"
                 size="icon"
                 className="shrink-0"
-                onClick={() => router.push('/production-hub')}
+                onClick={() => window.history.back()}
               >
                 <ArrowLeft className="size-5" />
               </Button>

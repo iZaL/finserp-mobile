@@ -7,182 +7,299 @@ import {
   ArrowLeft,
   Package,
   ArrowRightLeft,
-  Plus,
-  MoreVertical,
-  ChevronRight,
-  Clock,
+  Search,
   AlertCircle,
-  Boxes,
-  Warehouse,
-  Wheat,
-  Droplet,
-  ArrowUpRight,
-  ArrowDownRight,
+  Warehouse as WarehouseIcon,
+  X,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Skeleton} from '@/components/ui/skeleton';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
-import {useBatchStock, useBatchMovements} from '@/hooks/use-inventory';
+import {useBatchStock} from '@/hooks/use-inventory';
 import {InventoryGuard} from '@/components/permission-guard';
-import {TransferDialog} from '@/components/inventory/transfer-dialog';
-import type {BatchStock, BatchMovement} from '@/types/inventory';
-import {formatDistanceToNow} from 'date-fns';
+import type {BatchStock} from '@/types/inventory';
 
-// Format quantity with appropriate unit
-function formatQuantity(quantity: number, showUnit = true): string {
-  const mt = quantity / 1000;
-  if (mt >= 1) {
-    return `${mt.toLocaleString(undefined, {maximumFractionDigits: 2})}${showUnit ? ' MT' : ''}`;
+// Product type color mapping for visual coding
+function getProductTypeStyle(code: string): {
+  bg: string;
+  border: string;
+  text: string;
+} {
+  const lowerCode = code.toLowerCase();
+  if (lowerCode.includes('fishmeal') || lowerCode === 'fishmeal') {
+    return {
+      bg: 'bg-amber-50',
+      border: 'border-amber-300',
+      text: 'text-amber-700',
+    };
   }
-  return `${quantity.toLocaleString(undefined, {maximumFractionDigits: 0})}${showUnit ? ' kg' : ''}`;
+  if (
+    lowerCode.includes('fish oil') ||
+    lowerCode.includes('fishoil') ||
+    lowerCode === 'fish_oil'
+  ) {
+    return {bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700'};
+  }
+  // Dynamic colors for other types
+  const styles = [
+    {
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-300',
+      text: 'text-emerald-700',
+    },
+    {bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700'},
+    {bg: 'bg-pink-50', border: 'border-pink-300', text: 'text-pink-700'},
+    {bg: 'bg-cyan-50', border: 'border-cyan-300', text: 'text-cyan-700'},
+  ];
+  const hash = code
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return styles[hash % styles.length];
 }
 
-// Hero summary component with gradient
-function HeroSummary({
-  totalStock,
-  batchCount,
-  warehouseCount,
+// Format quantity compactly
+function formatQuantityCompact(quantity: number): string {
+  const mt = quantity / 1000;
+  if (mt >= 1) {
+    return `${mt.toLocaleString(undefined, {maximumFractionDigits: 1})}MT`;
+  }
+  return `${Math.round(quantity)}kg`;
+}
+
+// Filter pill component
+function FilterPill({
+  label,
+  count,
+  isSelected,
+  onClick,
+  colorClass,
 }: {
-  totalStock: number;
-  batchCount: number;
-  warehouseCount: number;
+  label: string;
+  count?: number;
+  isSelected: boolean;
+  onClick: () => void;
+  colorClass?: string;
 }) {
-  const t = useTranslations('inventory');
   return (
-    <Card className="overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
-      <CardContent className="relative p-5">
-        {/* Background decoration */}
-        <div className="absolute -top-6 -right-6 size-24 rounded-full bg-white/10" />
-        <div className="absolute -bottom-4 -left-4 size-16 rounded-full bg-white/5" />
-
-        <div className="relative">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm">
-              <Boxes className="size-6" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white/80">
-                {t('totalStock') || 'Total Stock'}
-              </p>
-              <p className="text-3xl font-bold tracking-tight">
-                {formatQuantity(totalStock)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <div className="flex-1 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <Package className="size-4 text-white/70" />
-                <span className="text-sm text-white/70">
-                  {t('totalBatches') || 'Batches'}
-                </span>
-              </div>
-              <p className="mt-0.5 text-xl font-bold">{batchCount}</p>
-            </div>
-            <div className="flex-1 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <Warehouse className="size-4 text-white/70" />
-                <span className="text-sm text-white/70">
-                  {t('warehouses.totalWarehouses') || 'Warehouses'}
-                </span>
-              </div>
-              <p className="mt-0.5 text-xl font-bold">{warehouseCount}</p>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-all',
+        isSelected
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-background hover:bg-muted'
+      )}
+    >
+      {colorClass && <span className={cn('size-2 rounded-full', colorClass)} />}
+      <span>{label}</span>
+      {count !== undefined && (
+        <span
+          className={cn(
+            'text-xs',
+            isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
+          )}
+        >
+          ({count})
+        </span>
+      )}
+    </button>
   );
 }
 
-// Warehouse data type for table
-interface WarehouseData {
-  warehouseId: number;
-  warehouseName: string;
-  batches: BatchStock[];
-  totalQuantity: number;
-  productTypes: {
-    name: string;
-    code: string;
-    quantity: number;
-  }[];
-}
+// Batch seat/tile component - compact like flight seat
+function BatchSeat({
+  batch,
+  isSelected,
+  onSelect,
+}: {
+  batch: BatchStock;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const productCode =
+    batch.product_type_code ||
+    batch.product_type.toLowerCase().replace(/\s+/g, '_');
+  const style = getProductTypeStyle(productCode);
 
-// Movement item with colored icons
-function MovementItem({movement}: {movement: BatchMovement}) {
-  const t = useTranslations('inventory.movements');
+  // Format date very compactly
+  const prodDate = batch.production_date
+    ? new Date(batch.production_date).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      })
+    : null;
 
-  const getTypeLabel = () => {
-    switch (movement.type) {
-      case 'transfer_in':
-        return t('types.transfer_in') || 'Transfer In';
-      case 'transfer_out':
-        return t('types.transfer_out') || 'Transfer Out';
-      case 'adjustment':
-        return t('types.adjustment') || 'Adjustment';
-      case 'production':
-        return t('types.production') || 'Production';
-      default:
-        return movement.type;
-    }
-  };
-
-  const isPositive =
-    movement.type === 'transfer_in' ||
-    (movement.type === 'adjustment' &&
-      movement.adjustment_type === 'addition') ||
-    movement.type === 'production';
-
-  const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
+  // Package info
+  const hasPackages =
+    batch.can_be_packaged && batch.package_count && batch.package_count > 0;
 
   return (
-    <div className="flex items-center gap-3 py-3">
-      <div
-        className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-xl',
-          isPositive
-            ? 'bg-emerald-100 dark:bg-emerald-950/50'
-            : 'bg-red-100 dark:bg-red-950/50'
-        )}
-      >
-        <Icon
-          className={cn(
-            'size-5',
-            isPositive
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-red-600 dark:text-red-400'
-          )}
-        />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{movement.batch_code}</p>
-        <p className="text-muted-foreground truncate text-xs">
-          {getTypeLabel()} · {movement.warehouse_name}
-        </p>
-      </div>
-      <div className="text-right">
-        <p
-          className={cn(
-            'text-sm font-semibold tabular-nums',
-            isPositive
-              ? 'text-emerald-600 dark:text-emerald-400'
-              : 'text-red-600 dark:text-red-400'
-          )}
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        'flex flex-col items-start rounded-lg border-2 p-2 text-left transition-all',
+        'active:scale-95',
+        style.bg,
+        style.border,
+        isSelected && 'ring-primary ring-2 ring-offset-2'
+      )}
+    >
+      {/* Batch code - truncated */}
+      <span className={cn('w-full truncate text-xs font-bold', style.text)}>
+        {batch.batch_name || batch.batch_code}
+      </span>
+
+      {/* Bags / Weight */}
+      <span className="text-foreground mt-0.5 text-sm font-semibold">
+        {hasPackages
+          ? `${batch.package_count} bags`
+          : formatQuantityCompact(batch.quantity)}
+      </span>
+
+      {/* Weight in parens if bags shown */}
+      {hasPackages && (
+        <span className="text-muted-foreground text-[10px]">
+          ({formatQuantityCompact(batch.quantity)})
+        </span>
+      )}
+
+      {/* Date */}
+      {prodDate && (
+        <span className="text-muted-foreground mt-0.5 text-[10px]">
+          {prodDate}
+        </span>
+      )}
+    </button>
+  );
+}
+
+// Selected batch detail panel
+function BatchDetailPanel({
+  batch,
+  onClose,
+  onTransfer,
+}: {
+  batch: BatchStock;
+  onClose: () => void;
+  onTransfer: () => void;
+}) {
+  const productCode =
+    batch.product_type_code ||
+    batch.product_type.toLowerCase().replace(/\s+/g, '_');
+  const style = getProductTypeStyle(productCode);
+  const hasPackages =
+    batch.can_be_packaged && batch.package_count && batch.package_count > 0;
+
+  const prodDate = batch.production_date
+    ? new Date(batch.production_date).toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
+  return (
+    <div className={cn('rounded-xl border-2 p-4', style.bg, style.border)}>
+      <div className="mb-3 flex items-start justify-between">
+        <div>
+          <h3 className={cn('text-lg font-bold', style.text)}>
+            {batch.batch_name || batch.batch_code}
+          </h3>
+          <p className="text-muted-foreground text-sm">{batch.product_type}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8"
+          onClick={onClose}
         >
-          {isPositive ? '+' : '-'}
-          {movement.quantity.toLocaleString()} kg
-        </p>
-        <p className="text-muted-foreground text-xs">
-          {formatDistanceToNow(new Date(movement.date), {addSuffix: true})}
-        </p>
+          <X className="size-4" />
+        </Button>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-muted-foreground text-xs">Quantity</p>
+          <p className="font-semibold">
+            {hasPackages
+              ? `${batch.package_count} bags`
+              : formatQuantityCompact(batch.quantity)}
+          </p>
+          {hasPackages && (
+            <p className="text-muted-foreground text-xs">
+              ({formatQuantityCompact(batch.quantity)})
+            </p>
+          )}
+        </div>
+        <div>
+          <p className="text-muted-foreground text-xs">Warehouse</p>
+          <p className="font-semibold">{batch.warehouse_name}</p>
+        </div>
+        {prodDate && (
+          <div className="col-span-2">
+            <p className="text-muted-foreground text-xs">Production Date</p>
+            <p className="font-semibold">{prodDate}</p>
+          </div>
+        )}
+      </div>
+
+      <Button className="w-full" onClick={onTransfer}>
+        <ArrowRightLeft className="me-2 size-4" />
+        Transfer Batch
+      </Button>
+    </div>
+  );
+}
+
+// Warehouse section with batch seats grid
+function WarehouseSection({
+  warehouseName,
+  batches,
+  totalWeight,
+  totalBags,
+  selectedBatchId,
+  onSelectBatch,
+}: {
+  warehouseName: string;
+  batches: BatchStock[];
+  totalWeight: number;
+  totalBags: number;
+  selectedBatchId: number | null;
+  onSelectBatch: (batch: BatchStock) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {/* Warehouse header - like section label in flight */}
+      <div className="flex items-center gap-3">
+        <div className="bg-muted flex size-10 items-center justify-center rounded-lg">
+          <WarehouseIcon className="text-muted-foreground size-5" />
+        </div>
+        <div className="flex-1">
+          <h2 className="font-bold">{warehouseName}</h2>
+          <p className="text-muted-foreground text-xs">
+            {batches.length} batch{batches.length !== 1 ? 'es' : ''}
+            {totalBags > 0 && ` • ${totalBags.toLocaleString()} bags`}
+            {' • '}
+            {formatQuantityCompact(totalWeight)}
+          </p>
+        </div>
+      </div>
+
+      {/* Batch seats grid - 3 columns like flight seats */}
+      <div className="grid grid-cols-3 gap-2">
+        {batches.map((batch) => (
+          <BatchSeat
+            key={batch.id}
+            batch={batch}
+            isSelected={selectedBatchId === batch.id}
+            onSelect={() => onSelectBatch(batch)}
+          />
+        ))}
       </div>
     </div>
   );
@@ -191,143 +308,159 @@ function MovementItem({movement}: {movement: BatchMovement}) {
 export default function BatchesPage() {
   const router = useRouter();
   const t = useTranslations('inventory');
-  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
-  const [transferBatchId, setTransferBatchId] = useState<number | undefined>();
+
+  // State
+  const [search, setSearch] = useState('');
+  const [selectedBatch, setSelectedBatch] = useState<BatchStock | null>(null);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>('all');
+  const [selectedProductType, setSelectedProductType] = useState<string>('all');
 
   // Fetch data
-  const {
-    data: batches,
-    isLoading: batchesLoading,
-    error: batchesError,
-    refetch: refetchBatches,
-  } = useBatchStock();
-  const {
-    data: movementsData,
-    isLoading: movementsLoading,
-    refetch: refetchMovements,
-  } = useBatchMovements({per_page: 5});
+  const {data: batches, isLoading, error} = useBatchStock();
 
-  const handleTransferSuccess = () => {
-    refetchBatches();
-    refetchMovements();
+  // Extract unique warehouses with counts
+  const warehouses = useMemo(() => {
+    if (!batches) return [];
+    const warehouseMap = new Map<
+      number,
+      {id: number; name: string; count: number}
+    >();
+
+    batches.forEach((batch) => {
+      const existing = warehouseMap.get(batch.warehouse_id);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        warehouseMap.set(batch.warehouse_id, {
+          id: batch.warehouse_id,
+          name: batch.warehouse_name,
+          count: 1,
+        });
+      }
+    });
+
+    return Array.from(warehouseMap.values()).sort((a, b) => b.count - a.count);
+  }, [batches]);
+
+  // Extract unique product types with counts and colors
+  const productTypes = useMemo(() => {
+    if (!batches) return [];
+    const productMap = new Map<
+      string,
+      {name: string; code: string; count: number; colorClass: string}
+    >();
+
+    batches.forEach((batch) => {
+      const code =
+        batch.product_type_code ||
+        batch.product_type.toLowerCase().replace(/\s+/g, '_');
+      const existing = productMap.get(code);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        const style = getProductTypeStyle(code);
+        // Extract solid color for pill dot
+        const colorClass = style.border.replace('border-', 'bg-');
+        productMap.set(code, {
+          name: batch.product_type,
+          code,
+          count: 1,
+          colorClass,
+        });
+      }
+    });
+
+    return Array.from(productMap.values()).sort((a, b) => b.count - a.count);
+  }, [batches]);
+
+  // Filter batches by search, warehouse, and product type
+  const filteredBatches = useMemo(() => {
+    if (!batches) return [];
+
+    return batches.filter((batch) => {
+      // Search filter
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesSearch =
+          batch.batch_code.toLowerCase().includes(searchLower) ||
+          batch.product_type.toLowerCase().includes(searchLower) ||
+          batch.warehouse_name.toLowerCase().includes(searchLower) ||
+          (batch.batch_name &&
+            batch.batch_name.toLowerCase().includes(searchLower));
+        if (!matchesSearch) return false;
+      }
+
+      // Warehouse filter
+      if (
+        selectedWarehouse !== 'all' &&
+        batch.warehouse_id !== parseInt(selectedWarehouse)
+      ) {
+        return false;
+      }
+
+      // Product type filter
+      if (selectedProductType !== 'all') {
+        const batchCode =
+          batch.product_type_code ||
+          batch.product_type.toLowerCase().replace(/\s+/g, '_');
+        if (batchCode !== selectedProductType) return false;
+      }
+
+      return true;
+    });
+  }, [batches, search, selectedWarehouse, selectedProductType]);
+
+  // Group batches by warehouse with totals
+  const warehouseGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      {
+        batches: BatchStock[];
+        totalWeight: number;
+        totalBags: number;
+      }
+    >();
+
+    filteredBatches.forEach((batch) => {
+      const existing = groups.get(batch.warehouse_name);
+      const bags =
+        batch.can_be_packaged && batch.package_count ? batch.package_count : 0;
+
+      if (existing) {
+        existing.batches.push(batch);
+        existing.totalWeight += batch.quantity;
+        existing.totalBags += bags;
+      } else {
+        groups.set(batch.warehouse_name, {
+          batches: [batch],
+          totalWeight: batch.quantity,
+          totalBags: bags,
+        });
+      }
+    });
+
+    return Array.from(groups.entries()).sort(
+      (a, b) => b[1].batches.length - a[1].batches.length
+    );
+  }, [filteredBatches]);
+
+  const totalCount = batches?.length || 0;
+  const isEmpty = !batches || batches.length === 0;
+  const noResults = filteredBatches.length === 0 && !isEmpty;
+
+  const handleSelectBatch = (batch: BatchStock) => {
+    setSelectedBatch(selectedBatch?.id === batch.id ? null : batch);
   };
 
-  const movements = movementsData?.data || [];
-
-  // Group batches by product type
-  const productTypeSummary = useMemo(() => {
-    if (!batches) return [];
-
-    const grouped = batches.reduce(
-      (acc, batch) => {
-        const key = batch.product_type;
-        if (!acc[key]) {
-          acc[key] = {
-            name: batch.product_type,
-            code:
-              batch.product_type_code ||
-              batch.product_type.toLowerCase().replace(/\s+/g, '_'),
-            total: 0,
-            count: 0,
-            warehouses: new Set<number>(),
-          };
-        }
-        acc[key].total += batch.quantity;
-        acc[key].count += 1;
-        acc[key].warehouses.add(batch.warehouse_id);
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          name: string;
-          code: string;
-          total: number;
-          count: number;
-          warehouses: Set<number>;
-        }
-      >
-    );
-
-    return Object.values(grouped).map((pt) => ({
-      name: pt.name,
-      code: pt.code,
-      total: pt.total,
-      count: pt.count,
-      warehouseCount: pt.warehouses.size,
-    }));
-  }, [batches]);
-
-  // Group batches by warehouse
-  const warehouseData = useMemo(() => {
-    if (!batches) return [];
-
-    const grouped = batches.reduce(
-      (acc, batch) => {
-        const key = batch.warehouse_name;
-        if (!acc[key]) {
-          acc[key] = {
-            warehouseId: batch.warehouse_id,
-            warehouseName: batch.warehouse_name,
-            batches: [],
-            totalQuantity: 0,
-            productTypeMap: {} as Record<
-              string,
-              {name: string; code: string; quantity: number}
-            >,
-          };
-        }
-        acc[key].batches.push(batch);
-        acc[key].totalQuantity += batch.quantity;
-
-        const ptKey = batch.product_type;
-        if (!acc[key].productTypeMap[ptKey]) {
-          acc[key].productTypeMap[ptKey] = {
-            name: batch.product_type,
-            code:
-              batch.product_type_code ||
-              batch.product_type.toLowerCase().replace(/\s+/g, '_'),
-            quantity: 0,
-          };
-        }
-        acc[key].productTypeMap[ptKey].quantity += batch.quantity;
-        return acc;
-      },
-      {} as Record<
-        string,
-        {
-          warehouseId: number;
-          warehouseName: string;
-          batches: BatchStock[];
-          totalQuantity: number;
-          productTypeMap: Record<
-            string,
-            {name: string; code: string; quantity: number}
-          >;
-        }
-      >
-    );
-
-    return Object.values(grouped)
-      .map((wh) => ({
-        ...wh,
-        productTypes: Object.values(wh.productTypeMap),
-      }))
-      .sort((a, b) => b.totalQuantity - a.totalQuantity);
-  }, [batches]);
-
-  // Calculate totals
-  const totalBatches = batches?.length || 0;
-  const totalQuantity = batches?.reduce((sum, b) => sum + b.quantity, 0) || 0;
-  const warehouseCount = warehouseData.length;
-
-  const isLoading = batchesLoading;
-  const hasError = batchesError;
-  const isEmpty = !batches || batches.length === 0;
+  const handleTransfer = () => {
+    if (selectedBatch) {
+      router.push(`/batches/transfer?batch_id=${selectedBatch.id}`);
+    }
+  };
 
   return (
     <InventoryGuard>
-      <div className="bg-background min-h-screen pb-20">
+      <div className="bg-background min-h-screen pb-24">
         {/* Header */}
         <div className="bg-background sticky top-0 z-10 border-b">
           <div className="container mx-auto flex items-center justify-between px-4 py-3">
@@ -336,53 +469,124 @@ export default function BatchesPage() {
                 variant="ghost"
                 size="icon"
                 className="shrink-0"
-                onClick={() => router.push('/')}
+                onClick={() => window.history.back()}
               >
                 <ArrowLeft className="size-5" />
               </Button>
               <div>
                 <h1 className="text-xl font-bold">{t('title')}</h1>
-                <p className="text-muted-foreground text-xs">{t('subtitle')}</p>
+                <p className="text-muted-foreground text-xs">
+                  Tap a batch to see details
+                </p>
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0">
-                  <MoreVertical className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => router.push('/batches/transfer')}
-                >
-                  <ArrowRightLeft className="me-2 size-4" />
-                  {t('actions.newTransfer')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/batches/transfer')}
+            >
+              <ArrowRightLeft className="me-2 size-4" />
+              Transfer
+            </Button>
           </div>
         </div>
 
-        <div className="container mx-auto space-y-6 p-4">
+        <div className="container mx-auto space-y-4 p-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input
+              className="pl-9"
+              placeholder={t('search.placeholder') || 'Search batches...'}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {/* Warehouse Filter Pills */}
+          {!isLoading && !error && !isEmpty && (
+            <div className="space-y-2">
+              <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                Warehouse
+              </p>
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                <FilterPill
+                  label="All"
+                  count={totalCount}
+                  isSelected={selectedWarehouse === 'all'}
+                  onClick={() => setSelectedWarehouse('all')}
+                />
+                {warehouses.map((wh) => (
+                  <FilterPill
+                    key={wh.id}
+                    label={wh.name}
+                    count={wh.count}
+                    isSelected={selectedWarehouse === String(wh.id)}
+                    onClick={() => setSelectedWarehouse(String(wh.id))}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Product Type Filter Pills */}
+          {!isLoading && !error && !isEmpty && (
+            <div className="space-y-2">
+              <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                Product
+              </p>
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+                <FilterPill
+                  label="All"
+                  isSelected={selectedProductType === 'all'}
+                  onClick={() => setSelectedProductType('all')}
+                />
+                {productTypes.map((pt) => (
+                  <FilterPill
+                    key={pt.code}
+                    label={pt.name}
+                    count={pt.count}
+                    isSelected={selectedProductType === pt.code}
+                    onClick={() => setSelectedProductType(pt.code)}
+                    colorClass={pt.colorClass}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Selected Batch Detail Panel */}
+          {selectedBatch && (
+            <BatchDetailPanel
+              batch={selectedBatch}
+              onClose={() => setSelectedBatch(null)}
+              onTransfer={handleTransfer}
+            />
+          )}
+
           {/* Loading State */}
           {isLoading && (
-            <div className="space-y-4">
-              <Skeleton className="h-20 rounded-xl" />
-              <div className="grid grid-cols-2 gap-3">
-                <Skeleton className="h-28 rounded-xl" />
-                <Skeleton className="h-28 rounded-xl" />
-              </div>
-              <Skeleton className="h-40 rounded-xl" />
+            <div className="space-y-6">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="h-12 w-48 rounded-lg" />
+                  <div className="grid grid-cols-3 gap-2">
+                    {[...Array(6)].map((_, j) => (
+                      <Skeleton key={j} className="h-20 rounded-lg" />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           {/* Error State */}
-          {hasError && !isLoading && (
+          {error && !isLoading && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <AlertCircle className="text-destructive mb-4 size-12" />
                 <p className="text-destructive mb-4 text-sm">
-                  {t('error') || 'Failed to load inventory'}
+                  {t('error') || 'Failed to load batches'}
                 </p>
                 <Button
                   variant="outline"
@@ -395,297 +599,61 @@ export default function BatchesPage() {
           )}
 
           {/* Empty State */}
-          {!isLoading && !hasError && isEmpty && (
+          {!isLoading && !error && isEmpty && (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <div className="bg-muted mb-4 rounded-full p-4">
                   <Package className="text-muted-foreground size-8" />
                 </div>
                 <h3 className="mb-2 text-lg font-semibold">
-                  {t('empty.title') || 'No Batches'}
+                  {t('empty.title') || 'No Batches Yet'}
                 </h3>
                 <p className="text-muted-foreground mb-6 max-w-[250px] text-center text-sm">
                   {t('empty.description') ||
-                    'No batches found. Stock will appear here once production batches are created.'}
+                    'Batches will appear here once production outputs are recorded.'}
                 </p>
-                <Button onClick={() => router.push('/production-outputs/new')}>
-                  <Plus className="me-2 size-4" />
-                  Create Production Output
-                </Button>
               </CardContent>
             </Card>
           )}
 
-          {/* Main Content */}
-          {!isLoading && !hasError && !isEmpty && (
-            <>
-              {/* Hero Summary */}
-              <HeroSummary
-                totalStock={totalQuantity}
-                batchCount={totalBatches}
-                warehouseCount={warehouseCount}
-              />
+          {/* No Search Results */}
+          {noResults && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Search className="text-muted-foreground mb-3 size-8" />
+              <p className="text-muted-foreground text-sm">No batches found</p>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setSearch('')}
+                className="mt-2"
+              >
+                Clear search
+              </Button>
+            </div>
+          )}
 
-              {/* Stock Table */}
-              <div>
-                <h2 className="text-muted-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
-                  Stock by Warehouse
-                </h2>
-                <Card>
-                  <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="bg-muted/30 border-b">
-                            <th className="text-muted-foreground px-4 py-3 text-left font-medium">
-                              <div className="flex items-center gap-2">
-                                <Warehouse className="size-4" />
-                                Warehouse
-                              </div>
-                            </th>
-                            {productTypeSummary.map((pt) => {
-                              const isFishmeal =
-                                pt.code === 'fishmeal' ||
-                                pt.name.toLowerCase().includes('fishmeal');
-                              const Icon = isFishmeal ? Wheat : Droplet;
-                              const iconColor = isFishmeal
-                                ? 'text-amber-600'
-                                : 'text-blue-600';
-                              return (
-                                <th
-                                  key={pt.code}
-                                  className="px-4 py-3 text-right font-medium"
-                                >
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    <Icon className={cn('size-4', iconColor)} />
-                                    <span
-                                      className={
-                                        isFishmeal
-                                          ? 'text-amber-700'
-                                          : 'text-blue-700'
-                                      }
-                                    >
-                                      {pt.name}
-                                    </span>
-                                  </div>
-                                </th>
-                              );
-                            })}
-                            <th className="w-8 px-2" />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {warehouseData.map((warehouse) => {
-                            // Calculate max quantity for progress bar scaling
-                            const maxQty = Math.max(
-                              ...warehouseData.flatMap((w) =>
-                                w.productTypes.map((p) => p.quantity)
-                              ),
-                              1
-                            );
-                            return (
-                              <tr
-                                key={warehouse.warehouseId}
-                                className="group cursor-pointer border-b transition-colors last:border-0 hover:bg-blue-50/50 dark:hover:bg-blue-950/20"
-                                onClick={() =>
-                                  router.push(
-                                    `/batches/warehouses/${warehouse.warehouseId}`
-                                  )
-                                }
-                              >
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex size-8 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                      <Warehouse className="size-4 text-slate-600 dark:text-slate-400" />
-                                    </div>
-                                    <span className="font-medium">
-                                      {warehouse.warehouseName}
-                                    </span>
-                                  </div>
-                                </td>
-                                {productTypeSummary.map((pt) => {
-                                  const productData =
-                                    warehouse.productTypes.find(
-                                      (p) => p.code === pt.code
-                                    );
-                                  const batchCount = warehouse.batches.filter(
-                                    (b) =>
-                                      b.product_type_code === pt.code ||
-                                      b.product_type
-                                        .toLowerCase()
-                                        .replace(/\s+/g, '_') === pt.code
-                                  ).length;
-                                  const isFishmeal =
-                                    pt.code === 'fishmeal' ||
-                                    pt.name.toLowerCase().includes('fishmeal');
-                                  const barColor = isFishmeal
-                                    ? 'bg-amber-400'
-                                    : 'bg-blue-400';
-                                  const textColor = isFishmeal
-                                    ? 'text-amber-700 dark:text-amber-400'
-                                    : 'text-blue-700 dark:text-blue-400';
-                                  const progressWidth = productData
-                                    ? (productData.quantity / maxQty) * 100
-                                    : 0;
-
-                                  return (
-                                    <td key={pt.code} className="px-4 py-3">
-                                      {productData ? (
-                                        <div className="flex flex-col items-end gap-1">
-                                          <div>
-                                            <span
-                                              className={cn(
-                                                'font-semibold tabular-nums',
-                                                textColor
-                                              )}
-                                            >
-                                              {formatQuantity(
-                                                productData.quantity
-                                              )}
-                                            </span>
-                                            <span className="text-muted-foreground ml-1 text-xs">
-                                              ({batchCount})
-                                            </span>
-                                          </div>
-                                          <div className="h-1 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                                            <div
-                                              className={cn(
-                                                'h-full rounded-full transition-all',
-                                                barColor
-                                              )}
-                                              style={{
-                                                width: `${progressWidth}%`,
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <span className="text-muted-foreground">
-                                          -
-                                        </span>
-                                      )}
-                                    </td>
-                                  );
-                                })}
-                                <td className="px-2 py-3">
-                                  <ChevronRight className="size-4 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-500" />
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                        <tfoot>
-                          <tr className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900">
-                            <td className="px-4 py-3 font-semibold">
-                              <div className="flex items-center gap-2">
-                                <Boxes className="size-4 text-slate-600 dark:text-slate-400" />
-                                All Warehouses
-                              </div>
-                            </td>
-                            {productTypeSummary.map((pt) => {
-                              const isFishmeal =
-                                pt.code === 'fishmeal' ||
-                                pt.name.toLowerCase().includes('fishmeal');
-                              const textColor = isFishmeal
-                                ? 'text-amber-700 dark:text-amber-400'
-                                : 'text-blue-700 dark:text-blue-400';
-                              return (
-                                <td
-                                  key={pt.code}
-                                  className="px-4 py-3 text-right"
-                                >
-                                  <div>
-                                    <span
-                                      className={cn(
-                                        'font-bold tabular-nums',
-                                        textColor
-                                      )}
-                                    >
-                                      {formatQuantity(pt.total)}
-                                    </span>
-                                    <span className="text-muted-foreground ml-1 text-xs">
-                                      ({pt.count})
-                                    </span>
-                                  </div>
-                                </td>
-                              );
-                            })}
-                            <td className="w-8" />
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Recent Movements */}
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <h2 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                    {t('recentMovements') || 'Recent Movements'}
-                  </h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary h-auto p-0 text-xs font-medium hover:bg-transparent hover:underline"
-                    onClick={() => router.push('/batches/movements')}
-                  >
-                    {t('viewAll') || 'View All'}
-                    <ChevronRight className="ml-1 size-3" />
-                  </Button>
-                </div>
-
-                <Card>
-                  <CardContent className="p-0">
-                    {movementsLoading && (
-                      <div className="space-y-3 p-4">
-                        {[...Array(3)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="space-y-1">
-                              <Skeleton className="h-4 w-24" />
-                              <Skeleton className="h-3 w-32" />
-                            </div>
-                            <Skeleton className="h-4 w-16" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {!movementsLoading && movements && movements.length > 0 && (
-                      <div className="divide-y px-4">
-                        {movements.map((movement) => (
-                          <MovementItem key={movement.id} movement={movement} />
-                        ))}
-                      </div>
-                    )}
-
-                    {!movementsLoading &&
-                      (!movements || movements.length === 0) && (
-                        <div className="flex flex-col items-center justify-center py-8">
-                          <Clock className="text-muted-foreground mb-2 size-6" />
-                          <p className="text-muted-foreground text-sm">
-                            {t('movements.empty') || 'No recent movements'}
-                          </p>
-                        </div>
-                      )}
-                  </CardContent>
-                </Card>
-              </div>
-            </>
+          {/* Warehouse Sections with Batch Seats */}
+          {!isLoading && !error && !isEmpty && !noResults && (
+            <div className="space-y-6">
+              {warehouseGroups.map(
+                ([
+                  warehouseName,
+                  {batches: warehouseBatches, totalWeight, totalBags},
+                ]) => (
+                  <WarehouseSection
+                    key={warehouseName}
+                    warehouseName={warehouseName}
+                    batches={warehouseBatches}
+                    totalWeight={totalWeight}
+                    totalBags={totalBags}
+                    selectedBatchId={selectedBatch?.id ?? null}
+                    onSelectBatch={handleSelectBatch}
+                  />
+                )
+              )}
+            </div>
           )}
         </div>
-
-        {/* Transfer Dialog */}
-        <TransferDialog
-          open={transferDialogOpen}
-          onOpenChange={setTransferDialogOpen}
-          batchId={transferBatchId}
-          onSuccess={handleTransferSuccess}
-        />
       </div>
     </InventoryGuard>
   );
