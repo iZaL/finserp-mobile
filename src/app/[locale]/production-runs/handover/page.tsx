@@ -25,11 +25,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {HandoverGuard} from '@/components/permission-guard';
+import {OperatorSelector} from '@/components/operator-selector';
 import {
   useHandoverFormData,
   useCreateHandover,
 } from '@/hooks/use-production-runs';
-import type {ShiftHandoverIssue} from '@/types/production-run';
+import type {Operator, ShiftHandoverIssue} from '@/types/production-run';
 
 export default function ShiftHandoverPage() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function ShiftHandoverPage() {
 
   const [fromShift, setFromShift] = useState<string>('');
   const [toShift, setToShift] = useState<string>('');
+  const [toOperatorId, setToOperatorId] = useState<number | null>(null);
   const [pendingTasks, setPendingTasks] = useState<string[]>(['']);
   const [issues, setIssues] = useState<ShiftHandoverIssue[]>([]);
   const [notes, setNotes] = useState('');
@@ -97,6 +99,7 @@ export default function ShiftHandoverPage() {
     await createHandover.mutateAsync({
       from_shift: fromShift,
       to_shift: toShift,
+      to_user_id: toOperatorId || undefined,
       pending_tasks: filteredTasks.length > 0 ? filteredTasks : undefined,
       issues: filteredIssues.length > 0 ? filteredIssues : undefined,
       notes: notes.trim() || undefined,
@@ -182,6 +185,19 @@ export default function ShiftHandoverPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Incoming Operator Selection */}
+            <div className="space-y-2">
+              <Label>{t('handover.toOperator')}</Label>
+              <OperatorSelector
+                operators={formData?.operators || []}
+                selectedOperatorId={toOperatorId}
+                onSelect={(operator: Operator | null) =>
+                  setToOperatorId(operator?.id || null)
+                }
+                placeholder={t('handover.selectOperator')}
+              />
             </div>
           </CardContent>
         </Card>

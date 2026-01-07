@@ -97,18 +97,12 @@ export function ProductionOutputRow({
   // Render status icon - compact
   const StatusIcon = () => {
     if (isFullyBatched) {
-      return (
-        <Package className="text-muted-foreground size-4 shrink-0" />
-      );
+      return <Package className="text-muted-foreground size-4 shrink-0" />;
     }
     if (isPartiallyBatched) {
-      return (
-        <CircleDot className="size-4 shrink-0 text-amber-500" />
-      );
+      return <CircleDot className="size-4 shrink-0 text-amber-500" />;
     }
-    return (
-      <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
-    );
+    return <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />;
   };
 
   return (

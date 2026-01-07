@@ -156,23 +156,26 @@ function RunRow({
       </div>
 
       {/* Output summary - compact */}
-      {run.outputs_by_product_type && run.outputs_by_product_type.length > 0 && (
-        <div className="shrink-0 text-right">
-          {run.outputs_by_product_type.slice(0, 2).map((output) => (
-            <div
-              key={output.product_type_id}
-              className="text-xs font-semibold tabular-nums"
-            >
-              <span className="text-muted-foreground">
-                {output.product_type_code || output.product_type_name?.slice(0, 2)}:
-              </span>{' '}
-              {output.total_quantity >= 1000
-                ? `${(output.total_quantity / 1000).toFixed(1)} TON`
-                : `${output.total_quantity.toLocaleString()} kg`}
-            </div>
-          ))}
-        </div>
-      )}
+      {run.outputs_by_product_type &&
+        run.outputs_by_product_type.length > 0 && (
+          <div className="shrink-0 text-right">
+            {run.outputs_by_product_type.slice(0, 2).map((output) => (
+              <div
+                key={output.product_type_id}
+                className="text-xs font-semibold tabular-nums"
+              >
+                <span className="text-muted-foreground">
+                  {output.product_type_code ||
+                    output.product_type_name?.slice(0, 2)}
+                  :
+                </span>{' '}
+                {output.total_quantity >= 1000
+                  ? `${(output.total_quantity / 1000).toFixed(1)} TON`
+                  : `${output.total_quantity.toLocaleString()} kg`}
+              </div>
+            ))}
+          </div>
+        )}
 
       {/* Chevron */}
       <ChevronRight className="text-muted-foreground size-4 shrink-0" />

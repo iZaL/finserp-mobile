@@ -1026,6 +1026,7 @@
       "selectShift": "Select shift",
       "handingOverTo": "Hand over to",
       "toOperator": "Incoming Operator",
+      "incomingOperator": "Incoming Operator",
       "selectOperator": "Select operator",
       "pendingTasks": "Pending Tasks",
       "add": "Add",

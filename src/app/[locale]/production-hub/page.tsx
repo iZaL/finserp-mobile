@@ -44,6 +44,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {Label} from '@/components/ui/label';
+import {OperatorSelector} from '@/components/operator-selector';
 import {ProductionRunsGuard} from '@/components/permission-guard';
 import {usePermissions} from '@/lib/stores/permission-store';
 import {
@@ -57,6 +58,7 @@ import {
 import {RelativeTime} from '@/components/relative-time';
 import {ProductionRunCard} from '@/components/production-run-card';
 import {cn} from '@/lib/utils';
+import type {Operator} from '@/types/production-run';
 
 export default function ProductionHubPage() {
   const router = useRouter();
@@ -83,7 +85,7 @@ export default function ProductionHubPage() {
   const [showHandoverDialog, setShowHandoverDialog] = useState(false);
   const [fromShift, setFromShift] = useState('');
   const [toShift, setToShift] = useState('');
-  const [toOperatorId, setToOperatorId] = useState<string>('');
+  const [toOperatorId, setToOperatorId] = useState<number | null>(null);
 
   const hasActiveRun = !!dashboard?.active_run;
   const currentShift = dashboard?.current_shift;
@@ -114,7 +116,7 @@ export default function ProductionHubPage() {
       const result = await createHandover.mutateAsync({
         from_shift: fromShift,
         to_shift: toShift,
-        ...(toOperatorId ? {to_user_id: Number(toOperatorId)} : {}),
+        ...(toOperatorId ? {to_user_id: toOperatorId} : {}),
       });
 
       // Auto-accept the handover
@@ -130,7 +132,7 @@ export default function ProductionHubPage() {
       setShowHandoverDialog(false);
       setFromShift('');
       setToShift('');
-      setToOperatorId('');
+      setToOperatorId(null);
     } catch {
       // Error handled by mutation hook
     }
@@ -492,25 +494,16 @@ export default function ProductionHubPage() {
                 {/* Operator selection */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground text-xs">
-                    {tRuns('handover.toOperator')} ({tCommon('optional')})
+                    {tRuns('handover.incomingOperator')} ({tCommon('optional')})
                   </Label>
-                  <Select value={toOperatorId} onValueChange={setToOperatorId}>
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={tRuns('handover.selectOperator')}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {operators?.operators?.map((operator) => (
-                        <SelectItem
-                          key={operator.id}
-                          value={String(operator.id)}
-                        >
-                          {operator.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <OperatorSelector
+                    operators={operators?.operators || []}
+                    selectedOperatorId={toOperatorId}
+                    onSelect={(operator: Operator | null) =>
+                      setToOperatorId(operator?.id || null)
+                    }
+                    placeholder={tRuns('handover.selectOperator')}
+                  />
                 </div>
               </>
             ) : (
@@ -589,25 +582,16 @@ export default function ProductionHubPage() {
                 {/* Operator selection */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground text-xs">
-                    {tRuns('handover.toOperator')} ({tCommon('optional')})
+                    {tRuns('handover.incomingOperator')} ({tCommon('optional')})
                   </Label>
-                  <Select value={toOperatorId} onValueChange={setToOperatorId}>
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={tRuns('handover.selectOperator')}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {operators?.operators?.map((operator) => (
-                        <SelectItem
-                          key={operator.id}
-                          value={String(operator.id)}
-                        >
-                          {operator.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <OperatorSelector
+                    operators={operators?.operators || []}
+                    selectedOperatorId={toOperatorId}
+                    onSelect={(operator: Operator | null) =>
+                      setToOperatorId(operator?.id || null)
+                    }
+                    placeholder={tRuns('handover.selectOperator')}
+                  />
                 </div>
               </>
             )}

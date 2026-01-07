@@ -405,7 +405,7 @@ export function ProductionOutputsTable({
           <div className="bg-muted/50 flex items-center border-b px-2 py-1.5">
             {canSelect && <div className="mr-2 w-4" />}
             <div className="min-w-0 flex-1">
-              <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide">
+              <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
                 Date
               </span>
             </div>
@@ -415,7 +415,7 @@ export function ProductionOutputsTable({
                 <div key={type} className="w-16 shrink-0 text-right">
                   <span
                     className={cn(
-                      'text-[10px] font-medium uppercase tracking-wide',
+                      'text-[10px] font-medium tracking-wide uppercase',
                       style.textColor
                     )}
                   >

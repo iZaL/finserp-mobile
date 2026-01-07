@@ -123,7 +123,8 @@ export function DateGroupedList<T>({
                     </span>
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    {group.items.length} record{group.items.length !== 1 ? 's' : ''}
+                    {group.items.length} record
+                    {group.items.length !== 1 ? 's' : ''}
                   </div>
                 </div>
 

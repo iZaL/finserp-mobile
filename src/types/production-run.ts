@@ -97,6 +97,7 @@ export interface HandoverFormData {
   shifts: Pick<ProductionShift, 'id' | 'name' | 'code' | 'color'>[];
   current_shift: {id: number; name: string} | null;
   next_shift: {id: number; name: string} | null;
+  operators: Operator[];
   date: string;
 }
 
