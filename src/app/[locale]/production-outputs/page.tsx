@@ -32,7 +32,7 @@ export default function ProductionOutputsPage() {
           </div>
         </div>
 
-        <div className="container mx-auto p-4">
+        <div className="pt-2">
           <ProductionOutputsTable
             showBatchingCard={true}
             showEmptyState={true}

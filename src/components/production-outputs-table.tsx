@@ -10,6 +10,8 @@ import {
   Calendar,
   Wheat,
   Droplet,
+  CheckCircle2,
+  CircleDot,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
@@ -77,6 +79,7 @@ export function ProductionOutputsTable({
 
   const {data, isLoading, error} = useProductionOutputs(filters);
   const {canCreateBatch: hasCreateBatchPermission} = usePermissionStore();
+  const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
   const {productTypes, groupedByDate, totals, allOutputs, latestOutputId} =
     useMemo(() => {
@@ -211,16 +214,13 @@ export function ProductionOutputsTable({
     selectableOutputs.length > 0 &&
     hasCreateBatchPermission();
 
-  // Auto-expand all dates when defaultExpanded is true
+  // Auto-expand all dates when defaultExpanded is true (only once on initial load)
   useEffect(() => {
-    if (
-      defaultExpanded &&
-      groupedByDate.length > 0 &&
-      expandedDates.size === 0
-    ) {
+    if (defaultExpanded && groupedByDate.length > 0 && !hasAutoExpanded) {
       setExpandedDates(new Set(groupedByDate.map((g) => g.date)));
+      setHasAutoExpanded(true);
     }
-  }, [defaultExpanded, groupedByDate, expandedDates.size]);
+  }, [defaultExpanded, groupedByDate, hasAutoExpanded]);
 
   const toggleDate = (date: string) => {
     setExpandedDates((prev) => {
@@ -366,6 +366,13 @@ export function ProductionOutputsTable({
   // Has data
   if (!data || data.data.length === 0) return null;
 
+  // Get short product type name for column headers
+  const getShortTypeName = (name: string) => {
+    if (name.toLowerCase().includes('fishmeal')) return 'Fishmeal';
+    if (name.toLowerCase().includes('fish oil')) return 'Fish Oil';
+    return name.length > 10 ? name.slice(0, 8) + '...' : name;
+  };
+
   return (
     <div className="space-y-4">
       {/* Optional header */}
@@ -392,7 +399,35 @@ export function ProductionOutputsTable({
       )}
 
       {/* Records List */}
-      <Card className="overflow-hidden border-0 shadow-md">
+      <div className="bg-background overflow-hidden">
+        {/* Column headers - only show if we have product types */}
+        {productTypes.length > 0 && (
+          <div className="bg-muted/50 flex items-center border-b px-2 py-1.5">
+            {canSelect && <div className="mr-2 w-4" />}
+            <div className="min-w-0 flex-1">
+              <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wide">
+                Date
+              </span>
+            </div>
+            {productTypes.map((type) => {
+              const style = getProductTypeStyle(type);
+              return (
+                <div key={type} className="w-16 shrink-0 text-right">
+                  <span
+                    className={cn(
+                      'text-[10px] font-medium uppercase tracking-wide',
+                      style.textColor
+                    )}
+                  >
+                    {getShortTypeName(type)}
+                  </span>
+                </div>
+              );
+            })}
+            <div className="w-4" />
+          </div>
+        )}
+
         {/* Rows */}
         <div className="divide-y">
           {groupedByDate.map((group) => {
@@ -426,7 +461,7 @@ export function ProductionOutputsTable({
               <Fragment key={group.date}>
                 <div
                   className={cn(
-                    'group flex cursor-pointer items-center px-3 py-2 transition-colors',
+                    'group flex cursor-pointer items-center gap-2 px-2 py-2.5 transition-colors',
                     'hover:bg-muted/50',
                     canSelect && isFullySelected && 'bg-primary/5'
                   )}
@@ -434,11 +469,15 @@ export function ProductionOutputsTable({
                 >
                   {/* Selection checkbox */}
                   {canSelect && (
-                    <div className="mr-2" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox
                         checked={isFullySelected}
                         disabled={!hasSelectable}
                         className={cn(
+                          'size-4',
                           !hasSelectable && 'opacity-30',
                           isPartiallySelected &&
                             'data-[state=unchecked]:bg-primary/30'
@@ -454,70 +493,67 @@ export function ProductionOutputsTable({
                     </div>
                   )}
 
-                  {/* Date info */}
-                  <div className="flex flex-1 items-center gap-2">
-                    <div
-                      className={cn(
-                        'flex size-9 items-center justify-center rounded-lg',
-                        'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
-                      )}
-                    >
-                      <Calendar className="text-muted-foreground size-4" />
+                  {/* Date icon */}
+                  <div
+                    className={cn(
+                      'flex size-9 shrink-0 items-center justify-center rounded-lg',
+                      'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
+                    )}
+                  >
+                    <Calendar className="text-muted-foreground size-4" />
+                  </div>
+
+                  {/* Date info - takes remaining space */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm font-semibold">
+                        {formatDate(group.date)}
+                      </span>
+                      <span className="text-muted-foreground text-[10px]">
+                        {formatShortDate(group.date)}
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">
-                          {formatDate(group.date)}
-                        </span>
-                        <span className="text-muted-foreground text-xs">
-                          {formatShortDate(group.date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-xs">
-                          {hasMultiple
-                            ? t('list.records', {count: group.totalRecords})
-                            : singleRecord?.product_type?.name}
-                        </span>
-                        {!hasMultiple &&
-                          singleRecord &&
-                          (singleRecord.available_quantity !== undefined &&
-                          singleRecord.available_quantity === 0 ? (
+                    <div className="flex items-center gap-1.5">
+                      {hasMultiple ? (
+                        <>
+                          <span className="text-muted-foreground text-xs">
+                            {t('list.records', {count: group.totalRecords})}
+                          </span>
+                          {canSelect && selectableCount > 0 && (
                             <Badge
-                              variant="secondary"
-                              className="px-1.5 py-0 text-[10px]"
+                              variant="outline"
+                              className="px-1 py-0 text-[9px]"
                             >
-                              Batched
+                              {selectableCount} avail
                             </Badge>
+                          )}
+                        </>
+                      ) : singleRecord ? (
+                        <>
+                          <span className="text-muted-foreground truncate text-xs">
+                            {singleRecord.product_type?.name}
+                          </span>
+                          {singleRecord.available_quantity !== undefined &&
+                          singleRecord.available_quantity === 0 ? (
+                            <Package className="text-muted-foreground size-3.5 shrink-0" />
                           ) : singleRecord.available_quantity !== undefined &&
                             singleRecord.available_quantity <
                               singleRecord.total_quantity ? (
-                            <Badge className="bg-amber-500 px-1.5 py-0 text-[10px] text-white">
-                              Partial
-                            </Badge>
+                            <CircleDot className="size-3.5 shrink-0 text-amber-500" />
                           ) : (
-                            <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
-                              Available
-                            </Badge>
-                          ))}
-                        {canSelect && selectableCount > 0 && hasMultiple && (
-                          <Badge
-                            variant="outline"
-                            className="px-1.5 py-0 text-[10px]"
-                          >
-                            {selectableCount} available
-                          </Badge>
-                        )}
-                      </div>
+                            <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" />
+                          )}
+                        </>
+                      ) : null}
                     </div>
                   </div>
 
-                  {/* Product type quantities */}
+                  {/* Product type quantities - compact */}
                   {productTypes.map((type) => {
                     const style = getProductTypeStyle(type);
                     const value = group.byType[type]?.total;
                     return (
-                      <div key={type} className="w-24 text-right">
+                      <div key={type} className="w-16 shrink-0 text-right">
                         {value ? (
                           <span
                             className={cn(
@@ -525,10 +561,12 @@ export function ProductionOutputsTable({
                               style.textColor
                             )}
                           >
-                            {value.toLocaleString()} kg
+                            {value >= 1000
+                              ? `${(value / 1000).toFixed(1)} TON`
+                              : `${value.toLocaleString()} kg`}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground/50 text-sm">
+                          <span className="text-muted-foreground/30 text-xs">
                             —
                           </span>
                         )}
@@ -537,24 +575,22 @@ export function ProductionOutputsTable({
                   })}
 
                   {/* Expand indicator */}
-                  <div className="ml-1 w-5">
+                  <div className="w-4 shrink-0">
                     {hasMultiple && (
-                      <div
+                      <ChevronRight
                         className={cn(
-                          'text-muted-foreground transition-transform',
+                          'text-muted-foreground size-4 transition-transform duration-200',
                           isExpanded && 'rotate-90'
                         )}
-                      >
-                        <ChevronRight className="size-4" />
-                      </div>
+                      />
                     )}
                   </div>
                 </div>
 
                 {/* Expanded details */}
                 {isExpanded && (
-                  <div className="bg-muted/30 border-t px-2 py-1">
-                    <div className="space-y-0.5">
+                  <div className="bg-muted/20 border-muted border-t">
+                    <div className="space-y-0.5 px-1 py-1">
                       {Object.entries(group.byType).flatMap(([, typeData]) =>
                         typeData.records.map((record) => {
                           const selectable = isOutputSelectable(record);
@@ -591,32 +627,39 @@ export function ProductionOutputsTable({
         </div>
 
         {/* Footer totals */}
-        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-3 py-2 dark:from-slate-800 dark:to-slate-700">
-          <div className="flex items-center">
-            {canSelect && <div className="mr-2 w-5" />}
-            <div className="flex flex-1 items-center gap-2">
-              <div className="size-9" />
-              <span className="text-sm font-bold">{t('list.total')}</span>
-            </div>
+        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-2 py-2 dark:from-slate-800 dark:to-slate-700">
+          <div className="flex items-center gap-2">
+            {canSelect && <div className="w-4 shrink-0" />}
+            <div className="size-9 shrink-0" />
+            <span className="min-w-0 flex-1 text-sm font-bold">
+              {t('list.total')}
+            </span>
             {productTypes.map((type) => {
               const style = getProductTypeStyle(type);
+              const value = totals[type];
               return (
-                <div key={type} className="w-24 text-right">
-                  <span
-                    className={cn(
-                      'text-sm font-bold tabular-nums',
-                      style.textColor
-                    )}
-                  >
-                    {totals[type] ? `${totals[type].toLocaleString()} kg` : '—'}
-                  </span>
+                <div key={type} className="w-16 shrink-0 text-right">
+                  {value ? (
+                    <span
+                      className={cn(
+                        'text-sm font-bold tabular-nums',
+                        style.textColor
+                      )}
+                    >
+                      {value >= 1000
+                        ? `${(value / 1000).toFixed(1)} TON`
+                        : `${value.toLocaleString()} kg`}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground/30 text-sm">—</span>
+                  )}
                 </div>
               );
             })}
-            <div className="ml-1 w-5" />
+            <div className="w-4 shrink-0" />
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Selection mode footer */}
       {canSelect && (

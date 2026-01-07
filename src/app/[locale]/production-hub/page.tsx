@@ -261,15 +261,27 @@ export default function ProductionHubPage() {
                         </Badge>
                       )}
                     </div>
-                    {permissions.canCreateProductionRun() && (
-                      <Button
-                        className="mt-3 w-full"
-                        onClick={() => router.push('/production-runs/new')}
-                      >
-                        <Play className="me-2 size-4" />
-                        {tRuns('actions.startRun')}
-                      </Button>
-                    )}
+                    <div className="mt-3 flex gap-2">
+                      {permissions.canCreateProductionRun() && (
+                        <Button
+                          className="flex-1"
+                          onClick={() => router.push('/production-runs/new')}
+                        >
+                          <Play className="me-2 size-4" />
+                          {tRuns('actions.startRun')}
+                        </Button>
+                      )}
+                      {permissions.canHandoverShift() && (
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={openHandoverDialog}
+                        >
+                          <ArrowRightLeft className="me-2 size-4" />
+                          {tRuns('shift.shiftHandover')}
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}

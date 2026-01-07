@@ -1,6 +1,14 @@
 'use client';
 
-import {Wheat, Droplet, ChevronRight, Warehouse} from 'lucide-react';
+import {
+  Wheat,
+  Droplet,
+  ChevronRight,
+  Warehouse,
+  CheckCircle2,
+  CircleDot,
+  Package,
+} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Checkbox} from '@/components/ui/checkbox';
 import {Input} from '@/components/ui/input';
@@ -86,12 +94,29 @@ export function ProductionOutputRow({
     onAllocationChange(output.id, bags);
   };
 
+  // Render status icon - compact
+  const StatusIcon = () => {
+    if (isFullyBatched) {
+      return (
+        <Package className="text-muted-foreground size-4 shrink-0" />
+      );
+    }
+    if (isPartiallyBatched) {
+      return (
+        <CircleDot className="size-4 shrink-0 text-amber-500" />
+      );
+    }
+    return (
+      <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+    );
+  };
+
   return (
     <div
       className={cn(
-        'flex items-center gap-2 rounded-md px-2 py-2 transition-colors',
+        'flex items-center gap-2 rounded-lg px-2 py-2 transition-colors',
         onClick && 'hover:bg-muted/50 cursor-pointer',
-        mode === 'select' && selected && 'bg-primary/10',
+        mode === 'select' && selected && 'bg-primary/5 ring-primary/20 ring-1',
         mode === 'allocate' && 'bg-muted/30',
         disabled && 'opacity-50'
       )}
@@ -102,7 +127,7 @@ export function ProductionOutputRow({
         <Checkbox
           checked={selected}
           disabled={disabled}
-          className={cn(disabled && 'opacity-30')}
+          className={cn('size-4 shrink-0', disabled && 'opacity-30')}
           onCheckedChange={() => onSelect(output.id)}
           onClick={(e) => e.stopPropagation()}
         />
@@ -111,128 +136,96 @@ export function ProductionOutputRow({
       {/* Product type icon */}
       <div
         className={cn(
-          'flex size-9 shrink-0 items-center justify-center rounded-md',
+          'flex size-8 shrink-0 items-center justify-center rounded-md',
           style.bgColor
         )}
       >
         <Icon className={cn('size-4', style.textColor)} />
       </div>
 
-      {/* Content */}
-      <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-        {/* Left side - Product info */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                'truncate text-sm font-medium',
-                disabled && 'text-muted-foreground'
-              )}
-            >
-              {typeName}
-            </span>
-            {isLatest && (
-              <Badge className="shrink-0 bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
-                Latest
-              </Badge>
+      {/* Content - compact two-row layout */}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        {/* Top row: Product name + Latest badge */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'truncate text-sm font-medium',
+              disabled && 'text-muted-foreground'
             )}
-          </div>
-          <div className="text-muted-foreground flex items-center gap-1 text-xs">
-            <span>{time}</span>
-            {output.production_run && (
-              <>
-                <span>•</span>
-                <span className="truncate">{output.production_run.name}</span>
-              </>
-            )}
-            {showWarehouse && output.warehouse && (
-              <>
-                <span>•</span>
-                <Warehouse className="size-3" />
-                <span className="truncate">{output.warehouse.name}</span>
-              </>
-            )}
-          </div>
+          >
+            {typeName}
+          </span>
+          {isLatest && (
+            <Badge className="shrink-0 bg-emerald-500 px-1 py-0 text-[9px] text-white">
+              New
+            </Badge>
+          )}
         </div>
 
-        {/* Right side - Quantity or Allocation */}
-        {mode === 'allocate' && isPackaged ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Input
-                type="number"
-                min={0}
-                max={availableBags}
-                value={allocation?.bags ?? 0}
-                onChange={(e) => handleAllocationChange(e.target.value)}
-                className="h-8 w-20 text-center text-sm"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <span className="text-muted-foreground text-xs">
-                / {availableBags}
-              </span>
-            </div>
-            <div className="w-20 text-right">
-              <p className="text-sm font-medium tabular-nums">
-                {((allocation?.bags ?? 0) * weightPerBag).toLocaleString()} kg
-              </p>
-              <p className="text-muted-foreground text-[10px]">
-                {weightPerBag}kg bags
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="shrink-0 text-right">
-            <div className="flex items-center justify-end gap-1.5">
-              <span
-                className={cn(
-                  'text-sm font-semibold tabular-nums',
-                  style.textColor,
-                  disabled && 'opacity-50'
-                )}
-              >
-                {isPackaged ? (
-                  isPartiallyBatched ? (
-                    <>
-                      {availableBags} / {totalBags} bags
-                    </>
-                  ) : (
-                    <>
-                      {totalBags} × {weightPerBag}kg bags
-                    </>
-                  )
-                ) : (
-                  <>
-                    {output.total_quantity.toLocaleString()} {output.unit}
-                  </>
-                )}
-              </span>
-              {isFullyBatched ? (
-                <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
-                  Batched
-                </Badge>
-              ) : isPartiallyBatched ? (
-                <Badge className="bg-amber-500 px-1.5 py-0 text-[10px] text-white">
-                  Partial
-                </Badge>
-              ) : (
-                <Badge className="bg-emerald-500 px-1.5 py-0 text-[10px] text-white">
-                  Available
-                </Badge>
-              )}
-            </div>
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {isPartiallyBatched
-                ? `${availableQty.toLocaleString()} / ${output.total_quantity.toLocaleString()} kg`
-                : `${output.total_quantity.toLocaleString()} kg`}
-            </p>
-          </div>
-        )}
-
-        {showChevron && (
-          <ChevronRight className="text-muted-foreground size-4 shrink-0" />
-        )}
+        {/* Bottom row: Time/metadata */}
+        <div className="text-muted-foreground flex min-w-0 items-center gap-1 text-[11px]">
+          <span className="shrink-0 tabular-nums">{time}</span>
+          {output.production_run && (
+            <>
+              <span className="shrink-0">•</span>
+              <span className="truncate">{output.production_run.name}</span>
+            </>
+          )}
+          {showWarehouse && output.warehouse && (
+            <>
+              <span className="shrink-0">•</span>
+              <Warehouse className="size-3 shrink-0" />
+              <span className="truncate">{output.warehouse.name}</span>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Right side: Quantity + Status icon */}
+      {mode === 'allocate' && isPackaged ? (
+        <div className="flex shrink-0 items-center gap-1">
+          <Input
+            type="number"
+            min={0}
+            max={availableBags}
+            value={allocation?.bags ?? 0}
+            onChange={(e) => handleAllocationChange(e.target.value)}
+            className="h-6 w-14 text-center text-xs"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <span className="text-muted-foreground text-[10px]">
+            /{availableBags}
+          </span>
+        </div>
+      ) : (
+        <div className="flex shrink-0 items-center gap-1.5">
+          <div className="text-right">
+            <span
+              className={cn(
+                'block text-sm font-semibold tabular-nums',
+                style.textColor,
+                disabled && 'opacity-50'
+              )}
+            >
+              {isPackaged
+                ? isPartiallyBatched
+                  ? `${availableBags}/${totalBags} bags`
+                  : `${totalBags}×${weightPerBag}kg bags`
+                : `${output.total_quantity.toLocaleString()} ${output.unit}`}
+            </span>
+            <span className="text-muted-foreground block text-[10px] tabular-nums">
+              {isPackaged
+                ? `${(isPartiallyBatched ? availableQty : output.total_quantity).toLocaleString()} kg`
+                : ''}
+            </span>
+          </div>
+          <StatusIcon />
+        </div>
+      )}
+
+      {showChevron && (
+        <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+      )}
     </div>
   );
 }
