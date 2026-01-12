@@ -57,6 +57,7 @@ interface PermissionStore {
   canHandoverShift: () => boolean;
   canManageOperators: () => boolean;
   canRecordParameters: () => boolean;
+  canViewProductionStats: () => boolean;
 
   // ===== PRODUCTION OUTPUT PERMISSIONS =====
   canAccessProductionOutputs: () => boolean;
@@ -241,6 +242,10 @@ export const usePermissionStore = create<PermissionStore>((set, get) => ({
 
   canRecordParameters: () => {
     return get().hasPermission(PRODUCTION_RUN_PERMISSIONS.RECORD_PARAMETERS);
+  },
+
+  canViewProductionStats: () => {
+    return get().hasPermission(PRODUCTION_RUN_PERMISSIONS.VIEW_STATS);
   },
 
   // ===== PRODUCTION OUTPUT PERMISSIONS =====

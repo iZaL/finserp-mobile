@@ -152,6 +152,7 @@ export interface ProductionOutputFilters {
   production_date?: string;
   date_from?: string;
   date_to?: string;
+  shift_id?: number;
   production_product_type_id?: number;
   production_run_id?: number;
   storage_type?: StorageType;
@@ -211,6 +212,7 @@ export interface BulkCreateProductionOutputRequest {
   production_date: string;
   production_run_id?: number;
   shift_id?: number;
+  status?: ProductionOutputStatus;
   notes?: string;
   products: OutputProductEntry[];
 }

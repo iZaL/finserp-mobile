@@ -13,6 +13,7 @@ import type {
   ProductionRunsFilters,
   ProductionRunsResponse,
   ProductionRunDetail,
+  ProductionHubResponse,
 } from '@/types/production-run';
 
 export const productionRunService = {
@@ -32,6 +33,19 @@ export const productionRunService = {
     }
     if (filters?.page) {
       params.append('page', filters.page.toString());
+    }
+    // Date filtering for dashboard
+    if (filters?.production_day) {
+      params.append('production_day', filters.production_day);
+    }
+    if (filters?.date_from) {
+      params.append('date_from', filters.date_from);
+    }
+    if (filters?.date_to) {
+      params.append('date_to', filters.date_to);
+    }
+    if (filters?.shift_id) {
+      params.append('shift_id', filters.shift_id.toString());
     }
     const response = await api.get<ProductionRunsResponse>(
       `/production/runs?${params.toString()}`,
@@ -207,6 +221,35 @@ export const productionRunService = {
     const response = await api.post<{message: string; status: string}>(
       `/production/run/${id}/start`,
       {force}
+    );
+    return response.data;
+  },
+
+  /**
+   * Get production hub dashboard data
+   * Returns aggregated metrics by shift for a given production day
+   *
+   * @param productionDay - Date in yyyy-MM-dd format (production day, not calendar)
+   * @param config - Optional abort signal
+   *
+   * Note to Laravel backend:
+   * - productionDay is based on shift cycle (e.g., 7:15 AM to 7:15 AM next day)
+   * - Should aggregate all production outputs within each shift
+   * - fish_input_kg comes from vehicle bookings with status 'offloaded'
+   * - fishmeal_output_kg and fish_oil_output_kg from production_outputs
+   * - Group runs and metrics by their shift_id
+   */
+  getProductionHub: async (
+    productionDay?: string,
+    config?: {signal?: AbortSignal}
+  ): Promise<ProductionHubResponse> => {
+    const params = new URLSearchParams();
+    if (productionDay) {
+      params.append('production_day', productionDay);
+    }
+    const response = await api.get<ProductionHubResponse>(
+      `/production/hub?${params.toString()}`,
+      config
     );
     return response.data;
   },

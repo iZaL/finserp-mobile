@@ -72,8 +72,11 @@ export default function CreateBatchPage() {
     queryFn: () => batchInventoryService.getWarehouses(),
   });
 
-  const outputs = outputsData?.data || [];
-  const warehouses: Warehouse[] = warehousesData || [];
+  const outputs = useMemo(() => outputsData?.data || [], [outputsData?.data]);
+  const warehouses: Warehouse[] = useMemo(
+    () => warehousesData || [],
+    [warehousesData]
+  );
   const isLoading = outputsLoading || warehousesLoading;
   const error = outputsError;
 
@@ -128,11 +131,6 @@ export default function CreateBatchPage() {
     if (warehouses.length > 0 && selectedWarehouseId === null) {
       setSelectedWarehouseId(warehouses[0].id);
     }
-  }, [warehouses, selectedWarehouseId]);
-
-  // Get the selected warehouse object
-  const selectedWarehouse = useMemo(() => {
-    return warehouses.find((w) => w.id === selectedWarehouseId) || null;
   }, [warehouses, selectedWarehouseId]);
 
   const {totalQuantity, productType, packageType, packageCount} =

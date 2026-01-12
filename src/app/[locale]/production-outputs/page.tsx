@@ -1,6 +1,5 @@
 'use client';
 
-import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import {ArrowLeft} from 'lucide-react';
 import {Button} from '@/components/ui/button';
@@ -8,7 +7,6 @@ import {ProductionOutputsGuard} from '@/components/permission-guard';
 import {ProductionOutputsTable} from '@/components/production-outputs-table';
 
 export default function ProductionOutputsPage() {
-  const router = useRouter();
   const t = useTranslations('productionOutputs');
 
   return (

@@ -48,6 +48,7 @@ export function ImpersonationDialog({
     if (open) {
       loadUsers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, debouncedSearch]);
 
   const loadUsers = async () => {

@@ -83,6 +83,7 @@ export interface ProductionDashboard {
 export interface ShiftsResponse {
   shifts: ProductionShift[];
   current_shift: ProductionShift | null;
+  timezone?: string; // Factory timezone from settings (e.g., 'Asia/Muscat')
 }
 
 export interface OperatorsResponse {
@@ -203,6 +204,14 @@ export interface ProductionRunsFilters {
   status?: ProductionRunStatus | 'all';
   per_page?: number;
   page?: number;
+  /** Filter by production day (yyyy-MM-dd) - shift-based, not calendar day */
+  production_day?: string;
+  /** Filter from datetime (ISO 8601 format) */
+  date_from?: string;
+  /** Filter to datetime (ISO 8601 format) */
+  date_to?: string;
+  /** Filter by shift ID */
+  shift_id?: number;
 }
 
 export interface ProductionRunsResponse {
@@ -213,4 +222,47 @@ export interface ProductionRunsResponse {
     per_page: number;
     total: number;
   };
+}
+
+/**
+ * Aggregated metrics for a production day/shift
+ * Used in the production hub dashboard
+ */
+export interface ProductionDayMetrics {
+  /** Total fish input in kg (from offloaded vehicles) */
+  fish_input_kg: number;
+  /** Total fishmeal output in kg */
+  fishmeal_output_kg: number;
+  /** Total fish oil output in kg */
+  fish_oil_output_kg: number;
+  /** Number of vehicles offloaded */
+  vehicle_count: number;
+}
+
+/**
+ * Shift data with runs and aggregated metrics
+ */
+export interface ShiftDayData {
+  shift: ProductionShift;
+  runs: ProductionRunListItem[];
+  metrics: ProductionDayMetrics;
+}
+
+/**
+ * Response for production hub dashboard
+ * Groups data by production day and shift
+ */
+export interface ProductionHubResponse {
+  /** Production day in yyyy-MM-dd format (shift-based) */
+  production_day: string;
+  /** Factory timezone from settings */
+  timezone: string;
+  /** All shifts for this factory */
+  shifts: ProductionShift[];
+  /** Current active shift (null if outside shift hours) */
+  current_shift: ProductionShift | null;
+  /** Data for each shift */
+  shift_data: ShiftDayData[];
+  /** Day totals (aggregated across all shifts) */
+  day_totals: ProductionDayMetrics;
 }

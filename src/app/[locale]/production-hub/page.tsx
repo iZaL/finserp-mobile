@@ -13,7 +13,10 @@ import {
   ClipboardList,
   Play,
   Layers,
+  LayoutDashboard,
+  Zap,
 } from 'lucide-react';
+import {ProductionDayView} from '@/components/production/production-day-view';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -36,13 +39,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {Label} from '@/components/ui/label';
 import {OperatorSelector} from '@/components/operator-selector';
 import {ProductionRunsGuard} from '@/components/permission-guard';
@@ -86,6 +82,9 @@ export default function ProductionHubPage() {
   const [fromShift, setFromShift] = useState('');
   const [toShift, setToShift] = useState('');
   const [toOperatorId, setToOperatorId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'actions'>(
+    'overview'
+  );
 
   const hasActiveRun = !!dashboard?.active_run;
   const currentShift = dashboard?.current_shift;
@@ -154,15 +153,6 @@ export default function ProductionHubPage() {
     setShowHandoverDialog(true);
   };
 
-  // Determine workflow state
-  const getWorkflowState = () => {
-    if (!hasActiveRun) return 'no_run';
-    // For now, simple state based on active run
-    return 'recording';
-  };
-
-  const workflowState = getWorkflowState();
-
   return (
     <ProductionRunsGuard>
       <div className="from-muted/30 to-background min-h-screen bg-gradient-to-b pb-24">
@@ -183,217 +173,285 @@ export default function ProductionHubPage() {
                 <p className="text-muted-foreground text-xs">{t('subtitle')}</p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => refetch()}
-              disabled={isRefetching}
-            >
-              <RefreshCw
-                className={cn('size-4', isRefetching && 'animate-spin')}
-              />
-            </Button>
+            <div className="flex items-center gap-2">
+              {/* Current Shift Badge */}
+              {currentShift && (
+                <div
+                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                  style={{backgroundColor: currentShift.color || '#6b7280'}}
+                >
+                  <span className="relative flex size-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex size-1.5 rounded-full bg-white" />
+                  </span>
+                  {currentShift.name} Shift
+                </div>
+              )}
+              {activeTab === 'actions' && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => refetch()}
+                  disabled={isRefetching}
+                >
+                  <RefreshCw
+                    className={cn('size-4', isRefetching && 'animate-spin')}
+                  />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Tab Switcher */}
+          <div className="container mx-auto px-4 pb-2">
+            <div className="bg-muted flex gap-1 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  activeTab === 'overview'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <LayoutDashboard className="size-4" />
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('actions')}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  activeTab === 'actions'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Zap className="size-4" />
+                Actions
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="container mx-auto space-y-4 p-4">
-          {/* Loading State */}
-          {isLoading && (
-            <div className="space-y-4">
-              <Skeleton className="h-32 rounded-xl" />
-              <Skeleton className="h-20 rounded-xl" />
-              <Skeleton className="h-24 rounded-xl" />
-            </div>
+          {/* Overview Tab - Production Dashboard */}
+          {activeTab === 'overview' && (
+            <ProductionDayView
+              onStartRun={
+                permissions.canCreateProductionRun()
+                  ? () => router.push('/production-runs/new')
+                  : undefined
+              }
+              onRunClick={(run) => router.push(`/production-runs/${run.id}`)}
+              showStats={permissions.canViewProductionStats()}
+            />
           )}
 
-          {!isLoading && (
+          {/* Actions Tab - Quick Actions and Active Run */}
+          {activeTab === 'actions' && (
             <>
-              {/* Active Run Hero Card */}
-              {hasActiveRun && activeRun ? (
-                <ProductionRunCard
-                  run={activeRun}
-                  currentShift={currentShift}
-                  currentOperator={currentOperatorName}
-                  onRecordOutput={
-                    permissions.canCreateProductionOutput() && currentShift
-                      ? () =>
-                          router.push(
-                            `/production-outputs/new?run_id=${activeRun.id}&shift_id=${currentShift.id}`
-                          )
-                      : undefined
-                  }
-                  onHandover={
-                    permissions.canHandoverShift()
-                      ? openHandoverDialog
-                      : undefined
-                  }
-                  onCompleteRun={
-                    permissions.canCompleteProductionRun()
-                      ? () => setShowCompleteDialog(true)
-                      : undefined
-                  }
-                  showRecordOutput={
-                    permissions.canCreateProductionOutput() && !!currentShift
-                  }
-                  showHandover={permissions.canHandoverShift()}
-                  showCompleteRun={permissions.canCompleteProductionRun()}
-                  recordOutputLabel={tRuns('actions.recordOutput')}
-                  handoverLabel={tRuns('shift.shiftHandover')}
-                  completeRunLabel={tRuns('actions.completeRun')}
-                />
-              ) : (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-muted flex size-12 items-center justify-center rounded-xl">
-                        <Factory className="text-muted-foreground size-6" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold">{t('noActiveRun')}</p>
-                        <p className="text-muted-foreground text-sm">
-                          {t('startRunPrompt')}
-                        </p>
-                      </div>
-                      {currentShift && (
-                        <Badge
-                          style={{backgroundColor: currentShift.color}}
-                          className="text-white"
-                        >
-                          {currentShift.name}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      {permissions.canCreateProductionRun() && (
-                        <Button
-                          className="flex-1"
-                          onClick={() => router.push('/production-runs/new')}
-                        >
-                          <Play className="me-2 size-4" />
-                          {tRuns('actions.startRun')}
-                        </Button>
-                      )}
-                      {permissions.canHandoverShift() && (
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={openHandoverDialog}
-                        >
-                          <ArrowRightLeft className="me-2 size-4" />
-                          {tRuns('shift.shiftHandover')}
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Pending Handovers */}
-              {pendingHandovers.length > 0 && (
-                <Card className="border-violet-200 bg-violet-50 dark:border-violet-900 dark:bg-violet-950/30">
-                  <CardContent className="p-3">
-                    {pendingHandovers.map((handover) => (
-                      <div
-                        key={handover.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ArrowRightLeft className="size-4 text-violet-600 dark:text-violet-400" />
-                          <div>
-                            <p className="text-sm font-medium">
-                              {handover.from_shift} → {handover.to_shift}
-                            </p>
-                            <RelativeTime
-                              date={handover.created_at}
-                              className="text-muted-foreground text-xs"
-                            />
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAcceptHandover(handover.id)}
-                          disabled={acceptHandover.isPending}
-                          className="bg-violet-600 hover:bg-violet-700"
-                        >
-                          {acceptHandover.isPending ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            tRuns('handover.accept')
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Quick Navigation Links */}
-              <div className="space-y-2">
-                <h2 className="text-muted-foreground px-1 text-xs font-semibold tracking-wide uppercase">
-                  {tRuns('list.title')}
-                </h2>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => router.push('/production-runs')}
-                    className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                        <Play className="size-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <span className="text-sm font-medium">
-                        {tRuns('title')}
-                      </span>
-                    </div>
-                    <ChevronRight className="text-muted-foreground size-4" />
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/production-outputs')}
-                    className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                        <ClipboardList className="size-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <span className="text-sm font-medium">
-                        {tRuns('outputsTitle')}
-                      </span>
-                    </div>
-                    <ChevronRight className="text-muted-foreground size-4" />
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/batches')}
-                    className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
-                        <Layers className="size-4 text-cyan-600 dark:text-cyan-400" />
-                      </div>
-                      <span className="text-sm font-medium">
-                        {t('batches')}
-                      </span>
-                    </div>
-                    <ChevronRight className="text-muted-foreground size-4" />
-                  </button>
-
-                  <button
-                    onClick={() => router.push('/batches/transfer')}
-                    className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex size-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
-                        <ArrowRightLeft className="size-4 text-violet-600 dark:text-violet-400" />
-                      </div>
-                      <span className="text-sm font-medium">
-                        {t('transferStock')}
-                      </span>
-                    </div>
-                    <ChevronRight className="text-muted-foreground size-4" />
-                  </button>
+              {/* Loading State */}
+              {isLoading && (
+                <div className="space-y-4">
+                  <Skeleton className="h-32 rounded-xl" />
+                  <Skeleton className="h-20 rounded-xl" />
+                  <Skeleton className="h-24 rounded-xl" />
                 </div>
-              </div>
+              )}
+
+              {!isLoading && (
+                <>
+                  {/* Active Run Hero Card */}
+                  {hasActiveRun && activeRun ? (
+                    <ProductionRunCard
+                      run={activeRun}
+                      currentShift={currentShift}
+                      currentOperator={currentOperatorName}
+                      onRecordOutput={
+                        permissions.canCreateProductionOutput() && currentShift
+                          ? () =>
+                              router.push(
+                                `/production-outputs/new?run_id=${activeRun.id}&shift_id=${currentShift.id}`
+                              )
+                          : undefined
+                      }
+                      onHandover={
+                        permissions.canHandoverShift()
+                          ? openHandoverDialog
+                          : undefined
+                      }
+                      onCompleteRun={
+                        permissions.canCompleteProductionRun()
+                          ? () => setShowCompleteDialog(true)
+                          : undefined
+                      }
+                      showRecordOutput={
+                        permissions.canCreateProductionOutput() &&
+                        !!currentShift
+                      }
+                      showHandover={permissions.canHandoverShift()}
+                      showCompleteRun={permissions.canCompleteProductionRun()}
+                      recordOutputLabel={tRuns('actions.recordOutput')}
+                      handoverLabel={tRuns('shift.shiftHandover')}
+                      completeRunLabel={tRuns('actions.completeRun')}
+                    />
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <div className="bg-muted flex size-12 items-center justify-center rounded-xl">
+                            <Factory className="text-muted-foreground size-6" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold">{t('noActiveRun')}</p>
+                            <p className="text-muted-foreground text-sm">
+                              {t('startRunPrompt')}
+                            </p>
+                          </div>
+                          {currentShift && (
+                            <Badge
+                              style={{backgroundColor: currentShift.color}}
+                              className="text-white"
+                            >
+                              {currentShift.name}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          {permissions.canCreateProductionRun() && (
+                            <Button
+                              className="flex-1"
+                              onClick={() =>
+                                router.push('/production-runs/new')
+                              }
+                            >
+                              <Play className="me-2 size-4" />
+                              {tRuns('actions.startRun')}
+                            </Button>
+                          )}
+                          {permissions.canHandoverShift() && (
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={openHandoverDialog}
+                            >
+                              <ArrowRightLeft className="me-2 size-4" />
+                              {tRuns('shift.shiftHandover')}
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Pending Handovers */}
+                  {pendingHandovers.length > 0 && (
+                    <Card className="border-violet-200 bg-violet-50 dark:border-violet-900 dark:bg-violet-950/30">
+                      <CardContent className="p-3">
+                        {pendingHandovers.map((handover) => (
+                          <div
+                            key={handover.id}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              <ArrowRightLeft className="size-4 text-violet-600 dark:text-violet-400" />
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {handover.from_shift} → {handover.to_shift}
+                                </p>
+                                <RelativeTime
+                                  date={handover.created_at}
+                                  className="text-muted-foreground text-xs"
+                                />
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAcceptHandover(handover.id)}
+                              disabled={acceptHandover.isPending}
+                              className="bg-violet-600 hover:bg-violet-700"
+                            >
+                              {acceptHandover.isPending ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                tRuns('handover.accept')
+                              )}
+                            </Button>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Quick Navigation Links */}
+                  <div className="space-y-2">
+                    <h2 className="text-muted-foreground px-1 text-xs font-semibold tracking-wide uppercase">
+                      {tRuns('list.title')}
+                    </h2>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => router.push('/production-runs')}
+                        className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                            <Play className="size-4 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {tRuns('title')}
+                          </span>
+                        </div>
+                        <ChevronRight className="text-muted-foreground size-4" />
+                      </button>
+
+                      <button
+                        onClick={() => router.push('/production-outputs')}
+                        className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                            <ClipboardList className="size-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {tRuns('outputsTitle')}
+                          </span>
+                        </div>
+                        <ChevronRight className="text-muted-foreground size-4" />
+                      </button>
+
+                      <button
+                        onClick={() => router.push('/batches')}
+                        className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-9 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+                            <Layers className="size-4 text-cyan-600 dark:text-cyan-400" />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {t('batches')}
+                          </span>
+                        </div>
+                        <ChevronRight className="text-muted-foreground size-4" />
+                      </button>
+
+                      <button
+                        onClick={() => router.push('/batches/transfer')}
+                        className="bg-card hover:bg-muted/50 flex w-full items-center justify-between rounded-xl border p-3 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
+                            <ArrowRightLeft className="size-4 text-violet-600 dark:text-violet-400" />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {t('transferStock')}
+                          </span>
+                        </div>
+                        <ChevronRight className="text-muted-foreground size-4" />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>

@@ -79,6 +79,9 @@ export const productionRunKeys = {
   details: () => [...productionRunKeys.all, 'detail'] as const,
   detail: (id: number) => [...productionRunKeys.details(), id] as const,
   dashboard: () => [...productionRunKeys.all, 'dashboard'] as const,
+  /** Production hub with aggregated metrics by shift */
+  hub: (productionDay?: string) =>
+    [...productionRunKeys.all, 'hub', productionDay] as const,
   shifts: () => [...productionRunKeys.all, 'shifts'] as const,
   operators: (search?: string) =>
     [...productionRunKeys.all, 'operators', search] as const,

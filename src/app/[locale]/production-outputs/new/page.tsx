@@ -4,7 +4,7 @@ import {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations, useLocale} from 'next-intl';
-import {ChevronLeft, Loader2, Save, Factory} from 'lucide-react';
+import {ChevronLeft, Loader2, Save, Factory, AlertTriangle} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
   useProductionOutputFormData,
   useBulkCreateProductionOutputs,
 } from '@/hooks/use-production-outputs';
+import {useProductionDashboard} from '@/hooks/use-production-runs';
 import {
   ProductOutputEntryCard,
   type ProductOutputEntryData,
@@ -57,26 +58,33 @@ export default function CreateProductionOutputPage() {
   const [urlParams, setUrlParams] = useState({
     runId: null as number | null,
     shiftId: null as number | null,
+    productionDate: null as string | null,
     fromDashboard: false,
   });
 
   useEffect(() => {
     const runId = searchParams.get('run_id');
     const shiftId = searchParams.get('shift_id');
+    const productionDate = searchParams.get('production_date');
     setUrlParams({
       runId: runId ? parseInt(runId) : null,
       shiftId: shiftId ? parseInt(shiftId) : null,
-      fromDashboard: !!runId,
+      productionDate: productionDate || null,
+      fromDashboard: !!runId || !!shiftId,
     });
   }, [searchParams]);
 
   // Form state - initialize with empty string to avoid hydration mismatch
   const [productionDate, setProductionDate] = useState('');
 
-  // Set production date on client side only
+  // Set production date on client side only - use URL param if available
   useEffect(() => {
-    setProductionDate(new Date().toISOString().split('T')[0]);
-  }, []);
+    if (urlParams.productionDate) {
+      setProductionDate(urlParams.productionDate);
+    } else {
+      setProductionDate(new Date().toISOString().split('T')[0]);
+    }
+  }, [urlParams.productionDate]);
   const [shiftId, setShiftId] = useState<number | null>(null);
 
   // Update shiftId when urlParams changes
@@ -85,6 +93,12 @@ export default function CreateProductionOutputPage() {
       setShiftId(urlParams.shiftId);
     }
   }, [urlParams.shiftId]);
+
+  // Fetch dashboard to get the active run (only one run allowed at a time)
+  const {data: dashboardData} = useProductionDashboard();
+
+  // Get the active run from dashboard (or use explicit run_id from URL)
+  const activeRun = urlParams.runId ? null : dashboardData?.active_run || null;
 
   // Product output entries state - keyed by product type ID
   const [productEntries, setProductEntries] = useState<
@@ -153,6 +167,9 @@ export default function CreateProductionOutputPage() {
     return total;
   }, [productEntries, formDataOptions]);
 
+  // Get the effective run ID (explicit or auto-detected)
+  const effectiveRunId = urlParams.runId || activeRun?.id || null;
+
   // Check if any product has data
   const hasAnyData = useMemo(() => {
     if (!formDataOptions) return false;
@@ -217,22 +234,29 @@ export default function CreateProductionOutputPage() {
 
     if (products.length === 0) return;
 
+    // Production run is mandatory
+    if (!effectiveRunId) {
+      return; // Should not happen as button is disabled
+    }
+
     const requestData: BulkCreateProductionOutputRequest = {
       production_date: productionDate,
-      production_run_id: urlParams.runId || undefined,
+      production_run_id: effectiveRunId,
       shift_id: shiftId || undefined,
       products,
     };
 
+    // Debug: Log the exact data being sent
+    console.log(
+      '📦 Production Output Request:',
+      JSON.stringify(requestData, null, 2)
+    );
+
     try {
       await bulkCreateMutation.mutateAsync(requestData);
 
-      // Redirect back to production runs dashboard if came from there
-      if (urlParams.fromDashboard) {
-        router.push('/production-runs');
-      } else {
-        router.push('/production-outputs');
-      }
+      // Always redirect to production hub after creating output
+      router.push('/production-hub');
     } catch (error) {
       console.error('Failed to create production outputs:', error);
     }
@@ -262,15 +286,38 @@ export default function CreateProductionOutputPage() {
           </div>
         </div>
 
-        {/* Context banner when coming from production runs dashboard */}
-        {urlParams.fromDashboard && (
+        {/* Context banner - show run info or warning */}
+        {effectiveRunId ? (
           <div className="bg-primary/10 border-primary/20 mb-6 flex items-center gap-3 rounded-lg border p-4">
             <Factory className="text-primary size-5 shrink-0" />
             <div className="text-sm">
-              <span className="font-medium">{t('activeRunBanner')}</span>
-              <span className="text-muted-foreground ms-1">
-                ({t('runNumber', {runId: urlParams.runId ?? 0})})
+              {urlParams.runId ? (
+                <>
+                  <span className="font-medium">{t('activeRunBanner')}</span>
+                  <span className="text-muted-foreground ms-1">
+                    ({t('runNumber', {runId: urlParams.runId})})
+                  </span>
+                </>
+              ) : activeRun ? (
+                <>
+                  <span className="font-medium">Recording for: </span>
+                  <span className="text-primary font-semibold">
+                    {activeRun.name || `Run #${activeRun.id}`}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-destructive/10 border-destructive/20 mb-6 flex items-center gap-3 rounded-lg border p-4">
+            <AlertTriangle className="text-destructive size-5 shrink-0" />
+            <div className="text-sm">
+              <span className="text-destructive font-medium">
+                No active production run
               </span>
+              <p className="text-muted-foreground mt-0.5">
+                Start a production run before recording output.
+              </p>
             </div>
           </div>
         )}
@@ -300,7 +347,7 @@ export default function CreateProductionOutputPage() {
                     {t('shift')}{' '}
                     {urlParams.fromDashboard && (
                       <span className="text-muted-foreground text-xs">
-                        {t('fromRun')}
+                        (pre-selected)
                       </span>
                     )}
                   </Label>
@@ -309,7 +356,7 @@ export default function CreateProductionOutputPage() {
                     onValueChange={(v) =>
                       setShiftId(v === 'none' ? null : parseInt(v))
                     }
-                    disabled={urlParams.fromDashboard}
+                    disabled={urlParams.fromDashboard && !!urlParams.shiftId}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder={t('selectShift')} />
@@ -373,12 +420,19 @@ export default function CreateProductionOutputPage() {
               onClick={handleSubmit}
               className="w-full"
               size="lg"
-              disabled={!hasAnyData || bulkCreateMutation.isPending}
+              disabled={
+                !hasAnyData || !effectiveRunId || bulkCreateMutation.isPending
+              }
             >
               {bulkCreateMutation.isPending ? (
                 <>
                   <Loader2 className="me-2 size-4 animate-spin" />
                   {t('saving')}
+                </>
+              ) : !effectiveRunId ? (
+                <>
+                  <AlertTriangle className="me-2 size-4" />
+                  No Active Run
                 </>
               ) : (
                 <>

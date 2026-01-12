@@ -13,14 +13,14 @@ const navItems = [
     icon: Home,
   },
   {
-    key: 'production',
-    href: '/production-hub',
-    icon: Factory,
-  },
-  {
     key: 'bookings',
     href: '/vehicle-bookings',
     icon: Calendar,
+  },
+  {
+    key: 'production',
+    href: '/production-hub',
+    icon: Factory,
   },
   {
     key: 'more',

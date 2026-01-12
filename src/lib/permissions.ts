@@ -65,6 +65,9 @@ export const PRODUCTION_RUN_PERMISSIONS = {
   // Parameters (these may need to be created in backend)
   RECORD_PARAMETERS: 'record-production-parameters',
   VIEW_PARAMETERS: 'view-production-parameters',
+
+  // Stats/Analytics - for managers to see fish input, yield percentages
+  VIEW_STATS: 'view-production-stats',
 } as const;
 
 export type ProductionRunPermission =

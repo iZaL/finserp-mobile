@@ -51,6 +51,22 @@ export function useProductionDashboard() {
 }
 
 /**
+ * Hook to get production hub data with aggregated metrics by shift
+ * @param productionDay - Date in yyyy-MM-dd format (production day, not calendar)
+ */
+export function useProductionHub(productionDay?: string) {
+  return useQuery({
+    queryKey: productionRunKeys.hub(productionDay),
+    queryFn: async ({signal}) => {
+      return productionRunService.getProductionHub(productionDay, {signal});
+    },
+    staleTime: 30 * 1000, // 30 seconds - refresh frequently for live data
+    refetchInterval: 60 * 1000, // Auto-refresh every minute
+    retry: false, // Don't retry on failure to avoid multiple toasts
+  });
+}
+
+/**
  * Hook to get all shifts
  */
 export function useShifts() {

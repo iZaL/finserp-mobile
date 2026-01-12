@@ -90,7 +90,6 @@ export function DateGroupedList<T>({
       <div className="divide-y">
         {groups.map((group) => {
           const isExpanded = expandedDates.has(group.date);
-          const hasMultiple = group.items.length > 1;
 
           return (
             <Fragment key={group.date}>

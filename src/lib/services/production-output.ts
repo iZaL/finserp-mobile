@@ -23,6 +23,8 @@ export const productionOutputService = {
       params.append('production_date', filters.production_date);
     if (filters?.date_from) params.append('date_from', filters.date_from);
     if (filters?.date_to) params.append('date_to', filters.date_to);
+    if (filters?.shift_id)
+      params.append('shift_id', filters.shift_id.toString());
     if (filters?.production_product_type_id)
       params.append(
         'production_product_type_id',

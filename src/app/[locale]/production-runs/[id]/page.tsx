@@ -5,24 +5,20 @@ import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import {
   ArrowLeft,
-  User,
   Factory,
   ClipboardList,
   Square,
   Loader2,
   RefreshCw,
   Play,
-  Package,
   Clock,
   CheckCircle2,
   AlertCircle,
   Calendar,
   FileText,
-  Zap,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
-import {Badge} from '@/components/ui/badge';
 import {Textarea} from '@/components/ui/textarea';
 import {Skeleton} from '@/components/ui/skeleton';
 import {

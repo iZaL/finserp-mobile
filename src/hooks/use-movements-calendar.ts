@@ -289,7 +289,10 @@ export function useMovementsCalendar() {
     per_page: 500,
   });
 
-  const movements = movementsData?.data || [];
+  const movements = useMemo(
+    () => movementsData?.data || [],
+    [movementsData?.data]
+  );
 
   // Group movements by date
   const movementsByDate = useMemo(() => {

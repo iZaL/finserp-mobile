@@ -1,5 +1,4 @@
 import {
-  ProductionOutput,
   ProductionProductType,
   Warehouse,
   ProductionPackageType,
