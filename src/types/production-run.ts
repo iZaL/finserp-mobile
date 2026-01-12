@@ -161,6 +161,12 @@ export interface ProductionRunListItem {
   status: ProductionRunStatus;
   date: string;
   operator: {id: number; name: string} | null;
+  shift?: {
+    id: number;
+    name: string;
+    code: string;
+    color: string;
+  } | null;
   total_planned: number;
   total_actual: number;
   lines_count: number;
