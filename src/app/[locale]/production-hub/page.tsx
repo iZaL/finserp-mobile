@@ -5,7 +5,6 @@ import {useRouter, usePathname} from '@/i18n/navigation';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {
-  Factory,
   RefreshCw,
   ArrowLeft,
   ArrowRightLeft,
@@ -48,7 +47,7 @@ import {
   useProductionDashboard,
   useAcceptHandover,
   useCompleteRun,
-  useHandoverFormData,
+  useShifts,
   useCreateHandover,
   useOperators,
 } from '@/hooks/use-production-runs';
@@ -99,7 +98,7 @@ export default function ProductionHubPage() {
   } = useProductionDashboard();
   const acceptHandover = useAcceptHandover();
   const completeRun = useCompleteRun();
-  const {data: handoverFormData} = useHandoverFormData();
+  const {data: shiftsData} = useShifts();
   const createHandover = useCreateHandover();
   const {data: operators} = useOperators();
 
@@ -170,12 +169,16 @@ export default function ProductionHubPage() {
     currentOperator?.name || activeRun?.operator?.name;
 
   // Set default shifts when dialog opens
+  // Use dashboard's current_shift as single source of truth
+  const shifts = shiftsData?.shifts || [];
   const openHandoverDialog = () => {
-    if (handoverFormData?.current_shift) {
-      setFromShift(handoverFormData.current_shift.name);
-    }
-    if (handoverFormData?.next_shift) {
-      setToShift(handoverFormData.next_shift.name);
+    if (currentShift) {
+      setFromShift(currentShift.name);
+      // Find the next shift (the one that's not current)
+      const nextShift = shifts.find(s => s.id !== currentShift.id);
+      if (nextShift) {
+        setToShift(nextShift.name);
+      }
     }
     setShowHandoverDialog(true);
   };
@@ -290,88 +293,59 @@ export default function ProductionHubPage() {
 
               {!isLoading && (
                 <>
-                  {/* Active Run Hero Card */}
-                  {hasActiveRun && activeRun ? (
-                    <ProductionRunCard
-                      run={activeRun}
-                      currentShift={currentShift}
-                      currentOperator={currentOperatorName}
-                      onRecordOutput={
-                        permissions.canCreateProductionOutput() && currentShift
-                          ? () =>
-                              router.push(
-                                `/production-outputs/new?run_id=${activeRun.id}&shift_id=${currentShift.id}`
-                              )
-                          : undefined
-                      }
-                      onHandover={
-                        permissions.canHandoverShift()
-                          ? openHandoverDialog
-                          : undefined
-                      }
-                      onCompleteRun={
-                        permissions.canCompleteProductionRun()
-                          ? () => setShowCompleteDialog(true)
-                          : undefined
-                      }
-                      showRecordOutput={
-                        permissions.canCreateProductionOutput() &&
-                        !!currentShift
-                      }
-                      showHandover={permissions.canHandoverShift()}
-                      showCompleteRun={permissions.canCompleteProductionRun()}
-                      recordOutputLabel={tRuns('actions.recordOutput')}
-                      handoverLabel={tRuns('shift.shiftHandover')}
-                      completeRunLabel={tRuns('actions.completeRun')}
-                    />
-                  ) : (
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="bg-muted flex size-12 items-center justify-center rounded-xl">
-                            <Factory className="text-muted-foreground size-6" />
+                  {/* Active Run + Handover Grid OR Start Production + Handover Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {hasActiveRun && activeRun ? (
+                      /* Active Production Run Card */
+                      <ProductionRunCard
+                        run={activeRun}
+                        currentShift={currentShift}
+                        currentOperator={currentOperatorName}
+                        onCompleteRun={
+                          permissions.canCompleteProductionRun()
+                            ? () => setShowCompleteDialog(true)
+                            : undefined
+                        }
+                        showRecordOutput={false}
+                        showHandover={false}
+                        showCompleteRun={permissions.canCompleteProductionRun()}
+                        completeRunLabel={tRuns('actions.completeRun')}
+                        compact
+                      />
+                    ) : (
+                      /* Start Production Card */
+                      <Card
+                        className="cursor-pointer transition-colors hover:bg-muted/50"
+                        onClick={() => router.push('/production-runs/new')}
+                      >
+                        <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                          <div className="bg-emerald-100 dark:bg-emerald-900/30 mb-3 flex size-12 items-center justify-center rounded-xl">
+                            <Play className="size-6 text-emerald-600 dark:text-emerald-400" />
                           </div>
-                          <div className="flex-1">
-                            <p className="font-semibold">{t('noActiveRun')}</p>
-                            <p className="text-muted-foreground text-sm">
-                              {t('startRunPrompt')}
-                            </p>
-                          </div>
-                          {currentShift && (
-                            <Badge
-                              style={{backgroundColor: currentShift.color}}
-                              className="text-white"
-                            >
-                              {currentShift.name}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          {permissions.canCreateProductionRun() && (
-                            <Button
-                              className="flex-1"
-                              onClick={() =>
-                                router.push('/production-runs/new')
-                              }
-                            >
-                              <Play className="me-2 size-4" />
-                              {tRuns('actions.startRun')}
-                            </Button>
-                          )}
-                          {permissions.canHandoverShift() && (
-                            <Button
-                              variant="outline"
-                              className="flex-1"
-                              onClick={openHandoverDialog}
-                            >
-                              <ArrowRightLeft className="me-2 size-4" />
-                              {tRuns('shift.shiftHandover')}
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                          <p className="font-semibold">{tRuns('actions.startRun')}</p>
+                          <p className="text-muted-foreground text-xs">
+                            {t('startRunPrompt')}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Shift Handover Button - Always visible */}
+                    <button
+                      className="bg-card hover:bg-muted/50 flex h-full flex-col items-center justify-center gap-2 rounded-xl border p-3 text-center transition-colors"
+                      onClick={openHandoverDialog}
+                    >
+                      <div className="bg-violet-100 dark:bg-violet-900/30 flex size-10 items-center justify-center rounded-lg">
+                        <ArrowRightLeft className="size-5 text-violet-600 dark:text-violet-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{tRuns('shift.shiftHandover')}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {t('handoverPrompt')}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
 
                   {/* Pending Handovers */}
                   {pendingHandovers.length > 0 && (
@@ -538,18 +512,20 @@ export default function ProductionHubPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Simple two-shift UI */}
-            {handoverFormData?.shifts &&
-            handoverFormData.shifts.length === 2 ? (
+            {shifts.length === 2 ? (
               <>
                 {/* Visual handover flow - compact for 2 shifts */}
                 <div className="bg-muted/50 rounded-xl p-5">
                   <div className="flex items-center justify-center gap-4">
                     <div className="text-center">
+                      <p className="text-muted-foreground mb-1.5 text-xs">
+                        {tRuns('handover.fromShift')}
+                      </p>
                       <Badge
                         className="px-4 py-1.5 text-base"
                         style={{
                           backgroundColor:
-                            handoverFormData?.shifts.find(
+                            shifts.find(
                               (s) => s.name === fromShift
                             )?.color || '#888',
                           color: 'white',
@@ -558,15 +534,18 @@ export default function ProductionHubPage() {
                         {fromShift}
                       </Badge>
                     </div>
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center pt-4">
                       <ArrowRightLeft className="text-muted-foreground size-6" />
                     </div>
                     <div className="text-center">
+                      <p className="text-muted-foreground mb-1.5 text-xs">
+                        {tRuns('handover.toShift')}
+                      </p>
                       <Badge
                         className="px-4 py-1.5 text-base"
                         style={{
                           backgroundColor:
-                            handoverFormData?.shifts.find(
+                            shifts.find(
                               (s) => s.name === toShift
                             )?.color || '#888',
                           color: 'white',
@@ -606,7 +585,7 @@ export default function ProductionHubPage() {
                         className="px-3 py-1 text-sm"
                         style={{
                           backgroundColor:
-                            handoverFormData?.shifts.find(
+                            shifts.find(
                               (s) => s.name === fromShift
                             )?.color || '#888',
                           color: 'white',
@@ -624,7 +603,7 @@ export default function ProductionHubPage() {
                         className="px-3 py-1 text-sm"
                         style={{
                           backgroundColor:
-                            handoverFormData?.shifts.find(
+                            shifts.find(
                               (s) => s.name === toShift
                             )?.color || '#888',
                           color: 'white',
@@ -642,7 +621,7 @@ export default function ProductionHubPage() {
                     {tRuns('handover.handingOverTo')}
                   </Label>
                   <div className="flex flex-wrap gap-2">
-                    {handoverFormData?.shifts
+                    {shifts
                       .filter((shift) => shift.name !== fromShift)
                       .map((shift) => (
                         <button

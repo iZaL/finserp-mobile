@@ -22,7 +22,7 @@ import {
   useProductionRun,
 } from '@/hooks/use-production-runs';
 import {useVehicleBookings} from '@/hooks/use-vehicle-bookings';
-import {useProductionOutputs} from '@/hooks/use-production-outputs';
+import {useProductionOutputs, useProductionOutputFormData} from '@/hooks/use-production-outputs';
 import type {
   ProductionShift,
   ProductionRunListItem,
@@ -100,7 +100,10 @@ export function ProductionDayView({
   // Current production day for comparison
   const currentProductionDay = getProductionDayString(new Date(), config);
   const isToday = productionDay === currentProductionDay;
-  const currentTime = formatFactoryTime(new Date(), 'h:mm a', timezone);
+  // HH:mm format for timeline calculations
+  const currentTime = formatFactoryTime(new Date(), 'HH:mm', timezone);
+  // Display format for UI badges
+  const currentTimeDisplay = formatFactoryTime(new Date(), 'h:mm a', timezone);
 
   // Convert productionDay string to Date for display and date picker
   const selectedDate = useMemo(() => parseISO(productionDay), [productionDay]);
@@ -139,6 +142,30 @@ export function ProductionDayView({
     production_date: productionDay,
     per_page: 200,
   });
+
+  // Fetch product types for yield ranges
+  const {data: formData} = useProductionOutputFormData();
+
+  // Extract yield ranges from product types (from DB)
+  const yieldRanges = useMemo(() => {
+    const productTypes = formData?.product_types || [];
+
+    const fishmealType = productTypes.find(
+      (pt) => pt.code?.toLowerCase().includes('meal') || pt.name?.toLowerCase().includes('meal')
+    );
+    const fishOilType = productTypes.find(
+      (pt) => pt.code?.toLowerCase().includes('oil') || pt.name?.toLowerCase().includes('oil')
+    );
+
+    return {
+      fishmeal: fishmealType
+        ? {min: fishmealType.yield_min, max: fishmealType.yield_max, expected: fishmealType.yield_expected}
+        : undefined,
+      fishOil: fishOilType
+        ? {min: fishOilType.yield_min, max: fishOilType.yield_max, expected: fishOilType.yield_expected}
+        : undefined,
+    };
+  }, [formData?.product_types]);
 
   // Fetch selected run details
   const {data: selectedRunData} = useProductionRun(selectedRunId);
@@ -179,23 +206,38 @@ export function ProductionDayView({
 
   // Group runs, outputs, and vehicles by shift
   const shiftData = useMemo(() => {
+    // Determine which shift is currently active for fallback matching
+    const activeShiftId = currentShift?.id;
+
     return shifts.map((shift) => {
       // Filter runs that belong to this shift
-      // Use run.shift.id if available, otherwise fall back to time-based inference
-      // TODO: Backend should ensure all runs have shift_id saved, then remove fallback
+      // Priority: 1) run.shift.id, 2) time-based inference, 3) active run fallback
       const shiftRuns = runs.filter((run) => {
+        // Priority 1: Use run.shift.id if available
         if (run.shift?.id) {
           return run.shift.id === shift.id;
         }
-        // Fallback: infer shift from started_at or created_at timestamp
+
+        // Priority 2: Infer shift from started_at or created_at timestamp
         const runTime = run.started_at || run.created_at;
-        if (!runTime) return false;
-        const inferredShift = getShiftForTime(
-          new Date(runTime),
-          shifts,
-          timezone
-        );
-        return inferredShift?.id === shift.id;
+        if (runTime) {
+          const inferredShift = getShiftForTime(
+            new Date(runTime),
+            shifts,
+            timezone
+          );
+          if (inferredShift?.id) {
+            return inferredShift.id === shift.id;
+          }
+        }
+
+        // Priority 3: For in_progress runs without shift info, show on active shift
+        // This ensures active runs are always visible to users
+        if (run.status === 'in_progress' && shift.id === activeShiftId) {
+          return true;
+        }
+
+        return false;
       });
 
       // Filter outputs by shift_id - outputs now have shift_id saved
@@ -250,7 +292,7 @@ export function ProductionDayView({
         },
       };
     });
-  }, [shifts, runs, outputs, productionDayVehicles, timezone]);
+  }, [shifts, runs, outputs, productionDayVehicles, timezone, currentShift]);
 
   // Calculate day totals
   const dayTotals = useMemo(() => {
@@ -454,6 +496,8 @@ export function ProductionDayView({
                 vehicleCount={dayTotals.vehicleCount}
                 fishmealOutputKg={dayTotals.fishmealOutputKg}
                 fishOilOutputKg={dayTotals.fishOilOutputKg}
+                fishmealYieldRange={yieldRanges.fishmeal}
+                fishOilYieldRange={yieldRanges.fishOil}
                 showInput={showStats}
                 showYield={showStats}
                 className="[&_*]:text-white [&_.text-muted-foreground]:text-slate-400"
@@ -496,8 +540,11 @@ export function ProductionDayView({
                     runs={sd.runs}
                     metrics={sd.metrics}
                     status={status}
+                    timezone={timezone}
                     variant="mini"
                     showStats={showStats}
+                    fishmealYieldRange={yieldRanges.fishmeal}
+                    fishOilYieldRange={yieldRanges.fishOil}
                     onAddOutput={() => handleAddOutput(sd.shift)}
                     onShiftClick={
                       showStats
@@ -516,12 +563,16 @@ export function ProductionDayView({
                   metrics={sd.metrics}
                   status={status}
                   currentTime={isToday ? currentTime : undefined}
+                  currentTimeDisplay={isToday ? currentTimeDisplay : undefined}
+                  timezone={timezone}
                   onRunClick={handleRunClick}
                   onAddOutput={() => handleAddOutput(sd.shift)}
                   onShiftClick={
                     showStats ? () => handleShiftClick(sd.shift.id) : undefined
                   }
                   showStats={showStats}
+                  fishmealYieldRange={yieldRanges.fishmeal}
+                  fishOilYieldRange={yieldRanges.fishOil}
                   variant={status === 'active' ? 'full' : 'compact'}
                 />
               );

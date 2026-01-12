@@ -45,6 +45,8 @@ export interface ProductionRunCardProps {
   recordOutputLabel?: string;
   handoverLabel?: string;
   completeRunLabel?: string;
+  /** Compact mode for grid layouts */
+  compact?: boolean;
 }
 
 export function ProductionRunCard({
@@ -60,9 +62,96 @@ export function ProductionRunCard({
   recordOutputLabel = 'Record Output',
   handoverLabel = 'Handover',
   completeRunLabel = 'Complete Run',
+  compact = false,
 }: ProductionRunCardProps) {
   const hasActions = showRecordOutput || showHandover || showCompleteRun;
 
+  // Compact variant for grid layouts
+  if (compact) {
+    return (
+      <Card className="flex h-full flex-col">
+        <div className="flex flex-1 flex-col p-4">
+          {/* Compact Header */}
+          <div className="mb-2 flex items-center justify-between">
+            <div className="bg-muted flex size-8 items-center justify-center rounded-lg">
+              <Zap className="text-foreground size-4" />
+            </div>
+            {currentShift && (
+              <Badge
+                style={{backgroundColor: currentShift.color}}
+                className="text-xs text-white"
+              >
+                {currentShift.name}
+              </Badge>
+            )}
+          </div>
+
+          {/* Run Info */}
+          <div className="flex-1">
+            <div className="mb-1 flex items-center gap-1.5">
+              <h3 className="truncate text-sm font-semibold">{run.name}</h3>
+              <Badge variant="secondary" className="gap-1 text-[10px]">
+                <span className="relative flex size-1">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+                  <span className="relative inline-flex size-1 rounded-full bg-emerald-500" />
+                </span>
+                Active
+              </Badge>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {run.operator?.name}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              <RelativeTime date={run.created_at} />
+            </p>
+          </div>
+
+          {/* Production Lines - Compact */}
+          {run.production_lines.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {run.production_lines.slice(0, 2).map((line) => (
+                <Badge
+                  key={line.id}
+                  variant="outline"
+                  className="px-1.5 py-0.5 text-[10px] font-normal"
+                >
+                  <Settings2 className="me-1 size-2.5" />
+                  {line.name}
+                </Badge>
+              ))}
+              {run.production_lines.length > 2 && (
+                <Badge
+                  variant="outline"
+                  className="px-1.5 py-0.5 text-[10px] font-normal"
+                >
+                  +{run.production_lines.length - 2}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Compact Actions */}
+        {hasActions && (
+          <div className="p-2 pt-0">
+            {showCompleteRun && onCompleteRun && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive w-full text-xs"
+                onClick={onCompleteRun}
+              >
+                <Square className="me-1.5 size-3 shrink-0" />
+                End Production
+              </Button>
+            )}
+          </div>
+        )}
+      </Card>
+    );
+  }
+
+  // Full variant (original)
   return (
     <Card>
       <div className="p-4">

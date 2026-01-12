@@ -49,9 +49,6 @@ export function BagStackVisual({
   const visibleBags = Math.min(packageCount, maxVisibleBags);
   const extraBags = packageCount - maxVisibleBags;
 
-  // Calculate grid layout (3 columns)
-  const rows = Math.ceil(visibleBags / 3);
-
   return (
     <div className={cn('rounded-xl bg-amber-500/5 p-4', className)}>
       {/* Header */}

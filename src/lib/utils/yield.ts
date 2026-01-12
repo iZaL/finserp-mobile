@@ -3,10 +3,8 @@
  *
  * Yield = (Output Weight / Input Weight) x 100
  *
- * Expected yields:
- * - Fishmeal: 19-22% (expected ~20%)
- * - Fish Oil: 5-8% (expected ~6%)
- * - Total: 24-30% (expected ~26%)
+ * Note: Expected yields are fetched from DB (product_types table)
+ * The constants below are only fallbacks if DB data is unavailable
  */
 
 export type YieldStatus = 'good' | 'warning' | 'bad';
@@ -23,7 +21,7 @@ export interface YieldResult {
   label: string;
 }
 
-// Default expected yield ranges
+// Fallback yield ranges (only used if DB data unavailable)
 export const FISHMEAL_YIELD: YieldRange = {
   min: 19,
   max: 22,
@@ -57,22 +55,35 @@ export function calculateYield(outputKg: number, inputKg: number): number {
  * Determine yield status based on range
  * @param percentage - Yield percentage
  * @param range - Expected yield range
+ * @param higherIsBetter - If true, exceeding max is still 'good' (e.g., for fish oil)
  * @returns Status: 'good' | 'warning' | 'bad'
  */
 export function getYieldStatus(
   percentage: number,
-  range: YieldRange
+  range: YieldRange,
+  higherIsBetter: boolean = false
 ): YieldStatus {
+  // Within expected range is always good
   if (percentage >= range.min && percentage <= range.max) {
     return 'good';
   }
 
-  // Within 2% of range boundaries = warning
+  // Above max: good if higher is better, otherwise check warning buffer
+  if (percentage > range.max) {
+    if (higherIsBetter) {
+      return 'good';
+    }
+    // Within 2% above max = warning
+    const warningBuffer = 2;
+    if (percentage <= range.max + warningBuffer) {
+      return 'warning';
+    }
+    return 'bad';
+  }
+
+  // Below min: check warning buffer
   const warningBuffer = 2;
-  if (
-    percentage >= range.min - warningBuffer &&
-    percentage <= range.max + warningBuffer
-  ) {
+  if (percentage >= range.min - warningBuffer) {
     return 'warning';
   }
 

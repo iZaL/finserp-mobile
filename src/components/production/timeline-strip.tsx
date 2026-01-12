@@ -2,7 +2,7 @@
 
 import {useMemo} from 'react';
 import {cn} from '@/lib/utils';
-import {formatShiftTime} from '@/lib/utils/production-day';
+import {formatShiftTime, formatFactoryTime} from '@/lib/utils/production-day';
 import {formatWeightCompact} from '@/lib/utils/weight';
 import type {
   ProductionShift,
@@ -12,7 +12,8 @@ import type {
 interface TimelineStripProps {
   shift: ProductionShift;
   runs: ProductionRunListItem[];
-  currentTime?: string; // HH:mm format
+  currentTime?: string; // HH:mm format in factory timezone
+  timezone?: string; // Factory timezone (default: Asia/Muscat)
   isActive?: boolean;
   onRunClick?: (run: ProductionRunListItem) => void;
   className?: string;
@@ -63,13 +64,16 @@ function getTimePosition(
 }
 
 /**
- * Extract time from datetime string
+ * Extract time (HH:mm) from datetime string, converting from UTC to local timezone
+ * DB stores times in UTC, we need to display in factory timezone (Asia/Muscat = UTC+4)
  */
-function extractTime(datetime: string | null): string | null {
+function extractTime(datetime: string | null, timezone: string = 'Asia/Muscat'): string | null {
   if (!datetime) return null;
   try {
-    const date = new Date(datetime);
-    return date.toTimeString().slice(0, 5);
+    // Datetime format: "2026-01-12 08:50:59" - this is UTC
+    // Parse as UTC and convert to factory timezone
+    const utcDate = new Date(datetime + 'Z'); // Add Z to parse as UTC
+    return formatFactoryTime(utcDate, 'HH:mm', timezone);
   } catch {
     return null;
   }
@@ -79,6 +83,7 @@ export function TimelineStrip({
   shift,
   runs,
   currentTime,
+  timezone = 'Asia/Muscat',
   isActive = false,
   onRunClick,
   className,
@@ -92,36 +97,36 @@ export function TimelineStrip({
     return getTimePosition(currentTime, shiftStart, shiftEnd);
   }, [currentTime, isActive, shiftStart, shiftEnd]);
 
-  // Calculate run positions
+  // Calculate run positions (single row - only one run at a time)
   const runPositions = useMemo(() => {
-    return runs.map((run) => {
-      const startTime = extractTime(run.started_at);
-      const endTime = extractTime(run.completed_at);
+    return runs
+      .map((run) => {
+        const startTime = extractTime(run.started_at, timezone);
+        const endTime = extractTime(run.completed_at, timezone);
 
-      // Default positions
-      let left = 0;
-      let width = 20; // Default width for planned runs
+        let left: number | null = null;
+        let width = 3; // Minimum width percentage
 
-      if (startTime) {
-        left = getTimePosition(startTime, shiftStart, shiftEnd);
+        if (startTime) {
+          left = getTimePosition(startTime, shiftStart, shiftEnd);
 
-        if (endTime) {
-          // Completed run
-          const right = getTimePosition(endTime, shiftStart, shiftEnd);
-          width = Math.max(5, right - left);
+          if (endTime) {
+            const right = getTimePosition(endTime, shiftStart, shiftEnd);
+            width = Math.max(2, right - left);
+          } else if (run.status === 'in_progress' && currentTime) {
+            const right = getTimePosition(currentTime, shiftStart, shiftEnd);
+            width = Math.max(2, right - left);
+          }
         } else if (run.status === 'in_progress' && currentTime) {
-          // In-progress run extends to NOW
-          const right = getTimePosition(currentTime, shiftStart, shiftEnd);
-          width = Math.max(5, right - left);
-        } else {
-          // Started but no end - use estimated width
-          width = 15;
+          // In-progress but no start time - show at NOW
+          left = Math.max(0, getTimePosition(currentTime, shiftStart, shiftEnd) - 2);
         }
-      }
 
-      return {run, left, width};
-    });
-  }, [runs, shiftStart, shiftEnd, currentTime]);
+        if (left === null) return null;
+        return {run, left, width};
+      })
+      .filter((p): p is {run: typeof runs[0]; left: number; width: number} => p !== null);
+  }, [runs, shiftStart, shiftEnd, currentTime, timezone]);
 
   // Generate time markers
   const timeMarkers = useMemo(() => {
@@ -189,20 +194,6 @@ export function TimelineStrip({
     }
   };
 
-  const getRunStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return '✓';
-      case 'in_progress':
-        return '●';
-      case 'planned':
-        return '○';
-      case 'canceled':
-        return '✕';
-      default:
-        return '';
-    }
-  };
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -230,30 +221,23 @@ export function TimelineStrip({
           />
         ))}
 
-        {/* Runs */}
+        {/* Runs - single row, sequential (no overlap possible) */}
         {runPositions.map(({run, left, width}) => (
           <button
             key={run.id}
             onClick={() => onRunClick?.(run)}
             className={cn(
               'absolute top-1.5 h-9 rounded-md border transition-all',
-              'flex items-center justify-center gap-1 px-2',
               'hover:scale-[1.02] hover:shadow-md active:scale-[0.98]',
-              'text-xs font-medium text-white',
               getRunStatusStyles(run.status)
             )}
             style={{
               left: `${left}%`,
-              width: `${Math.max(width, 8)}%`,
-              minWidth: '40px',
+              width: `${width}%`,
+              minWidth: '20px',
             }}
             title={`${run.name} - ${formatWeightCompact(run.total_actual)}`}
-          >
-            <span>{getRunStatusIcon(run.status)}</span>
-            <span className="truncate">
-              {run.name.replace(/^Run\s*/i, 'R')}
-            </span>
-          </button>
+          />
         ))}
 
         {/* NOW marker */}
@@ -291,35 +275,6 @@ export function TimelineStrip({
           </div>
         )}
       </div>
-
-      {/* Legend for runs (compact) */}
-      {runs.length > 0 && (
-        <div className="flex flex-wrap gap-2 text-xs">
-          {runs.map((run) => (
-            <button
-              key={run.id}
-              onClick={() => onRunClick?.(run)}
-              className={cn(
-                'flex items-center gap-1 rounded-full px-2 py-0.5',
-                'hover:bg-muted transition-colors',
-                run.status === 'in_progress' &&
-                  'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-                run.status === 'completed' &&
-                  'text-emerald-600 dark:text-emerald-400',
-                run.status === 'planned' &&
-                  'text-amber-600 dark:text-amber-400',
-                run.status === 'canceled' && 'text-muted-foreground'
-              )}
-            >
-              <span>{getRunStatusIcon(run.status)}</span>
-              <span>{run.name}</span>
-              <span className="text-muted-foreground">
-                {formatWeightCompact(run.total_actual)}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import {useState, useMemo, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations, useLocale} from 'next-intl';
-import {ChevronLeft, Loader2, Save, Factory, AlertTriangle} from 'lucide-react';
+import {ChevronLeft, Loader2, Save, Factory} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
@@ -306,14 +306,14 @@ export default function CreateProductionOutputPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-destructive/10 border-destructive/20 mb-6 flex items-center gap-3 rounded-lg border p-4">
-            <AlertTriangle className="text-destructive size-5 shrink-0" />
+          <div className="bg-muted/50 border-muted-foreground/20 mb-6 flex items-center gap-3 rounded-lg border p-4">
+            <Factory className="text-muted-foreground size-5 shrink-0" />
             <div className="text-sm">
-              <span className="text-destructive font-medium">
+              <span className="text-muted-foreground font-medium">
                 No active production run
               </span>
               <p className="text-muted-foreground mt-0.5">
-                Start a production run before recording output.
+                Output will be linked to a run based on date and shift.
               </p>
             </div>
           </div>
@@ -417,19 +417,12 @@ export default function CreateProductionOutputPage() {
               onClick={handleSubmit}
               className="w-full"
               size="lg"
-              disabled={
-                !hasAnyData || bulkCreateMutation.isPending
-              }
+              disabled={!hasAnyData || bulkCreateMutation.isPending}
             >
               {bulkCreateMutation.isPending ? (
                 <>
                   <Loader2 className="me-2 size-4 animate-spin" />
                   {t('saving')}
-                </>
-              ) : !effectiveRunId ? (
-                <>
-                  <AlertTriangle className="me-2 size-4" />
-                  No Active Run
                 </>
               ) : (
                 <>

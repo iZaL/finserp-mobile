@@ -55,7 +55,8 @@ export function FlowVisualization({
   const fishOilYield =
     fishInputKg > 0 ? (fishOilOutputKg / fishInputKg) * 100 : 0;
   const fishmealStatus = getYieldStatus(fishmealYield, fishmealRange);
-  const fishOilStatus = getYieldStatus(fishOilYield, fishOilRange);
+  // For fish oil, higher yield is better - exceeding max is still 'good'
+  const fishOilStatus = getYieldStatus(fishOilYield, fishOilRange, true);
 
   // Status-based colors for yield bars
   const getBarColor = (status: YieldStatus) => {
@@ -181,15 +182,15 @@ export function FlowVisualization({
           </div>
           <div className="mt-2 space-y-2">
             <div className="flex items-center gap-2">
-              <Wheat className="size-4 text-amber-500" />
-              <span className="font-semibold">
+              <Wheat className="size-4 shrink-0 text-amber-500" />
+              <span className="whitespace-nowrap font-semibold">
                 {formatWeightTon(fishmealOutputKg)}
               </span>
               <span className="text-muted-foreground text-xs">Fishmeal</span>
             </div>
             <div className="flex items-center gap-2">
-              <Droplet className="size-4 text-cyan-500" />
-              <span className="font-semibold">
+              <Droplet className="size-4 shrink-0 text-cyan-500" />
+              <span className="whitespace-nowrap font-semibold">
                 {formatWeightTon(fishOilOutputKg)}
               </span>
               <span className="text-muted-foreground text-xs">Fish Oil</span>

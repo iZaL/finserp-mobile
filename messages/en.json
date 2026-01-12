@@ -1283,6 +1283,7 @@
     "activeRun": "Active Production",
     "noActiveRun": "No Active Production",
     "startRunPrompt": "Start production to begin",
+    "handoverPrompt": "Transfer to next shift",
     "workflow": {
       "run": "Production",
       "runs": "Production",

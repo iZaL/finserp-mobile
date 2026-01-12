@@ -16,6 +16,12 @@ import type {
 } from '@/types/production-run';
 import {ChevronRight, Sun, Moon, Clock, Plus} from 'lucide-react';
 
+interface YieldRange {
+  min: number;
+  max: number;
+  expected: number;
+}
+
 interface ShiftMetrics {
   fishInputKg: number;
   fishmealOutputKg: number;
@@ -28,12 +34,18 @@ interface ShiftCardProps {
   runs: ProductionRunListItem[];
   metrics: ShiftMetrics;
   status: 'active' | 'upcoming' | 'completed';
-  currentTime?: string; // HH:mm format
+  currentTime?: string; // HH:mm format in factory timezone for calculations
+  currentTimeDisplay?: string; // Display format (e.g., "12:30 PM") for UI
+  timezone?: string; // Factory timezone (default: Asia/Muscat)
   onShiftClick?: () => void;
   onRunClick?: (run: ProductionRunListItem) => void;
   onAddOutput?: () => void;
   /** Whether to show full stats (fish input, yield). Default: true */
   showStats?: boolean;
+  /** Custom yield range for fishmeal from DB */
+  fishmealYieldRange?: YieldRange;
+  /** Custom yield range for fish oil from DB */
+  fishOilYieldRange?: YieldRange;
   variant?: 'full' | 'compact' | 'mini';
   className?: string;
 }
@@ -61,10 +73,14 @@ export function ShiftCard({
   metrics,
   status,
   currentTime,
+  currentTimeDisplay,
+  timezone = 'Asia/Muscat',
   onShiftClick,
   onRunClick,
   onAddOutput,
   showStats = true,
+  fishmealYieldRange,
+  fishOilYieldRange,
   variant = 'full',
   className,
 }: ShiftCardProps) {
@@ -208,6 +224,8 @@ export function ShiftCard({
           fishInputKg={metrics.fishInputKg}
           fishmealOutputKg={metrics.fishmealOutputKg}
           fishOilOutputKg={metrics.fishOilOutputKg}
+          fishmealYieldRange={fishmealYieldRange}
+          fishOilYieldRange={fishOilYieldRange}
           variant="compact"
           showInput={showStats}
           showYield={showStats}
@@ -303,7 +321,7 @@ export function ShiftCard({
 
         <div className="flex items-center gap-2">
           {status === 'active' && (
-            <LiveIndicator time={currentTime} variant="badge" />
+            <LiveIndicator time={currentTimeDisplay || currentTime} variant="badge" />
           )}
           {status === 'upcoming' && <UpcomingIndicator />}
           {status === 'completed' && <CompletedIndicator />}
@@ -318,6 +336,8 @@ export function ShiftCard({
           vehicleCount={metrics.vehicleCount}
           fishmealOutputKg={metrics.fishmealOutputKg}
           fishOilOutputKg={metrics.fishOilOutputKg}
+          fishmealYieldRange={fishmealYieldRange}
+          fishOilYieldRange={fishOilYieldRange}
           showInput={showStats}
           showYield={showStats}
         />
@@ -337,6 +357,7 @@ export function ShiftCard({
             shift={shift}
             runs={runs}
             currentTime={currentTime}
+            timezone={timezone}
             isActive={status === 'active'}
             onRunClick={onRunClick}
           />

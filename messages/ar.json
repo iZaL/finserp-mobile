@@ -1242,6 +1242,7 @@
     "activeRun": "الإنتاج النشط",
     "noActiveRun": "لا يوجد إنتاج نشط",
     "startRunPrompt": "ابدأ الإنتاج للبدء",
+    "handoverPrompt": "التسليم للوردية التالية",
     "workflow": {
       "run": "الإنتاج",
       "runs": "الإنتاج",
