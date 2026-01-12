@@ -269,7 +269,7 @@ export const productionRunService = {
     config?: {signal?: AbortSignal}
   ): Promise<ShiftDetailResponse> => {
     const response = await api.get<ShiftDetailResponse>(
-      `/production/shift/${date}/${shiftId}`,
+      `/production/shifts/${date}/${shiftId}`,
       config
     );
     return response.data;

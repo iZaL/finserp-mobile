@@ -333,7 +333,7 @@ export function ProductionDayView({
 
   // Handle shift click to navigate to detail page
   const handleShiftClick = (shiftId: number) => {
-    router.push(`/production-hub/shift/${productionDay}/${shiftId}`);
+    router.push(`/production-hub/shifts/${productionDay}/${shiftId}`);
   };
 
   // Format date for display
