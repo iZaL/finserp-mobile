@@ -139,23 +139,23 @@ export function FlowVisualization({
   // Horizontal variant (default)
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="flex items-stretch gap-4">
+      <div className="flex items-stretch gap-2 sm:gap-4">
         {/* Input Card - only show if showInput is true */}
         {showInput && (
           <>
-            <div className="flex-1 rounded-xl bg-blue-500/10 p-4">
-              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                <Truck className="size-5" />
-                <span className="text-sm font-medium tracking-wide uppercase">
+            <div className="flex-1 rounded-xl bg-blue-500/10 p-2 sm:p-4">
+              <div className="flex items-center gap-1.5 text-blue-600 sm:gap-2 dark:text-blue-400">
+                <Truck className="size-4 sm:size-5" />
+                <span className="text-xs font-medium tracking-wide uppercase sm:text-sm">
                   Fish Input
                 </span>
               </div>
-              <div className="mt-2">
-                <span className="text-2xl font-bold">
+              <div className="mt-1 sm:mt-2">
+                <span className="text-xl font-bold sm:text-2xl">
                   {formatWeightTon(fishInputKg)}
                 </span>
                 {vehicleCount !== undefined && vehicleCount > 0 && (
-                  <p className="text-muted-foreground mt-1 text-sm">
+                  <p className="text-muted-foreground mt-0.5 text-xs sm:mt-1 sm:text-sm">
                     {vehicleCount} vehicle{vehicleCount !== 1 ? 's' : ''}
                   </p>
                 )}
@@ -163,37 +163,37 @@ export function FlowVisualization({
             </div>
 
             {/* Arrow */}
-            <div className="flex items-center">
+            <div className="flex shrink-0 items-center">
               <div className="flex h-full items-center">
-                <div className="via-muted-foreground h-0.5 w-8 bg-gradient-to-r from-blue-500 to-amber-500" />
-                <ArrowRight className="-ml-1 size-5 text-amber-500" />
+                <div className="h-0.5 w-4 bg-gradient-to-r from-blue-500 to-amber-500 sm:w-8" />
+                <ArrowRight className="-ml-1 size-4 text-amber-500 sm:size-5" />
               </div>
             </div>
           </>
         )}
 
         {/* Output Card */}
-        <div className="flex-1 rounded-xl bg-gradient-to-br from-amber-500/10 to-cyan-500/10 p-4">
-          <div className="flex items-center gap-2">
-            <Package className="text-muted-foreground size-5" />
-            <span className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
+        <div className="flex-1 rounded-xl bg-gradient-to-br from-amber-500/10 to-cyan-500/10 p-2 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Package className="text-muted-foreground size-4 sm:size-5" />
+            <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase sm:text-sm">
               Output
             </span>
           </div>
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <Wheat className="size-4 shrink-0 text-amber-500" />
-              <span className="whitespace-nowrap font-semibold">
+          <div className="mt-1 space-y-1 sm:mt-2 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Wheat className="size-3.5 shrink-0 text-amber-500 sm:size-4" />
+              <span className="whitespace-nowrap text-sm font-semibold sm:text-base">
                 {formatWeightTon(fishmealOutputKg)}
               </span>
-              <span className="text-muted-foreground text-xs">Fishmeal</span>
+              <span className="text-muted-foreground text-[10px] sm:text-xs">Fishmeal</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Droplet className="size-4 shrink-0 text-cyan-500" />
-              <span className="whitespace-nowrap font-semibold">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Droplet className="size-3.5 shrink-0 text-cyan-500 sm:size-4" />
+              <span className="whitespace-nowrap text-sm font-semibold sm:text-base">
                 {formatWeightTon(fishOilOutputKg)}
               </span>
-              <span className="text-muted-foreground text-xs">Fish Oil</span>
+              <span className="text-muted-foreground text-[10px] sm:text-xs">Fish Oil</span>
             </div>
           </div>
         </div>

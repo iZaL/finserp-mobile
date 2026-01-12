@@ -6,7 +6,6 @@ import {useTranslations} from 'next-intl';
 import {
   ArrowLeft,
   Factory,
-  ClipboardList,
   Square,
   Loader2,
   RefreshCw,
@@ -146,7 +145,7 @@ export default function ProductionRunDetailPage() {
                 variant="ghost"
                 size="icon"
                 className="shrink-0"
-                onClick={() => router.push('/production-runs')}
+                onClick={() => window.history.back()}
               >
                 <ArrowLeft className="size-5" />
               </Button>
@@ -367,38 +366,18 @@ export default function ProductionRunDetailPage() {
                       </Button>
                     )}
 
-                  {(run.status === 'in_progress' ||
-                    run.status === 'completed') && (
-                    <div className="mt-3 flex gap-2">
-                      {permissions.canCreateProductionOutput() && run.shift && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() =>
-                            router.push(
-                              `/production-outputs/new?run_id=${run.id}&shift_id=${run.shift!.id}`
-                            )
-                          }
-                        >
-                          <ClipboardList className="me-1.5 size-4" />
-                          {t('actions.recordOutput')}
-                        </Button>
-                      )}
-                      {run.status === 'in_progress' &&
-                        permissions.canCompleteProductionRun() && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => setShowCompleteDialog(true)}
-                          >
-                            <Square className="me-1.5 size-4" />
-                            {t('actions.completeRun')}
-                          </Button>
-                        )}
-                    </div>
-                  )}
+                  {run.status === 'in_progress' &&
+                    permissions.canCompleteProductionRun() && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="mt-3 w-full"
+                        onClick={() => setShowCompleteDialog(true)}
+                      >
+                        <Square className="me-1.5 size-4" />
+                        {t('actions.completeRun')}
+                      </Button>
+                    )}
                 </CardContent>
               </Card>
 
