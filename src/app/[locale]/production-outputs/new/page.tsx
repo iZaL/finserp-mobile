@@ -235,13 +235,10 @@ export default function CreateProductionOutputPage() {
     if (products.length === 0) return;
 
     // Production run is mandatory
-    if (!effectiveRunId) {
-      return; // Should not happen as button is disabled
-    }
 
     const requestData: BulkCreateProductionOutputRequest = {
       production_date: productionDate,
-      production_run_id: effectiveRunId,
+      production_run_id: effectiveRunId ?? undefined,
       shift_id: shiftId || undefined,
       products,
     };
@@ -421,7 +418,7 @@ export default function CreateProductionOutputPage() {
               className="w-full"
               size="lg"
               disabled={
-                !hasAnyData || !effectiveRunId || bulkCreateMutation.isPending
+                !hasAnyData || bulkCreateMutation.isPending
               }
             >
               {bulkCreateMutation.isPending ? (
