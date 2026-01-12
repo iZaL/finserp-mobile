@@ -211,30 +211,33 @@ export function ProductionDayView({
 
     return shifts.map((shift) => {
       // Filter runs that belong to this shift
-      // Priority: 1) run.shift.id, 2) time-based inference, 3) active run fallback
+      // Priority: 1) active runs on current shift, 2) run.shift.id, 3) time-based inference
       const shiftRuns = runs.filter((run) => {
-        // Priority 1: Use run.shift.id if available
+        // Priority 1: Active (in_progress) runs should ALWAYS show on the current shift
+        // This handles runs that span multiple shifts (e.g., started in Day, still running in Night)
+        if (run.status === 'in_progress' && shift.id === activeShiftId) {
+          return true;
+        }
+
+        // Priority 2: Use run.shift.id if available
         if (run.shift?.id) {
           return run.shift.id === shift.id;
         }
 
-        // Priority 2: Infer shift from started_at or created_at timestamp
-        const runTime = run.started_at || run.created_at;
-        if (runTime) {
-          const inferredShift = getShiftForTime(
-            new Date(runTime),
-            shifts,
-            timezone
-          );
-          if (inferredShift?.id) {
-            return inferredShift.id === shift.id;
+        // Priority 3: Infer shift from started_at or created_at timestamp
+        // Only for completed/planned runs, not in_progress
+        if (run.status !== 'in_progress') {
+          const runTime = run.started_at || run.created_at;
+          if (runTime) {
+            const inferredShift = getShiftForTime(
+              new Date(runTime),
+              shifts,
+              timezone
+            );
+            if (inferredShift?.id) {
+              return inferredShift.id === shift.id;
+            }
           }
-        }
-
-        // Priority 3: For in_progress runs without shift info, show on active shift
-        // This ensures active runs are always visible to users
-        if (run.status === 'in_progress' && shift.id === activeShiftId) {
-          return true;
         }
 
         return false;
