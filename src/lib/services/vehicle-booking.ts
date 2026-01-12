@@ -36,6 +36,8 @@ export const vehicleBookingService = {
     if (filters?.date_filter) params.append('date_filter', filters.date_filter);
     if (filters?.date_from) params.append('date_from', filters.date_from);
     if (filters?.date_to) params.append('date_to', filters.date_to);
+    if (filters?.production_day)
+      params.append('production_day', filters.production_day);
     if (filters?.page) params.append('page', filters.page.toString());
     if (filters?.per_page)
       params.append('per_page', filters.per_page.toString());

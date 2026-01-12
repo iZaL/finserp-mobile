@@ -10,7 +10,6 @@ import {
   getProductionDayString,
   formatFactoryTime,
   getShiftForTime,
-  isInProductionDay,
   type ProductionDayConfig,
 } from '@/lib/utils/production-day';
 import {formatWeightTon} from '@/lib/utils/weight';
@@ -23,6 +22,7 @@ import {
   useProductionRun,
 } from '@/hooks/use-production-runs';
 import {useVehicleBookings} from '@/hooks/use-vehicle-bookings';
+import {useProductionOutputs} from '@/hooks/use-production-outputs';
 import type {
   ProductionShift,
   ProductionRunListItem,
@@ -44,6 +44,10 @@ import {
 } from '@/components/ui/sheet';
 
 interface ProductionDayViewProps {
+  /** Initial date to show (YYYY-MM-DD format). If not provided, defaults to current production day. */
+  initialDate?: string;
+  /** Callback when date changes via navigation or date picker */
+  onDateChange?: (date: string) => void;
   onStartRun?: () => void;
   onRunClick?: (run: ProductionRunListItem) => void;
   /** Whether to show full stats (fish input, yield). If false, only shows outputs. */
@@ -52,6 +56,8 @@ interface ProductionDayViewProps {
 }
 
 export function ProductionDayView({
+  initialDate,
+  onDateChange,
   onStartRun,
   onRunClick,
   showStats = true,
@@ -82,7 +88,9 @@ export function ProductionDayView({
 
   // Production day state - defaults to current PRODUCTION day (not calendar day)
   // Example: 7:14 AM on Jan 19 = Jan 18's production day (if shift starts at 7:15)
+  // If initialDate is provided, use it; otherwise default to today's production day
   const [productionDay, setProductionDay] = useState<string>(() => {
+    if (initialDate) return initialDate;
     return getProductionDayString(new Date(), {
       timezone: 'Asia/Muscat',
       shifts: [],
@@ -108,31 +116,46 @@ export function ProductionDayView({
     per_page: 50,
   });
 
-  // Fetch vehicle bookings for the production day range
-  // We fetch ALL statuses and filter client-side for those with offloading_completed_at
-  // (vehicles progress: offloaded -> exited, so we need both)
+  // Fetch vehicle bookings for the production day
+  // Backend handles shift-based filtering (07:15 to 07:15 next day)
   const {
     data: vehicleBookingsData,
     isLoading: vehicleBookingsLoading,
     isRefetching: vehicleBookingsRefetching,
     refetch: refetchVehicleBookings,
   } = useVehicleBookings({
-    date_from: format(subDays(selectedDate, 1), 'yyyy-MM-dd'),
-    date_to: format(addDays(selectedDate, 1), 'yyyy-MM-dd'),
+    production_day: productionDay,
+    per_page: 200,
+  });
+
+  // Fetch production outputs for the production day
+  // Outputs are grouped by shift_id for display
+  const {
+    data: outputsData,
+    isLoading: outputsLoading,
+    isRefetching: outputsRefetching,
+    refetch: refetchOutputs,
+  } = useProductionOutputs({
+    production_date: productionDay,
     per_page: 200,
   });
 
   // Fetch selected run details
   const {data: selectedRunData} = useProductionRun(selectedRunId);
 
-  const isLoading = shiftsLoading || runsLoading || vehicleBookingsLoading;
+  const isLoading =
+    shiftsLoading || runsLoading || vehicleBookingsLoading || outputsLoading;
   const isRefetching =
-    shiftsRefetching || runsRefetching || vehicleBookingsRefetching;
+    shiftsRefetching ||
+    runsRefetching ||
+    vehicleBookingsRefetching ||
+    outputsRefetching;
 
   const refetch = () => {
     refetchShifts();
     refetchRuns();
     refetchVehicleBookings();
+    refetchOutputs();
   };
 
   // Derived data
@@ -141,39 +164,26 @@ export function ProductionDayView({
     () => vehicleBookingsData?.data || [],
     [vehicleBookingsData?.data]
   );
+  const outputs = useMemo(() => outputsData?.data || [], [outputsData?.data]);
 
-  // Filter runs that belong to this production day (client-side filter as fallback)
-  // Uses started_at or created_at to determine which production day the run belongs to
-  const runs = useMemo(() => {
-    return allRuns.filter((run) => {
-      const runDate = run.started_at || run.created_at;
-      if (!runDate) return false;
-      return isInProductionDay(runDate, productionDay, config);
-    });
-  }, [allRuns, productionDay, config]);
+  // Backend filters by production_day - frontend just displays
+  const runs = allRuns;
 
-  // Filter vehicles that have been offloaded and fall within this production day
+  // Vehicles already filtered by backend for this production day
+  // Backend returns only vehicles with offloading_completed_at within production day range
   const productionDayVehicles = useMemo(() => {
-    return vehicleBookings.filter((vehicle) => {
-      // Only include vehicles that have completed offloading (have offloading_completed_at)
-      // This includes both 'offloaded' and 'exited' status vehicles
-      if (!vehicle.offloading_completed_at) return false;
-      // Use offloading_completed_at to determine which production day the vehicle belongs to
-      return isInProductionDay(
-        vehicle.offloading_completed_at,
-        productionDay,
-        config
-      );
-    });
-  }, [vehicleBookings, productionDay, config]);
+    return vehicleBookings.filter(
+      (vehicle) => !!vehicle.offloading_completed_at
+    );
+  }, [vehicleBookings]);
 
-  // Group runs and vehicles by shift
+  // Group runs, outputs, and vehicles by shift
   const shiftData = useMemo(() => {
     return shifts.map((shift) => {
       // Filter runs that belong to this shift
-      // Use run.shift.id if available (explicit assignment), otherwise fall back to time-based inference
+      // Use run.shift.id if available, otherwise fall back to time-based inference
+      // TODO: Backend should ensure all runs have shift_id saved, then remove fallback
       const shiftRuns = runs.filter((run) => {
-        // Prefer explicit shift assignment from the run record
         if (run.shift?.id) {
           return run.shift.id === shift.id;
         }
@@ -187,6 +197,11 @@ export function ProductionDayView({
         );
         return inferredShift?.id === shift.id;
       });
+
+      // Filter outputs by shift_id - outputs now have shift_id saved
+      const shiftOutputs = outputs.filter(
+        (output) => output.shift?.id === shift.id
+      );
 
       // Filter vehicles that were offloaded during this shift
       // Vehicles don't have explicit shift_id, so we use offloading_completed_at time
@@ -207,24 +222,22 @@ export function ProductionDayView({
         0
       );
 
-      // Calculate outputs from production runs
-      const fishmealOutputKg = shiftRuns.reduce((sum, r) => {
-        const fishmeal = r.outputs_by_product_type?.find(
+      // Calculate outputs from production outputs (directly, not from runs)
+      const fishmealOutputKg = shiftOutputs
+        .filter(
           (o) =>
-            o.product_type_code?.toLowerCase().includes('meal') ||
-            o.product_type_name?.toLowerCase().includes('meal')
-        );
-        return sum + (fishmeal?.total_quantity || 0);
-      }, 0);
+            o.product_type?.code?.toLowerCase().includes('meal') ||
+            o.product_type?.name?.toLowerCase().includes('meal')
+        )
+        .reduce((sum, o) => sum + (o.total_quantity || 0), 0);
 
-      const fishOilOutputKg = shiftRuns.reduce((sum, r) => {
-        const oil = r.outputs_by_product_type?.find(
+      const fishOilOutputKg = shiftOutputs
+        .filter(
           (o) =>
-            o.product_type_code?.toLowerCase().includes('oil') ||
-            o.product_type_name?.toLowerCase().includes('oil')
-        );
-        return sum + (oil?.total_quantity || 0);
-      }, 0);
+            o.product_type?.code?.toLowerCase().includes('oil') ||
+            o.product_type?.name?.toLowerCase().includes('oil')
+        )
+        .reduce((sum, o) => sum + (o.total_quantity || 0), 0);
 
       return {
         shift,
@@ -237,7 +250,7 @@ export function ProductionDayView({
         },
       };
     });
-  }, [shifts, runs, productionDayVehicles, timezone]);
+  }, [shifts, runs, outputs, productionDayVehicles, timezone]);
 
   // Calculate day totals
   const dayTotals = useMemo(() => {
@@ -258,19 +271,25 @@ export function ProductionDayView({
 
   // Navigation handlers - navigate by production day
   const handlePrevDay = () => {
-    setProductionDay((d) => format(subDays(parseISO(d), 1), 'yyyy-MM-dd'));
+    const newDate = format(subDays(parseISO(productionDay), 1), 'yyyy-MM-dd');
+    setProductionDay(newDate);
     setSelectedRunId(null);
+    onDateChange?.(newDate);
   };
 
   const handleNextDay = () => {
-    setProductionDay((d) => format(addDays(parseISO(d), 1), 'yyyy-MM-dd'));
+    const newDate = format(addDays(parseISO(productionDay), 1), 'yyyy-MM-dd');
+    setProductionDay(newDate);
     setSelectedRunId(null);
+    onDateChange?.(newDate);
   };
 
   const handleDateChange = (date: Date | null) => {
     if (date) {
-      setProductionDay(format(date, 'yyyy-MM-dd'));
+      const newDate = format(date, 'yyyy-MM-dd');
+      setProductionDay(newDate);
       setSelectedRunId(null);
+      onDateChange?.(newDate);
     }
     setShowDatePicker(false);
   };
@@ -278,6 +297,7 @@ export function ProductionDayView({
   const handleGoToToday = () => {
     setProductionDay(currentProductionDay);
     setShowDatePicker(false);
+    onDateChange?.(currentProductionDay);
   };
 
   // Shift status helper
@@ -309,6 +329,11 @@ export function ProductionDayView({
     params.set('shift_id', shift.id.toString());
     params.set('production_date', productionDay);
     router.push(`/production-outputs/new?${params.toString()}`);
+  };
+
+  // Handle shift click to navigate to detail page
+  const handleShiftClick = (shiftId: number) => {
+    router.push(`/production-hub/shift/${productionDay}/${shiftId}`);
   };
 
   // Format date for display
@@ -474,6 +499,11 @@ export function ProductionDayView({
                     variant="mini"
                     showStats={showStats}
                     onAddOutput={() => handleAddOutput(sd.shift)}
+                    onShiftClick={
+                      showStats
+                        ? () => handleShiftClick(sd.shift.id)
+                        : undefined
+                    }
                   />
                 );
               }
@@ -488,6 +518,9 @@ export function ProductionDayView({
                   currentTime={isToday ? currentTime : undefined}
                   onRunClick={handleRunClick}
                   onAddOutput={() => handleAddOutput(sd.shift)}
+                  onShiftClick={
+                    showStats ? () => handleShiftClick(sd.shift.id) : undefined
+                  }
                   showStats={showStats}
                   variant={status === 'active' ? 'full' : 'compact'}
                 />

@@ -239,7 +239,7 @@ export function ShiftCard({
               onClick={onShiftClick}
               className="bg-muted text-muted-foreground hover:bg-muted/80 flex-1 rounded-lg py-2 text-sm font-medium"
             >
-              View {runs.length} Run{runs.length !== 1 ? 's' : ''} →
+              View Details →
             </button>
           )}
         </div>

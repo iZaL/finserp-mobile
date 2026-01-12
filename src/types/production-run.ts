@@ -272,3 +272,87 @@ export interface ProductionHubResponse {
   /** Day totals (aggregated across all shifts) */
   day_totals: ProductionDayMetrics;
 }
+
+/**
+ * Metrics for shift detail page
+ */
+export interface ShiftMetrics {
+  fish_input_kg: number;
+  fishmeal_output_kg: number;
+  fish_oil_output_kg: number;
+  vehicle_count: number;
+  total_output_kg: number;
+  yield_percentage: number;
+  bag_count: number;
+  tank_fills: number;
+}
+
+/**
+ * Timeline event for shift detail page
+ */
+export interface ShiftTimelineEvent {
+  id: string;
+  type: 'vehicle' | 'run_start' | 'run_end' | 'output';
+  time: string;
+  title: string;
+  subtitle?: string;
+  icon: string;
+  color: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Vehicle data for shift detail page
+ */
+export interface ShiftVehicle {
+  id: number;
+  vehicle_number: string;
+  supplier_name: string | null;
+  weight_tons: number;
+  box_count: number | null;
+  actual_box_count: number | null;
+  status: string;
+  offloading_completed_at: string | null;
+  offloading_started_at: string | null;
+}
+
+/**
+ * Output data for shift detail page
+ */
+export interface ShiftOutput {
+  id: number;
+  record_number: string;
+  production_date: string;
+  product_type: {
+    id: number;
+    name: string;
+    code: string;
+  } | null;
+  package_type: {
+    id: number;
+    name: string;
+  } | null;
+  storage_type: 'packaged' | 'tank' | 'bulk';
+  package_count: number | null;
+  weight_per_package: number;
+  tank_capacity: number;
+  fill_cycles: number | null;
+  total_quantity: number;
+  status: string;
+  created_at: string;
+}
+
+/**
+ * Response from shift details API
+ */
+export interface ShiftDetailResponse {
+  shift: ProductionShift | null;
+  runs: ProductionRunListItem[];
+  outputs: ShiftOutput[];
+  vehicles: ShiftVehicle[];
+  timeline_events: ShiftTimelineEvent[];
+  metrics: ShiftMetrics;
+  status: 'active' | 'upcoming' | 'completed';
+  progress: number;
+  current_shift: {id: number; name: string} | null;
+}

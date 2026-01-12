@@ -1,4 +1,4 @@
-import {formatInTimeZone, toZonedTime} from 'date-fns-tz';
+import {formatInTimeZone, toZonedTime, fromZonedTime} from 'date-fns-tz';
 import {subDays, format} from 'date-fns';
 import type {ProductionShift} from '@/types/production-run';
 
@@ -241,18 +241,18 @@ export function getProductionDayRange(
   productionDate: string,
   config?: Partial<ProductionDayConfig>
 ): {start: Date; end: Date} {
-  const dayStart = config?.shifts
+  const timezone = config?.timezone || DEFAULT_TIMEZONE;
+  const dayStart = config?.shifts?.length
     ? getDayShiftStart(config.shifts)
     : DEFAULT_DAY_START;
 
-  // Production day starts at dayStart on the production date
-  const start = new Date(`${productionDate}T${dayStart}:00`);
+  const startDateTimeStr = `${productionDate}T${dayStart}:00`;
+  const start = fromZonedTime(startDateTimeStr, timezone);
 
-  // Production day ends at dayStart on the NEXT day
-  const end = new Date(`${productionDate}T${dayStart}:00`);
-  end.setDate(end.getDate() + 1);
+  const endDate = new Date(start);
+  endDate.setUTCHours(endDate.getUTCHours() + 24);
 
-  return {start, end};
+  return {start, end: endDate};
 }
 
 /**

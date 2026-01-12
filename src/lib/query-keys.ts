@@ -92,6 +92,9 @@ export const productionRunKeys = {
   handoverFormData: () =>
     [...productionRunKeys.all, 'handover-form-data'] as const,
   runFormData: () => [...productionRunKeys.all, 'run-form-data'] as const,
+  /** Shift details for a specific date and shift ID */
+  shiftDetail: (date: string, shiftId: number) =>
+    [...productionRunKeys.all, 'shift-detail', date, shiftId] as const,
 };
 
 export const inventoryKeys = {

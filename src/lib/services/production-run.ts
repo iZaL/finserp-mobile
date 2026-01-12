@@ -14,6 +14,7 @@ import type {
   ProductionRunsResponse,
   ProductionRunDetail,
   ProductionHubResponse,
+  ShiftDetailResponse,
 } from '@/types/production-run';
 
 export const productionRunService = {
@@ -249,6 +250,26 @@ export const productionRunService = {
     }
     const response = await api.get<ProductionHubResponse>(
       `/production/hub?${params.toString()}`,
+      config
+    );
+    return response.data;
+  },
+
+  /**
+   * Get shift details for a specific date and shift ID
+   * Returns runs, outputs, vehicles, timeline events, and metrics
+   *
+   * @param date - Production date in yyyy-MM-dd format
+   * @param shiftId - Shift ID
+   * @param config - Optional abort signal
+   */
+  getShiftDetails: async (
+    date: string,
+    shiftId: number,
+    config?: {signal?: AbortSignal}
+  ): Promise<ShiftDetailResponse> => {
+    const response = await api.get<ShiftDetailResponse>(
+      `/production/shift/${date}/${shiftId}`,
       config
     );
     return response.data;

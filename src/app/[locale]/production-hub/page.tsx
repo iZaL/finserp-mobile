@@ -1,7 +1,8 @@
 'use client';
 
-import {useState} from 'react';
-import {useRouter} from '@/i18n/navigation';
+import {useState, useCallback} from 'react';
+import {useRouter, usePathname} from '@/i18n/navigation';
+import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {
   Factory,
@@ -58,11 +59,37 @@ import type {Operator} from '@/types/production-run';
 
 export default function ProductionHubPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const t = useTranslations('productionHub');
   const tRuns = useTranslations('productionRuns');
   const permissions = usePermissions();
 
   const tCommon = useTranslations('common');
+
+  // Get date and tab from URL search params
+  const dateFromUrl = searchParams.get('date');
+  const tabFromUrl = searchParams.get('tab') as 'overview' | 'actions' | null;
+
+  // Update URL when date changes
+  const handleDateChange = useCallback(
+    (newDate: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('date', newDate);
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [router, pathname, searchParams]
+  );
+
+  // Update URL when tab changes
+  const handleTabChange = useCallback(
+    (newTab: 'overview' | 'actions') => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', newTab);
+      router.replace(`${pathname}?${params.toString()}`);
+    },
+    [router, pathname, searchParams]
+  );
 
   const {
     data: dashboard,
@@ -82,9 +109,9 @@ export default function ProductionHubPage() {
   const [fromShift, setFromShift] = useState('');
   const [toShift, setToShift] = useState('');
   const [toOperatorId, setToOperatorId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'actions'>(
-    'overview'
-  );
+
+  // Tab state from URL (defaults to 'overview')
+  const activeTab = tabFromUrl || 'overview';
 
   const hasActiveRun = !!dashboard?.active_run;
   const currentShift = dashboard?.current_shift;
@@ -206,7 +233,7 @@ export default function ProductionHubPage() {
           <div className="container mx-auto px-4 pb-2">
             <div className="bg-muted flex gap-1 rounded-lg p-1">
               <button
-                onClick={() => setActiveTab('overview')}
+                onClick={() => handleTabChange('overview')}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   activeTab === 'overview'
@@ -218,7 +245,7 @@ export default function ProductionHubPage() {
                 Overview
               </button>
               <button
-                onClick={() => setActiveTab('actions')}
+                onClick={() => handleTabChange('actions')}
                 className={cn(
                   'flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   activeTab === 'actions'
@@ -237,6 +264,8 @@ export default function ProductionHubPage() {
           {/* Overview Tab - Production Dashboard */}
           {activeTab === 'overview' && (
             <ProductionDayView
+              initialDate={dateFromUrl || undefined}
+              onDateChange={handleDateChange}
               onStartRun={
                 permissions.canCreateProductionRun()
                   ? () => router.push('/production-runs/new')

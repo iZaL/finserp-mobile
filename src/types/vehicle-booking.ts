@@ -222,6 +222,7 @@ export interface BookingFilters {
   date_filter?: 'current' | 'last_24h' | 'last_48h' | 'last_week' | 'custom';
   date_from?: string;
   date_to?: string;
+  production_day?: string;
   page?: number;
   per_page?: number;
 }
