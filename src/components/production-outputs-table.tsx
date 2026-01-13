@@ -1,35 +1,39 @@
 'use client';
 
-import {Fragment, useMemo, useState, useCallback, useEffect} from 'react';
+import {useMemo, useState, useCallback, useEffect} from 'react';
 import {useRouter} from '@/i18n/navigation';
 import {useTranslations} from 'next-intl';
 import {
   Package,
-  ChevronRight,
   Layers,
   Calendar,
   Wheat,
   Droplet,
-  CheckCircle2,
-  CircleDot,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Skeleton} from '@/components/ui/skeleton';
-import {Checkbox} from '@/components/ui/checkbox';
-import {Badge} from '@/components/ui/badge';
 import {cn} from '@/lib/utils';
 import {useProductionOutputs} from '@/hooks/use-production-outputs';
 import {usePermissionStore} from '@/lib/stores/permission-store';
-import {ProductionOutputRow} from '@/components/production-output-row';
 import type {
   ProductionOutput,
   ProductionOutputFilters,
+  ProductionShift,
 } from '@/types/production-output';
+import {OutputShiftCard} from '@/components/output-shift-card';
+
+interface ShiftGroupData {
+  shift: ProductionShift;
+  byType: Record<string, {total: number; records: ProductionOutput[]}>;
+  totalRecords: number;
+  allRecords: ProductionOutput[];
+}
 
 interface GroupedData {
   date: string;
-  byType: Record<string, {total: number; records: ProductionOutput[]}>;
+  byShift: Record<number, ShiftGroupData>;
+  byType: Record<string, {total: number; records: ProductionOutput[]}>; // For totals display
   totalRecords: number;
   allRecords: ProductionOutput[];
 }
@@ -74,14 +78,15 @@ export function ProductionOutputsTable({
 }: ProductionOutputsTableProps) {
   const router = useRouter();
   const t = useTranslations('productionOutputs');
-  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  // Track expanded shifts by key: `${date}-${shiftId}`
+  const [expandedShifts, setExpandedShifts] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const {data, isLoading, error} = useProductionOutputs(filters);
   const {canCreateBatch: hasCreateBatchPermission} = usePermissionStore();
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
-  const {productTypes, groupedByDate, totals, allOutputs, latestOutputId} =
+  const {productTypes, groupedByDate, totals, allOutputs, latestOutputId, allShifts} =
     useMemo(() => {
       if (!data?.data?.length)
         return {
@@ -90,6 +95,7 @@ export function ProductionOutputsTable({
           totals: {},
           allOutputs: [] as ProductionOutput[],
           latestOutputId: null as number | null,
+          allShifts: [] as ProductionShift[],
         };
 
       // Filter to only batchable outputs if requested
@@ -109,6 +115,7 @@ export function ProductionOutputsTable({
           totals: {},
           allOutputs: [] as ProductionOutput[],
           latestOutputId: null as number | null,
+          allShifts: [] as ProductionShift[],
         };
 
       const types = [
@@ -116,9 +123,28 @@ export function ProductionOutputsTable({
           filteredData.map((o) => o.product_type?.name).filter(Boolean)
         ),
       ] as string[];
+
+      // Collect all unique shifts
+      const shiftsMap = new Map<number, ProductionShift>();
+      filteredData.forEach((output) => {
+        if (output.shift) {
+          shiftsMap.set(output.shift.id, output.shift);
+        }
+      });
+      const shifts = Array.from(shiftsMap.values()).sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
+      );
+
+      // Group by date, then by shift, then by product type
       const byDate: Record<
         string,
-        Record<string, {total: number; records: ProductionOutput[]}>
+        {
+          byShift: Record<number, {
+            shift: ProductionShift;
+            byType: Record<string, {total: number; records: ProductionOutput[]}>;
+          }>;
+          byType: Record<string, {total: number; records: ProductionOutput[]}>;
+        }
       > = {};
       const totalsByType: Record<string, number> = {};
 
@@ -136,20 +162,55 @@ export function ProductionOutputsTable({
       filteredData.forEach((output) => {
         const date = output.production_date;
         const typeName = output.product_type?.name || 'Other';
+        const shiftId = output.shift_id || 0;
+        const shift = output.shift || {id: 0, name: 'Unknown', code: 'unknown', is_active: true, display_order: 999};
 
-        if (!byDate[date]) byDate[date] = {};
-        if (!byDate[date][typeName])
-          byDate[date][typeName] = {total: 0, records: []};
+        // Initialize date group
+        if (!byDate[date]) {
+          byDate[date] = {byShift: {}, byType: {}};
+        }
 
-        byDate[date][typeName].total += output.total_quantity;
-        byDate[date][typeName].records.push(output);
-        totalsByType[typeName] =
-          (totalsByType[typeName] || 0) + output.total_quantity;
+        // Initialize shift group within date
+        if (!byDate[date].byShift[shiftId]) {
+          byDate[date].byShift[shiftId] = {shift, byType: {}};
+        }
+
+        // Initialize type group within shift
+        if (!byDate[date].byShift[shiftId].byType[typeName]) {
+          byDate[date].byShift[shiftId].byType[typeName] = {total: 0, records: []};
+        }
+
+        // Initialize type group within date (for date-level totals)
+        if (!byDate[date].byType[typeName]) {
+          byDate[date].byType[typeName] = {total: 0, records: []};
+        }
+
+        // Add output to shift-level group
+        byDate[date].byShift[shiftId].byType[typeName].total += output.total_quantity;
+        byDate[date].byShift[shiftId].byType[typeName].records.push(output);
+
+        // Add to date-level group for totals
+        byDate[date].byType[typeName].total += output.total_quantity;
+        byDate[date].byType[typeName].records.push(output);
+
+        // Global totals
+        totalsByType[typeName] = (totalsByType[typeName] || 0) + output.total_quantity;
       });
 
-      // Sort records within each type group by created_at descending (newest first)
+      // Sort records within each group by created_at descending (newest first)
       Object.values(byDate).forEach((dateGroup) => {
-        Object.values(dateGroup).forEach((typeGroup) => {
+        // Sort within shift groups
+        Object.values(dateGroup.byShift).forEach((shiftGroup) => {
+          Object.values(shiftGroup.byType).forEach((typeGroup) => {
+            typeGroup.records.sort(
+              (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+            );
+          });
+        });
+        // Sort date-level type groups
+        Object.values(dateGroup.byType).forEach((typeGroup) => {
           typeGroup.records.sort(
             (a, b) =>
               new Date(b.created_at).getTime() -
@@ -160,7 +221,26 @@ export function ProductionOutputsTable({
 
       const grouped: GroupedData[] = Object.entries(byDate)
         .sort(([a], [b]) => b.localeCompare(a))
-        .map(([date, byType]) => {
+        .map(([date, {byShift, byType}]) => {
+          // Build shift groups with proper structure
+          const shiftGroups: Record<number, ShiftGroupData> = {};
+          Object.entries(byShift).forEach(([shiftIdStr, shiftData]) => {
+            const shiftId = parseInt(shiftIdStr);
+            const allShiftRecords = Object.values(shiftData.byType)
+              .flatMap((t) => t.records)
+              .sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              );
+            shiftGroups[shiftId] = {
+              shift: shiftData.shift,
+              byType: shiftData.byType,
+              totalRecords: allShiftRecords.length,
+              allRecords: allShiftRecords,
+            };
+          });
+
           const allRecords = Object.values(byType)
             .flatMap((t) => t.records)
             .sort(
@@ -168,8 +248,10 @@ export function ProductionOutputsTable({
                 new Date(b.created_at).getTime() -
                 new Date(a.created_at).getTime()
             );
+
           return {
             date,
+            byShift: shiftGroups,
             byType,
             totalRecords: allRecords.length,
             allRecords,
@@ -182,6 +264,7 @@ export function ProductionOutputsTable({
         totals: totalsByType,
         allOutputs: filteredData,
         latestOutputId: latestOutput?.id ?? null,
+        allShifts: shifts,
       };
     }, [data?.data, onlyBatchable]);
 
@@ -214,22 +297,30 @@ export function ProductionOutputsTable({
     selectableOutputs.length > 0 &&
     hasCreateBatchPermission();
 
-  // Auto-expand all dates when defaultExpanded is true (only once on initial load)
+  // Auto-expand all shifts when defaultExpanded is true (only once on initial load)
+  // Note: defaultExpanded=false means collapsed by default (summary view)
   useEffect(() => {
     if (defaultExpanded && groupedByDate.length > 0 && !hasAutoExpanded) {
-      setExpandedDates(new Set(groupedByDate.map((g) => g.date)));
+      const allShiftKeys = new Set<string>();
+      groupedByDate.forEach((group) => {
+        Object.keys(group.byShift).forEach((shiftId) => {
+          allShiftKeys.add(`${group.date}-${shiftId}`);
+        });
+      });
+      setExpandedShifts(allShiftKeys);
       setHasAutoExpanded(true);
     }
   }, [defaultExpanded, groupedByDate, hasAutoExpanded]);
 
-  const toggleDate = (date: string) => {
-    setExpandedDates((prev) => {
+  const toggleShift = useCallback((date: string, shiftId: number) => {
+    const key = `${date}-${shiftId}`;
+    setExpandedShifts((prev) => {
       const next = new Set(prev);
-      if (next.has(date)) next.delete(date);
-      else next.add(date);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
-  };
+  }, []);
 
   const toggleSelection = useCallback((id: number) => {
     setSelectedIds((prev) => {
@@ -254,16 +345,16 @@ export function ProductionOutputsTable({
     );
   }, []);
 
-  const getSelectableForGroup = useCallback(
-    (group: GroupedData) => {
-      return group.allRecords.filter(isOutputSelectable);
+  const getSelectableForShiftGroup = useCallback(
+    (shiftGroup: ShiftGroupData) => {
+      return shiftGroup.allRecords.filter(isOutputSelectable);
     },
     [isOutputSelectable]
   );
 
-  const toggleGroupSelection = useCallback(
-    (group: GroupedData) => {
-      const selectableRecords = getSelectableForGroup(group);
+  const toggleShiftGroupSelection = useCallback(
+    (shiftGroup: ShiftGroupData) => {
+      const selectableRecords = getSelectableForShiftGroup(shiftGroup);
       if (selectableRecords.length === 0) return;
 
       const selectableIds = selectableRecords.map((r) => r.id);
@@ -279,28 +370,7 @@ export function ProductionOutputsTable({
         return next;
       });
     },
-    [getSelectableForGroup, selectedIds]
-  );
-
-  const isGroupFullySelected = useCallback(
-    (group: GroupedData) => {
-      const selectableRecords = getSelectableForGroup(group);
-      if (selectableRecords.length === 0) return false;
-      return selectableRecords.every((r) => selectedIds.has(r.id));
-    },
-    [getSelectableForGroup, selectedIds]
-  );
-
-  const isGroupPartiallySelected = useCallback(
-    (group: GroupedData) => {
-      const selectableRecords = getSelectableForGroup(group);
-      if (selectableRecords.length === 0) return false;
-      const selectedCount = selectableRecords.filter((r) =>
-        selectedIds.has(r.id)
-      ).length;
-      return selectedCount > 0 && selectedCount < selectableRecords.length;
-    },
-    [getSelectableForGroup, selectedIds]
+    [getSelectableForShiftGroup, selectedIds]
   );
 
   const formatDate = (date: string) => {
@@ -366,7 +436,7 @@ export function ProductionOutputsTable({
   // Has data
   if (!data || data.data.length === 0) return null;
 
-  // Get short product type name for column headers
+  // Get short product type name for totals display
   const getShortTypeName = (name: string) => {
     if (name.toLowerCase().includes('fishmeal')) return 'Fishmeal';
     if (name.toLowerCase().includes('fish oil')) return 'Fish Oil';
@@ -398,265 +468,123 @@ export function ProductionOutputsTable({
         </div>
       )}
 
-      {/* Records List */}
-      <div className="bg-background overflow-hidden">
-        {/* Column headers - only show if we have product types */}
-        {productTypes.length > 0 && (
-          <div className="bg-muted/50 flex items-center border-b px-2 py-1.5">
-            {canSelect && <div className="mr-2 w-4" />}
-            <div className="min-w-0 flex-1">
-              <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-                Date
-              </span>
-            </div>
-            {productTypes.map((type) => {
-              const style = getProductTypeStyle(type);
-              return (
-                <div key={type} className="w-16 shrink-0 text-right">
-                  <span
-                    className={cn(
-                      'text-[10px] font-medium tracking-wide uppercase',
-                      style.textColor
-                    )}
-                  >
-                    {getShortTypeName(type)}
-                  </span>
-                </div>
-              );
-            })}
-            <div className="w-4" />
-          </div>
-        )}
+      {/* Date Groups with Shift Cards */}
+      <div className="space-y-6">
+        {groupedByDate.map((group) => {
+          // Sort shifts by display_order
+          const sortedShifts = Object.values(group.byShift).sort(
+            (a, b) => (a.shift.display_order ?? 0) - (b.shift.display_order ?? 0)
+          );
 
-        {/* Rows */}
-        <div className="divide-y">
-          {groupedByDate.map((group) => {
-            const isExpanded = expandedDates.has(group.date);
-            const hasMultiple = group.totalRecords > 1;
-            const singleRecord = !hasMultiple
-              ? Object.values(group.byType)[0]?.records[0]
-              : null;
-            const selectableCount = getSelectableForGroup(group).length;
-            const hasSelectable = selectableCount > 0;
-            const isFullySelected = isGroupFullySelected(group);
-            const isPartiallySelected = isGroupPartiallySelected(group);
-
-            const handleRowClick = () => {
-              if (canSelect) {
-                if (hasMultiple) {
-                  toggleDate(group.date);
-                } else if (singleRecord && isOutputSelectable(singleRecord)) {
-                  toggleSelection(singleRecord.id);
-                }
-              } else {
-                if (hasMultiple) {
-                  toggleDate(group.date);
-                } else if (singleRecord) {
-                  router.push(`/production-outputs/${singleRecord.id}`);
-                }
-              }
-            };
-
-            return (
-              <Fragment key={group.date}>
+          return (
+            <div key={group.date} className="space-y-3">
+              {/* Date Header */}
+              <div className="flex items-center gap-3 px-1">
                 <div
                   className={cn(
-                    'group flex cursor-pointer items-center gap-2 px-2 py-2.5 transition-colors',
-                    'hover:bg-muted/50',
-                    canSelect && isFullySelected && 'bg-primary/5'
+                    'flex size-10 shrink-0 items-center justify-center rounded-xl',
+                    'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
                   )}
-                  onClick={handleRowClick}
                 >
-                  {/* Selection checkbox */}
-                  {canSelect && (
-                    <div
-                      className="shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Checkbox
-                        checked={isFullySelected}
-                        disabled={!hasSelectable}
-                        className={cn(
-                          'size-4',
-                          !hasSelectable && 'opacity-30',
-                          isPartiallySelected &&
-                            'data-[state=unchecked]:bg-primary/30'
-                        )}
-                        onCheckedChange={() => {
-                          if (hasMultiple) {
-                            toggleGroupSelection(group);
-                          } else if (singleRecord) {
-                            toggleSelection(singleRecord.id);
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Date icon */}
-                  <div
-                    className={cn(
-                      'flex size-9 shrink-0 items-center justify-center rounded-lg',
-                      'bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700'
-                    )}
-                  >
-                    <Calendar className="text-muted-foreground size-4" />
+                  <Calendar className="text-muted-foreground size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-base font-bold">
+                      {formatDate(group.date)}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      {formatShortDate(group.date)}
+                    </span>
                   </div>
-
-                  {/* Date info - takes remaining space */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-sm font-semibold">
-                        {formatDate(group.date)}
-                      </span>
-                      <span className="text-muted-foreground text-[10px]">
-                        {formatShortDate(group.date)}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {hasMultiple ? (
-                        <>
-                          <span className="text-muted-foreground text-xs">
-                            {t('list.records', {count: group.totalRecords})}
-                          </span>
-                          {canSelect && selectableCount > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="px-1 py-0 text-[9px]"
-                            >
-                              {selectableCount} avail
-                            </Badge>
-                          )}
-                        </>
-                      ) : singleRecord ? (
-                        <>
-                          <span className="text-muted-foreground truncate text-xs">
-                            {singleRecord.product_type?.name}
-                          </span>
-                          {singleRecord.available_quantity !== undefined &&
-                          singleRecord.available_quantity === 0 ? (
-                            <Package className="text-muted-foreground size-3.5 shrink-0" />
-                          ) : singleRecord.available_quantity !== undefined &&
-                            singleRecord.available_quantity <
-                              singleRecord.total_quantity ? (
-                            <CircleDot className="size-3.5 shrink-0 text-amber-500" />
-                          ) : (
-                            <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" />
-                          )}
-                        </>
-                      ) : null}
-                    </div>
+                  <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                    <span>{t('list.records', {count: group.totalRecords})}</span>
+                    <span>•</span>
+                    <span>{Object.keys(group.byShift).length} {Object.keys(group.byShift).length === 1 ? 'shift' : 'shifts'}</span>
                   </div>
-
-                  {/* Product type quantities - compact */}
+                </div>
+                {/* Date-level totals */}
+                <div className="flex items-center gap-3">
                   {productTypes.map((type) => {
                     const style = getProductTypeStyle(type);
                     const value = group.byType[type]?.total;
+                    if (!value) return null;
                     return (
-                      <div key={type} className="w-16 shrink-0 text-right">
-                        {value ? (
-                          <span
-                            className={cn(
-                              'text-sm font-semibold tabular-nums',
-                              style.textColor
-                            )}
-                          >
-                            {value >= 1000
-                              ? `${(value / 1000).toFixed(1)} TON`
-                              : `${value.toLocaleString()} kg`}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground/30 text-xs">
-                            —
-                          </span>
-                        )}
+                      <div key={type} className="text-right">
+                        <span
+                          className={cn(
+                            'text-sm font-bold tabular-nums',
+                            style.textColor
+                          )}
+                        >
+                          {value >= 1000
+                            ? `${(value / 1000).toFixed(1)}T`
+                            : `${value.toLocaleString()} kg`}
+                        </span>
+                        <div className="text-muted-foreground text-[9px]">
+                          {getShortTypeName(type)}
+                        </div>
                       </div>
                     );
                   })}
-
-                  {/* Expand indicator */}
-                  <div className="w-4 shrink-0">
-                    {hasMultiple && (
-                      <ChevronRight
-                        className={cn(
-                          'text-muted-foreground size-4 transition-transform duration-200',
-                          isExpanded && 'rotate-90'
-                        )}
-                      />
-                    )}
-                  </div>
                 </div>
+              </div>
 
-                {/* Expanded details */}
-                {isExpanded && (
-                  <div className="bg-muted/20 border-muted border-t">
-                    <div className="space-y-0.5 px-1 py-1">
-                      {Object.entries(group.byType).flatMap(([, typeData]) =>
-                        typeData.records.map((record) => {
-                          const selectable = isOutputSelectable(record);
-                          const isSelected = selectedIds.has(record.id);
+              {/* Shift Cards */}
+              <div className="space-y-2 pl-1">
+                {sortedShifts.map((shiftData) => {
+                  const shiftKey = `${group.date}-${shiftData.shift.id}`;
+                  const isExpanded = expandedShifts.has(shiftKey);
 
-                          return (
-                            <ProductionOutputRow
-                              key={record.id}
-                              output={record}
-                              mode={canSelect ? 'select' : 'display'}
-                              selected={isSelected}
-                              onSelect={toggleSelection}
-                              isLatest={record.id === latestOutputId}
-                              disabled={canSelect && !selectable}
-                              onClick={() => {
-                                if (canSelect && selectable) {
-                                  toggleSelection(record.id);
-                                } else if (!canSelect) {
-                                  router.push(
-                                    `/production-outputs/${record.id}`
-                                  );
-                                }
-                              }}
-                            />
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                )}
-              </Fragment>
-            );
-          })}
-        </div>
+                  return (
+                    <OutputShiftCard
+                      key={shiftKey}
+                      data={shiftData}
+                      isExpanded={isExpanded}
+                      onToggleExpand={() => toggleShift(group.date, shiftData.shift.id)}
+                      canSelect={canSelect}
+                      selectedIds={selectedIds}
+                      onToggleSelection={toggleSelection}
+                      onToggleGroupSelection={() => toggleShiftGroupSelection(shiftData)}
+                      isOutputSelectable={isOutputSelectable}
+                      latestOutputId={latestOutputId}
+                      productTypes={productTypes}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Footer totals */}
-        <div className="bg-gradient-to-r from-slate-100 to-slate-200 px-2 py-2 dark:from-slate-800 dark:to-slate-700">
-          <div className="flex items-center gap-2">
-            {canSelect && <div className="w-4 shrink-0" />}
-            <div className="size-9 shrink-0" />
-            <span className="min-w-0 flex-1 text-sm font-bold">
-              {t('list.total')}
-            </span>
+      {/* Footer totals */}
+      <div className="bg-gradient-to-r from-slate-100 to-slate-200 rounded-xl px-4 py-3 dark:from-slate-800 dark:to-slate-700">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold">{t('list.total')}</span>
+          <div className="flex items-center gap-4">
             {productTypes.map((type) => {
               const style = getProductTypeStyle(type);
               const value = totals[type];
+              if (!value) return null;
               return (
-                <div key={type} className="w-16 shrink-0 text-right">
-                  {value ? (
-                    <span
-                      className={cn(
-                        'text-sm font-bold tabular-nums',
-                        style.textColor
-                      )}
-                    >
-                      {value >= 1000
-                        ? `${(value / 1000).toFixed(1)} TON`
-                        : `${value.toLocaleString()} kg`}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground/30 text-sm">—</span>
-                  )}
+                <div key={type} className="text-right">
+                  <span
+                    className={cn(
+                      'text-sm font-bold tabular-nums',
+                      style.textColor
+                    )}
+                  >
+                    {value >= 1000
+                      ? `${(value / 1000).toFixed(1)} TON`
+                      : `${value.toLocaleString()} kg`}
+                  </span>
+                  <div className="text-muted-foreground text-[9px]">
+                    {getShortTypeName(type)}
+                  </div>
                 </div>
               );
             })}
-            <div className="w-4 shrink-0" />
           </div>
         </div>
       </div>

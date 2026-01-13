@@ -34,7 +34,7 @@ export default function ProductionOutputsPage() {
           <ProductionOutputsTable
             showBatchingCard={true}
             showEmptyState={true}
-            defaultExpanded={true}
+            defaultExpanded={false}
           />
         </div>
       </div>
