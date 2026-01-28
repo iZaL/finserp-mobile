@@ -86,7 +86,7 @@ export function ProductionOutputsTable({
   const {canCreateBatch: hasCreateBatchPermission} = usePermissionStore();
   const [hasAutoExpanded, setHasAutoExpanded] = useState(false);
 
-  const {productTypes, groupedByDate, totals, allOutputs, latestOutputId, allShifts} =
+  const {productTypes, groupedByDate, totals, allOutputs, latestOutputId} =
     useMemo(() => {
       if (!data?.data?.length)
         return {
@@ -95,7 +95,6 @@ export function ProductionOutputsTable({
           totals: {},
           allOutputs: [] as ProductionOutput[],
           latestOutputId: null as number | null,
-          allShifts: [] as ProductionShift[],
         };
 
       // Filter to only batchable outputs if requested
@@ -115,7 +114,6 @@ export function ProductionOutputsTable({
           totals: {},
           allOutputs: [] as ProductionOutput[],
           latestOutputId: null as number | null,
-          allShifts: [] as ProductionShift[],
         };
 
       const types = [
@@ -123,17 +121,6 @@ export function ProductionOutputsTable({
           filteredData.map((o) => o.product_type?.name).filter(Boolean)
         ),
       ] as string[];
-
-      // Collect all unique shifts
-      const shiftsMap = new Map<number, ProductionShift>();
-      filteredData.forEach((output) => {
-        if (output.shift) {
-          shiftsMap.set(output.shift.id, output.shift);
-        }
-      });
-      const shifts = Array.from(shiftsMap.values()).sort(
-        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
-      );
 
       // Group by date, then by shift, then by product type
       const byDate: Record<
@@ -264,7 +251,6 @@ export function ProductionOutputsTable({
         totals: totalsByType,
         allOutputs: filteredData,
         latestOutputId: latestOutput?.id ?? null,
-        allShifts: shifts,
       };
     }, [data?.data, onlyBatchable]);
 

@@ -116,6 +116,7 @@ export interface BillDocument {
   paid_amount: number;
   balance_amount: number;
   pricing?: Pricing;
+  payments?: Payment[];
   created_at: string;
 }
 
