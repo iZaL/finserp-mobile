@@ -18,7 +18,7 @@ interface DeleteDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function DeleteDialog({
@@ -46,7 +46,7 @@ export function DeleteDialog({
       onSuccess: () => {
         // Close dialog after mutation AND cache updates complete
         handleOpenChange(false);
-        onSuccess();
+        onSuccess?.();
       },
     });
   };

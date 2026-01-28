@@ -18,7 +18,7 @@ interface UnreceiveDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function UnreceiveDialog({
@@ -46,7 +46,7 @@ export function UnreceiveDialog({
       onSuccess: () => {
         // Close dialog after mutation AND cache updates complete
         handleOpenChange(false);
-        onSuccess();
+        onSuccess?.();
       },
     });
   };

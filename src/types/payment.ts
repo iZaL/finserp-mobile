@@ -10,7 +10,7 @@ export interface Payment {
   mode: string | null;
   reference: string | null;
   status: 'pending' | 'success' | 'failed';
-  transaction_type: 'purchase' | 'sale';
+  transaction_type: 'purchase' | 'sale' | 'advance';
   transaction_date: string;
   transaction_date_formatted: string;
   notes: string | null;

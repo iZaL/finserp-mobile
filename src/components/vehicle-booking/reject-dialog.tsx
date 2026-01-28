@@ -29,7 +29,7 @@ interface RejectDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function RejectDialog({
@@ -77,7 +77,7 @@ export function RejectDialog({
         onSuccess: () => {
           // Close dialog after mutation AND cache updates complete
           handleOpenChange(false);
-          onSuccess();
+          onSuccess?.();
         },
       }
     );

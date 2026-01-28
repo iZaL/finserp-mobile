@@ -18,7 +18,7 @@ interface ReceiveDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function ReceiveDialog({
@@ -48,7 +48,7 @@ export function ReceiveDialog({
         onSuccess: () => {
           // Close dialog after mutation AND cache updates complete
           handleOpenChange(false);
-          onSuccess();
+          onSuccess?.();
         },
         onError: (error) => {
           console.error('Error receiving vehicle:', error);

@@ -2,18 +2,29 @@
 
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {Plus, CircleDollarSign, TrendingUp, ChevronRight} from 'lucide-react';
+import {Plus, CircleDollarSign, TrendingUp, ChevronRight, Pencil, Trash2, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
 import {Progress} from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {cn} from '@/lib/utils';
 import {getPaymentStatusColor} from '@/lib/utils/status-colors';
 import type {FishPurchase} from '@/types/fish-purchase';
 import type {Payment} from '@/types/payment';
 import {AddAdvancePaymentDialog} from './add-advance-payment-dialog';
+import {EditAdvancePaymentDialog} from './edit-advance-payment-dialog';
 import type {AdvancePaymentRequest} from '@/types/payment';
-import {useAddFishPurchasePayment} from '@/hooks/use-fish-purchases';
+import {useAddFishPurchasePayment, useUpdateAdvancePayment, useDeleteAdvancePayment} from '@/hooks/use-fish-purchases';
 
 interface FinancialSummaryProps {
   purchase: FishPurchase;
@@ -26,8 +37,20 @@ export function FinancialSummary({
 }: FinancialSummaryProps) {
   const t = useTranslations('fishPurchases.payment');
   const [showAddPayment, setShowAddPayment] = useState(false);
+  const [showEditPayment, setShowEditPayment] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+
   const addPaymentMutation = useAddFishPurchasePayment();
+  const updatePaymentMutation = useUpdateAdvancePayment();
+  const deletePaymentMutation = useDeleteAdvancePayment();
+
   const addingPayment = addPaymentMutation.isPending;
+  const updatingPayment = updatePaymentMutation.isPending;
+  const deletingPayment = deletePaymentMutation.isPending;
+
+  // Check if purchase is not yet approved - allow edit/delete before approval
+  const canModifyPayments = purchase.status !== 'approved' && purchase.status !== 'closed';
 
   // Calculate payment progress
   const totalAmount = purchase.total_amount || 0;
@@ -36,9 +59,9 @@ export function FinancialSummary({
   const paymentProgress =
     totalAmount > 0 ? (advancePaid / totalAmount) * 100 : 0;
 
-  // Get recent payments (up to 3)
-  const recentPayments = purchase.bill?.payments?.slice(0, 3) || [];
-  const hasMorePayments = (purchase.bill?.payments?.length || 0) > 3;
+  // Get recent payments (up to 3) - payments are nested under bill.pricing
+  const recentPayments = purchase.bill?.pricing?.payments?.slice(0, 3) || [];
+  const hasMorePayments = (purchase.bill?.pricing?.payments?.length || 0) > 3;
 
   const handleAddPayment = async (
     data: AdvancePaymentRequest
@@ -64,6 +87,65 @@ export function FinancialSummary({
         }
       );
     });
+  };
+
+  const handleEditPayment = async (
+    data: AdvancePaymentRequest
+  ): Promise<void> => {
+    if (!selectedPayment) return;
+
+    return new Promise((resolve, reject) => {
+      updatePaymentMutation.mutate(
+        {
+          fishPurchaseId: purchase.id,
+          paymentId: selectedPayment.id,
+          data,
+        },
+        {
+          onSuccess: () => {
+            setShowEditPayment(false);
+            setSelectedPayment(null);
+            onPaymentAdded();
+            resolve();
+          },
+          onError: (error) => {
+            console.error('Failed to update payment:', error);
+            reject(error);
+          },
+        }
+      );
+    });
+  };
+
+  const handleDeletePayment = () => {
+    if (!selectedPayment) return;
+
+    deletePaymentMutation.mutate(
+      {
+        fishPurchaseId: purchase.id,
+        paymentId: selectedPayment.id,
+      },
+      {
+        onSuccess: () => {
+          setShowDeleteConfirm(false);
+          setSelectedPayment(null);
+          onPaymentAdded();
+        },
+        onError: (error) => {
+          console.error('Failed to delete payment:', error);
+        },
+      }
+    );
+  };
+
+  const openEditDialog = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setShowEditPayment(true);
+  };
+
+  const openDeleteDialog = (payment: Payment) => {
+    setSelectedPayment(payment);
+    setShowDeleteConfirm(true);
   };
 
   const getPaymentStatusBadge = () => {
@@ -162,8 +244,8 @@ export function FinancialSummary({
             <Progress value={paymentProgress} className="h-2" />
           </div>
 
-          {/* Add Advance Payment Button */}
-          {purchase.status !== 'closed' && balanceAmount > 0 && (
+          {/* Add Advance Payment Button - only show if no payment exists yet */}
+          {purchase.status !== 'closed' && balanceAmount > 0 && recentPayments.length === 0 && (
             <Button
               className="w-full"
               onClick={() => setShowAddPayment(true)}
@@ -219,7 +301,30 @@ export function FinancialSummary({
                         </p>
                       )}
                     </div>
-                    <ChevronRight className="text-muted-foreground size-4" />
+                    {canModifyPayments ? (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          onClick={() => openEditDialog(payment)}
+                          disabled={updatingPayment || deletingPayment}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive size-8"
+                          onClick={() => openDeleteDialog(payment)}
+                          disabled={updatingPayment || deletingPayment}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <ChevronRight className="text-muted-foreground size-4" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -254,6 +359,60 @@ export function FinancialSummary({
         paymentAccounts={purchase.payment_accounts || []}
         onSubmit={handleAddPayment}
       />
+
+      {/* Edit Advance Payment Dialog */}
+      {selectedPayment && (
+        <EditAdvancePaymentDialog
+          open={showEditPayment}
+          onOpenChange={(open) => {
+            setShowEditPayment(open);
+            if (!open) setSelectedPayment(null);
+          }}
+          purchase={purchase}
+          payment={selectedPayment}
+          paymentAccounts={purchase.payment_accounts || []}
+          onSubmit={handleEditPayment}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('deletePaymentTitle') || 'Delete Payment'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('deletePaymentDescription') ||
+                'Are you sure you want to delete this payment? This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setSelectedPayment(null);
+              }}
+            >
+              {t('cancel') || 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePayment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deletingPayment}
+            >
+              {deletingPayment ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  {t('deleting') || 'Deleting...'}
+                </>
+              ) : (
+                t('delete') || 'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

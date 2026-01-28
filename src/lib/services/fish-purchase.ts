@@ -120,6 +120,37 @@ export const fishPurchaseService = {
     return purchase;
   },
 
+  // Update payment on fish purchase
+  updatePayment: async (
+    fishPurchaseId: number,
+    paymentId: number,
+    data: AdvancePaymentRequest
+  ): Promise<FishPurchase> => {
+    const response = await api.put<
+      ApiResponse<FishPurchase> & {
+        payment_accounts?: Array<{id: number; name: string}>;
+      }
+    >(`/fish-purchases/${fishPurchaseId}/payments/${paymentId}`, data);
+    const purchase = response.data.data!;
+    purchase.payment_accounts = response.data.payment_accounts || [];
+    return purchase;
+  },
+
+  // Delete payment from fish purchase
+  deletePayment: async (
+    fishPurchaseId: number,
+    paymentId: number
+  ): Promise<FishPurchase> => {
+    const response = await api.delete<
+      ApiResponse<FishPurchase> & {
+        payment_accounts?: Array<{id: number; name: string}>;
+      }
+    >(`/fish-purchases/${fishPurchaseId}/payments/${paymentId}`);
+    const purchase = response.data.data!;
+    purchase.payment_accounts = response.data.payment_accounts || [];
+    return purchase;
+  },
+
   // Get fish species list
   getFishSpecies: async (config?: {
     signal?: AbortSignal;

@@ -21,7 +21,7 @@ interface ApproveDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function ApproveDialog({
@@ -60,7 +60,7 @@ export function ApproveDialog({
         onSuccess: () => {
           // Close dialog after mutation AND cache updates complete
           handleOpenChange(false);
-          onSuccess();
+          onSuccess?.();
         },
       }
     );

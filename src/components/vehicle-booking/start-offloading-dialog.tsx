@@ -18,7 +18,7 @@ interface StartOffloadingDialogProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function StartOffloadingDialog({
@@ -45,7 +45,7 @@ export function StartOffloadingDialog({
         onSuccess: () => {
           // Close dialog after mutation AND cache updates complete
           handleOpenChange(false);
-          onSuccess();
+          onSuccess?.();
         },
       }
     );

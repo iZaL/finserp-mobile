@@ -128,13 +128,18 @@ export default function EditFishPurchasePage({
       const data = getValues();
       const requestData = transformFormData(data);
 
-      const result = await updateMutation.mutateAsync({
-        id: parseInt(id),
-        data: requestData,
-      });
-
-      toast.success(t('updateSuccess') || 'Fish purchase updated successfully');
-      router.push(`/fish-purchases/${result.id}`);
+      await updateMutation.mutateAsync(
+        {
+          id: parseInt(id),
+          data: requestData,
+        },
+        {
+          onSuccess: (result) => {
+            // Navigation happens AFTER cache updates complete
+            router.push(`/fish-purchases/${result.id}`);
+          },
+        }
+      );
     } catch (error) {
       console.error('Failed to update fish purchase:', error);
       toast.error(t('updateError') || 'Failed to update fish purchase');

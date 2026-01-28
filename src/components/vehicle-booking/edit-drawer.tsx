@@ -31,7 +31,7 @@ interface EditDrawerProps {
   booking: VehicleBooking | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function EditDrawer({
@@ -141,7 +141,7 @@ export function EditDrawer({
         onSuccess: () => {
           toast.success(t('success', {vehicle: formData.vehicle_number}));
           onOpenChange(false);
-          onSuccess();
+          onSuccess?.();
           setIsSubmitting(false);
         },
         onError: (error: unknown) => {

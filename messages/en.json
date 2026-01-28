@@ -1578,7 +1578,14 @@
         "partial": "Partial",
         "success": "Success",
         "failed": "Failed"
-      }
+      },
+      "editAdvancePayment": "Edit Advance Payment",
+      "editAdvancePaymentDescription": "Update the advance payment details",
+      "updatePayment": "Update Payment",
+      "deletePaymentTitle": "Delete Payment",
+      "deletePaymentDescription": "Are you sure you want to delete this payment? This action cannot be undone.",
+      "delete": "Delete",
+      "deleting": "Deleting..."
     },
     "printPreview": {
       "title": "Print Preview",

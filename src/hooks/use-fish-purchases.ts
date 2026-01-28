@@ -340,3 +340,121 @@ export function useAddFishPurchasePayment() {
     },
   });
 }
+
+/**
+ * Hook to update advance payment on fish purchase
+ */
+export function useUpdateAdvancePayment() {
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
+
+  return useMutation({
+    mutationFn: async ({
+      fishPurchaseId,
+      paymentId,
+      data,
+    }: {
+      fishPurchaseId: number;
+      paymentId: number;
+      data: AdvancePaymentRequest;
+    }) => {
+      if (!isOnline) {
+        await offlineQueueService.queueMutation(
+          'PUT',
+          `/fish-purchases/${fishPurchaseId}/payments/${paymentId}`,
+          data
+        );
+        throw new Error('Queued for offline sync');
+      }
+      return fishPurchaseService.updatePayment(fishPurchaseId, paymentId, data);
+    },
+    onSuccess: async (data, variables) => {
+      // 1. Update cache with server response
+      queryClient.setQueryData(
+        fishPurchaseKeys.detail(variables.fishPurchaseId),
+        data
+      );
+
+      // 2. Invalidate ALL related caches
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active',
+      });
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.detail(variables.fishPurchaseId),
+        type: 'active',
+      });
+
+      // 4. Show success after refetch
+      toast.success('Payment updated successfully');
+    },
+    onError: (error: Error) => {
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Payment update queued for sync when online');
+      } else {
+        toast.error(error.message || 'Failed to update payment');
+      }
+    },
+  });
+}
+
+/**
+ * Hook to delete advance payment from fish purchase
+ */
+export function useDeleteAdvancePayment() {
+  const queryClient = useQueryClient();
+  const {isOnline} = useNetworkStatus();
+
+  return useMutation({
+    mutationFn: async ({
+      fishPurchaseId,
+      paymentId,
+    }: {
+      fishPurchaseId: number;
+      paymentId: number;
+    }) => {
+      if (!isOnline) {
+        await offlineQueueService.queueMutation(
+          'DELETE',
+          `/fish-purchases/${fishPurchaseId}/payments/${paymentId}`,
+          null
+        );
+        throw new Error('Queued for offline sync');
+      }
+      return fishPurchaseService.deletePayment(fishPurchaseId, paymentId);
+    },
+    onSuccess: async (data, variables) => {
+      // 1. Update cache with server response
+      queryClient.setQueryData(
+        fishPurchaseKeys.detail(variables.fishPurchaseId),
+        data
+      );
+
+      // 2. Invalidate ALL related caches
+      queryClient.invalidateQueries({queryKey: fishPurchaseKeys.lists()});
+
+      // 3. Wait for active queries to refetch
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.lists(),
+        type: 'active',
+      });
+      await queryClient.refetchQueries({
+        queryKey: fishPurchaseKeys.detail(variables.fishPurchaseId),
+        type: 'active',
+      });
+
+      // 4. Show success after refetch
+      toast.success('Payment deleted successfully');
+    },
+    onError: (error: Error) => {
+      if (error.message === 'Queued for offline sync') {
+        toast.success('Payment deletion queued for sync when online');
+      } else {
+        toast.error(error.message || 'Failed to delete payment');
+      }
+    },
+  });
+}

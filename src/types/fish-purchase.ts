@@ -92,6 +92,18 @@ export interface AdvancePaymentInfo {
 }
 
 /**
+ * Pricing (simplified for mobile)
+ */
+export interface Pricing {
+  id: number;
+  total: number;
+  paid: number;
+  balance: number;
+  currency: string;
+  payments?: Payment[];
+}
+
+/**
  * Bill Document (simplified for mobile)
  */
 export interface BillDocument {
@@ -103,19 +115,8 @@ export interface BillDocument {
   total_amount: number;
   paid_amount: number;
   balance_amount: number;
-  payments?: Payment[];
+  pricing?: Pricing;
   created_at: string;
-}
-
-/**
- * Pricing (simplified for mobile)
- */
-export interface Pricing {
-  id: number;
-  total: number;
-  paid: number;
-  balance: number;
-  currency: string;
 }
 
 /**

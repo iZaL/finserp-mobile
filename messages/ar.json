@@ -1537,7 +1537,14 @@
         "partial": "جزئي",
         "success": "نجح",
         "failed": "فشل"
-      }
+      },
+      "editAdvancePayment": "تعديل الدفعة المقدمة",
+      "editAdvancePaymentDescription": "تحديث تفاصيل الدفعة المقدمة",
+      "updatePayment": "تحديث الدفعة",
+      "deletePaymentTitle": "حذف الدفعة",
+      "deletePaymentDescription": "هل أنت متأكد من حذف هذه الدفعة؟ لا يمكن التراجع عن هذا الإجراء.",
+      "delete": "حذف",
+      "deleting": "جاري الحذف..."
     },
     "printPreview": {
       "title": "معاينة الطباعة",

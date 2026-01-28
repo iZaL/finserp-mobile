@@ -438,67 +438,67 @@ export default function FishPurchaseDetailsPage({
                   key={item.id}
                   className="overflow-hidden rounded-xl shadow-lg"
                 >
-                  {/* Full gradient card */}
-                  <div className="bg-gradient-to-br from-teal-500 via-teal-500 to-cyan-500 p-4">
+                  {/* Full gradient card - theme-aware: gray for light, teal for dark */}
+                  <div className="bg-gradient-to-br from-gray-100 via-gray-50 to-gray-100 p-4 dark:from-teal-600 dark:via-teal-500 dark:to-cyan-600">
                     {/* Header row */}
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2.5">
-                        <span className="flex size-7 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-white">
+                        <span className="flex size-7 items-center justify-center rounded-full bg-gray-500/20 text-sm font-bold text-gray-900 dark:bg-white/20 dark:text-white">
                           {index + 1}
                         </span>
                         <div>
-                          <h3 className="text-base font-semibold text-white">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                             {item.fish_species?.name}
                           </h3>
                           {item.fish_count && (
-                            <p className="text-xs text-white/70">
+                            <p className="text-xs text-gray-600 dark:text-white/70">
                               {t('items.fishCount')}: {item.fish_count}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold text-white">
+                        <p className="text-xl font-bold text-gray-900 dark:text-white">
                           {(item.net_amount || 0).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
                         </p>
-                        <p className="text-xs text-white/70">OMR</p>
+                        <p className="text-xs text-gray-600 dark:text-white/70">OMR</p>
                       </div>
                     </div>
 
                     {/* Stats grid - on gradient */}
                     <div className="grid grid-cols-4 gap-2">
-                      <div className="rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
-                        <p className="text-lg font-bold text-white">
+                      <div className="rounded-lg bg-gray-200/70 p-2 text-center dark:bg-white/15">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {item.box_count}
                         </p>
-                        <p className="text-[10px] text-white/70 uppercase">
+                        <p className="text-[10px] uppercase text-gray-600 dark:text-white/70">
                           {t('items.boxes')}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
-                        <p className="text-lg font-bold text-white">
+                      <div className="rounded-lg bg-gray-200/70 p-2 text-center dark:bg-white/15">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {(item.average_box_weight || 0).toFixed(1)}
                         </p>
-                        <p className="text-[10px] text-white/70 uppercase">
+                        <p className="text-[10px] uppercase text-gray-600 dark:text-white/70">
                           {t('items.avgWeight')}
                         </p>
                       </div>
-                      <div className="rounded-lg bg-white/15 p-2 text-center backdrop-blur-sm">
-                        <p className="text-lg font-bold text-white">
+                      <div className="rounded-lg bg-gray-200/70 p-2 text-center dark:bg-white/15">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {((item.net_weight || 0) / 1000).toFixed(2)}
                         </p>
-                        <p className="text-[10px] text-white/70 uppercase">
+                        <p className="text-[10px] uppercase text-gray-600 dark:text-white/70">
                           MT
                         </p>
                       </div>
-                      <div className="rounded-lg bg-white/25 p-2 text-center backdrop-blur-sm">
-                        <p className="text-lg font-bold text-white">
+                      <div className="rounded-lg bg-gray-300/70 p-2 text-center dark:bg-white/25">
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {Math.round(item.rate * 1000)}
                         </p>
-                        <p className="text-[10px] text-white/70 uppercase">
+                        <p className="text-[10px] uppercase text-gray-600 dark:text-white/70">
                           BZ/KG
                         </p>
                       </div>
@@ -506,7 +506,7 @@ export default function FishPurchaseDetailsPage({
 
                     {/* Remarks */}
                     {item.remarks && (
-                      <div className="mt-2 rounded-lg bg-white/10 px-2 py-1.5 text-xs text-white/90">
+                      <div className="mt-2 rounded-lg bg-gray-200/70 px-2 py-1.5 text-xs text-gray-700 dark:bg-white/10 dark:text-white/90">
                         <span className="font-medium">
                           {t('items.remarks')}:
                         </span>{' '}
