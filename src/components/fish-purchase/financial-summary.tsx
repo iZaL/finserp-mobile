@@ -247,15 +247,13 @@ export function FinancialSummary({
       </Card>
 
       {/* Add Advance Payment Dialog */}
-      {purchase.payment_accounts && (
-        <AddAdvancePaymentDialog
-          open={showAddPayment}
-          onOpenChange={setShowAddPayment}
-          purchase={purchase}
-          paymentAccounts={purchase.payment_accounts || []}
-          onSubmit={handleAddPayment}
-        />
-      )}
+      <AddAdvancePaymentDialog
+        open={showAddPayment}
+        onOpenChange={setShowAddPayment}
+        purchase={purchase}
+        paymentAccounts={purchase.payment_accounts || []}
+        onSubmit={handleAddPayment}
+      />
     </>
   );
 }

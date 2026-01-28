@@ -17,7 +17,6 @@ import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {toast} from 'sonner';
 import {ProgressSteps} from '@/components/fish-purchase/progress-steps';
 import {SupplierSelector} from '@/components/fish-purchase/supplier-selector';
 import {PurchaseDetailsForm} from '@/components/fish-purchase/purchase-details-form';
@@ -79,11 +78,11 @@ export default function CreateFishPurchasePage() {
       const requestData = transformFormData(data);
       const result = await createMutation.mutateAsync(requestData);
 
-      toast.success(t('createSuccess'));
+      // Toast is shown by the hook, just navigate
       router.push(`/fish-purchases/${result.id}`);
     } catch (error) {
+      // Error toast is shown by the hook
       console.error('Failed to create fish purchase:', error);
-      toast.error(t('createError'));
     }
   };
 

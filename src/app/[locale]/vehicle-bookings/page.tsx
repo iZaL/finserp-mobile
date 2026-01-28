@@ -150,6 +150,8 @@ export default function VehicleBookingsPage() {
         onSuccess: () => {
           // Close dialog after mutation AND cache updates complete
           closeDialog();
+          // Switch to exited tab to show the completed vehicle (for bill creation)
+          setStatusFilter('exited');
         },
       }
     );
@@ -796,6 +798,25 @@ export default function VehicleBookingsPage() {
           ) : (
             filteredBookings
               .sort((a, b) => {
+                // For exited tab, prioritize bookings without fish purchases (bills)
+                if (statusFilter === 'exited') {
+                  const aHasBill = !!a.fish_purchase_id;
+                  const bHasBill = !!b.fish_purchase_id;
+
+                  // Bookings without bills come first
+                  if (!aHasBill && bHasBill) return -1;
+                  if (aHasBill && !bHasBill) return 1;
+
+                  // Within same group, sort by offloading completion date (most recent first)
+                  const dateA = new Date(
+                    a.offloading_completed_at || a.exited_at || a.created_at
+                  ).getTime();
+                  const dateB = new Date(
+                    b.offloading_completed_at || b.exited_at || b.created_at
+                  ).getTime();
+                  return dateB - dateA;
+                }
+
                 // Define priority order for statuses (operational workflow)
                 const statusPriority: Record<string, number> = {
                   booked: 1, // Highest priority - ready for reception (actionable)

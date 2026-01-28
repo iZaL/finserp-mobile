@@ -54,9 +54,8 @@ export const fishPurchaseService = {
     >(`/fish-purchases/${id}`);
     // Merge payment_accounts from root into the purchase data
     const purchase = response.data.data!;
-    if (response.data.payment_accounts) {
-      purchase.payment_accounts = response.data.payment_accounts;
-    }
+    // Always set payment_accounts (default to empty array if not provided)
+    purchase.payment_accounts = response.data.payment_accounts || [];
     return purchase;
   },
 
@@ -64,11 +63,15 @@ export const fishPurchaseService = {
   createFishPurchase: async (
     data: CreateFishPurchaseRequest
   ): Promise<FishPurchase> => {
-    const response = await api.post<ApiResponse<FishPurchase>>(
-      `/fish-purchases`,
-      data
-    );
-    return response.data.data!;
+    const response = await api.post<
+      ApiResponse<FishPurchase> & {
+        payment_accounts?: Array<{id: number; name: string}>;
+      }
+    >(`/fish-purchases`, data);
+    const purchase = response.data.data!;
+    // Always set payment_accounts (default to empty array if not provided)
+    purchase.payment_accounts = response.data.payment_accounts || [];
+    return purchase;
   },
 
   // Update existing fish purchase
@@ -112,9 +115,8 @@ export const fishPurchaseService = {
     >(`/fish-purchases/${id}/payments`, data);
     // Merge payment_accounts from root into the purchase data
     const purchase = response.data.data!;
-    if (response.data.payment_accounts) {
-      purchase.payment_accounts = response.data.payment_accounts;
-    }
+    // Always set payment_accounts (default to empty array if not provided)
+    purchase.payment_accounts = response.data.payment_accounts || [];
     return purchase;
   },
 
