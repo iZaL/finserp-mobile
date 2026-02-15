@@ -86,8 +86,23 @@ export const usePermissionStore = create<PermissionStore>((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!user) return false;
 
+    // Super admin bypass - Laravel Gate::before grants all permissions
+    // but they may not be listed in permission_names
+    const adminRoles = ['super_admin', 'super-admin', 'admin'];
+    if (user.role_names?.some((role) => adminRoles.includes(role))) {
+      return true;
+    }
+    if (user.roles?.some((role) => adminRoles.includes(role.name))) {
+      return true;
+    }
+
     // Check direct permissions
     if (user.permission_names?.includes(permission)) {
+      return true;
+    }
+
+    // Check all permissions (includes team/tenant-scoped permissions)
+    if (user.all_permission_names?.includes(permission)) {
       return true;
     }
 

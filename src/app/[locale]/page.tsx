@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import {usePermissions} from '@/lib/stores/permission-store';
+import {useAuthStore} from '@/lib/stores/auth-store';
 import {BookingStatusBanner} from '@/components/booking-status-banner';
 import {NotificationWelcomeModal} from '@/components/notification-welcome-modal';
 import {NotificationEnableBanner} from '@/components/notification-enable-banner';
@@ -130,6 +131,7 @@ export default function Home() {
   const t = useTranslations('dashboard');
   const tBookingStatus = useTranslations('bookingStatus');
   const permissions = usePermissions();
+  const user = useAuthStore((s) => s.user);
   const {data: settings, isLoading: settingsLoading} =
     useVehicleBookingSettings();
   const {isSupported, isSubscribed} = usePushNotification();
@@ -140,6 +142,7 @@ export default function Home() {
   const isBookingEnabled = settings?.vehicle_booking_enabled ?? true;
 
   // Check if user has access to any vehicle booking feature
+  // Depend on `user` so this recomputes when auth data loads
   const hasVehicleBookingAccess = useMemo(() => {
     return (
       permissions.canAccessVehicleBookings() ||
@@ -147,7 +150,7 @@ export default function Home() {
       permissions.canViewVehicleBookingReports() ||
       permissions.canViewBillAttachments()
     );
-  }, [permissions]);
+  }, [permissions, user]);
 
   // Check if user has access to any production feature
   const hasProductionAccess = useMemo(() => {
@@ -156,7 +159,7 @@ export default function Home() {
       permissions.canAccessProductionOutputs() ||
       permissions.canAccessInventory()
     );
-  }, [permissions]);
+  }, [permissions, user]);
 
   // Debug logging
   useEffect(() => {

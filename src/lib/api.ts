@@ -125,7 +125,10 @@ api.interceptors.response.use(
       !error.isNetworkError &&
       error.response?.status !== 422
     ) {
+      // Use request URL + status as toast ID to prevent duplicate toasts from retries
+      const toastId = `${error.config?.url}-${error.response?.status}`;
       toast.error(errorMessage, {
+        id: toastId,
         duration: 4000,
       });
     } else if (error.response?.status === 422 && !validationErrors) {

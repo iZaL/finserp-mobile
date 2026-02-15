@@ -14,6 +14,11 @@ export interface User {
   email_verified_at?: string;
   role_names?: string[];
   permission_names?: string[];
+  all_permission_names?: string[];
+  current_team_id?: number;
+  current_team?: {id: number; name: string} | null;
+  all_teams?: Array<{id: number; name: string}>;
+  tenant_api_token?: string | null;
   roles?: Array<{
     id: number;
     name: string;
