@@ -88,12 +88,8 @@ export async function sendSubscriptionToBackend(
   const subscriptionData: PushSubscriptionData = {
     endpoint: subscription.endpoint,
     keys: {
-      p256dh: btoa(
-        String.fromCharCode(...new Uint8Array(subscription.getKey('p256dh')!))
-      ),
-      auth: btoa(
-        String.fromCharCode(...new Uint8Array(subscription.getKey('auth')!))
-      ),
+      p256dh: arrayBufferToBase64Url(subscription.getKey('p256dh')!),
+      auth: arrayBufferToBase64Url(subscription.getKey('auth')!),
     },
     vapidPublicKey,
   };
@@ -146,4 +142,11 @@ function urlBase64ToUint8Array(base64String: string): BufferSource {
   }
 
   return outputArray as BufferSource;
+}
+
+function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
 }
