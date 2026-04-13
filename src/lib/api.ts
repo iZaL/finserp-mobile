@@ -5,20 +5,34 @@ import {toast} from 'sonner';
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
+// Backend base URL (without /api suffix) for Sanctum CSRF
+export const BACKEND_URL = API_BASE_URL.replace(/\/api$/, '');
+
 // Create axios instance with default config
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
   withCredentials: true, // Important for Laravel Sanctum
+  withXSRFToken: true, // Automatically include XSRF token from cookie
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN',
   // Set default timeout to 10 seconds for normal requests
   timeout: 10000,
   // Timeout for file uploads (can be overridden per request)
   timeoutErrorMessage:
     'Request timeout. Please check your connection and try again.',
 });
+
+// Initialize CSRF token - must be called before authenticated requests
+export const initCsrf = async (): Promise<void> => {
+  await axios.get(`${BACKEND_URL}/sanctum/csrf-cookie`, {
+    withCredentials: true,
+  });
+};
 
 // Request interceptor for adding auth token
 api.interceptors.request.use(

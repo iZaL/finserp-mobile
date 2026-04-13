@@ -1,4 +1,4 @@
-import {api} from '@/lib/api';
+import {api, initCsrf} from '@/lib/api';
 
 export interface LoginCredentials {
   email: string;
@@ -51,8 +51,9 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  // Login user
+  // Login user - fetches CSRF cookie first for Sanctum SPA authentication
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
+    await initCsrf();
     const response = await api.post<AuthResponse>('/login', credentials);
     return response.data;
   },
