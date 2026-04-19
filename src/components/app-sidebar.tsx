@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import {Home, Calendar, Settings} from 'lucide-react';
+import {Home, Calendar, Factory, Settings} from 'lucide-react';
 import {Link, usePathname} from '@/i18n/navigation';
 import {useTranslations, useLocale} from 'next-intl';
 import {isRTL} from '@/lib/utils';
@@ -31,6 +31,11 @@ const navItems = [
     key: 'bookings',
     href: '/vehicle-bookings',
     icon: Calendar,
+  },
+  {
+    key: 'production',
+    href: '/production-hub',
+    icon: Factory,
   },
   {
     key: 'more',
