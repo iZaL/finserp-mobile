@@ -385,7 +385,8 @@
       "boxWeightMax": "لا يمكن أن يتجاوز وزن البان 1000 كجم",
       "actualBoxCountRequired": "العدد الفعلي للبانات مطلوب",
       "rejectionReasonRequired": "سبب الرفض مطلوب",
-      "rejectionNotesRequired": "ملاحظات الرفض مطلوبة"
+      "rejectionNotesRequired": "ملاحظات الرفض مطلوبة",
+      "supplierNameRequired": "اسم المورد مطلوب"
     },
     "bookingDetails": {
       "vehicleBookingDetails": "تفاصيل حجز السيارة",

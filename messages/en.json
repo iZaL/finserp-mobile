@@ -381,7 +381,8 @@
       "boxWeightMax": "Box weight cannot exceed 1000 kg",
       "actualBoxCountRequired": "Actual box count is required",
       "rejectionReasonRequired": "Rejection reason is required",
-      "rejectionNotesRequired": "Rejection notes are required"
+      "rejectionNotesRequired": "Rejection notes are required",
+      "supplierNameRequired": "Supplier name is required"
     },
     "bookingDetails": {
       "vehicleBookingDetails": "Vehicle Booking Details",
