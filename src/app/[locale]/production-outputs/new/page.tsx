@@ -181,14 +181,26 @@ export default function CreateProductionOutputPage() {
       );
       if (!productType) return false;
 
-      // For packaged: needs package_count > 0
-      // For tank/bulk: needs both tank_capacity > 0 AND fill_cycles > 0
       return productType.can_be_packaged
         ? entry.packageCount && entry.packageCount > 0
         : entry.tankCapacity &&
             entry.tankCapacity > 0 &&
             entry.fillCycles &&
             entry.fillCycles > 0;
+    });
+  }, [productEntries, formDataOptions]);
+
+  const hasWarehouseError = useMemo(() => {
+    if (!formDataOptions) return false;
+    return Object.entries(productEntries).some(([productTypeIdStr, entry]) => {
+      const productTypeId = parseInt(productTypeIdStr);
+      const productType = formDataOptions.product_types.find(
+        (pt) => pt.id === productTypeId
+      );
+      if (!productType) return false;
+      const warehouseRequired =
+        productType.can_be_packaged && (entry.packageCount ?? 0) > 0;
+      return warehouseRequired && !entry.warehouseId;
     });
   }, [productEntries, formDataOptions]);
 
@@ -411,13 +423,18 @@ export default function CreateProductionOutputPage() {
         </div>
 
         {/* Fixed Submit Button */}
-        <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-40 border-t px-4 pt-4 pb-20 shadow-lg">
+        <div className="bg-background border-border fixed right-0 bottom-0 left-0 z-40 border-t px-4 pt-4 pb-20 shadow-lg md:left-[16rem] md:pb-4">
           <div className="mx-auto max-w-2xl">
+            {hasWarehouseError && (
+              <p className="text-destructive mb-2 text-center text-xs">
+                Please select a warehouse for all packaged products
+              </p>
+            )}
             <Button
               onClick={handleSubmit}
               className="w-full"
               size="lg"
-              disabled={!hasAnyData || bulkCreateMutation.isPending}
+              disabled={!hasAnyData || hasWarehouseError || bulkCreateMutation.isPending}
             >
               {bulkCreateMutation.isPending ? (
                 <>

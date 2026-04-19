@@ -38,6 +38,7 @@ import {
 import {
   useProductionOutput,
   useConfirmProductionOutput,
+  useDeleteProductionOutput,
 } from '@/hooks/use-production-outputs';
 import {usePermissionStore} from '@/lib/stores/permission-store';
 import type {
@@ -94,9 +95,11 @@ export default function ProductionOutputDetailsPage({
 }) {
   const {id} = use(params);
   const router = useRouter();
-  const {data: output, isLoading: loading} = useProductionOutput(parseInt(id));
+  const {data: output, isLoading: loading, isError, error} = useProductionOutput(parseInt(id));
   const confirmMutation = useConfirmProductionOutput();
+  const deleteMutation = useDeleteProductionOutput();
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const {canCreateBatch} = usePermissionStore();
 
   // Check if this output can have a batch created
@@ -175,14 +178,19 @@ export default function ProductionOutputDetailsPage({
   }
 
   if (!output) {
+    const isNotFound = isError && (error as any)?.response?.status === 404;
     return (
       <div className="from-muted/30 to-background flex min-h-screen flex-col items-center justify-center bg-gradient-to-b p-4">
         <div className="bg-muted mb-4 rounded-full p-4">
           <AlertCircle className="text-muted-foreground size-8" />
         </div>
-        <h2 className="mb-2 text-lg font-semibold">Not Found</h2>
+        <h2 className="mb-2 text-lg font-semibold">
+          {isNotFound ? 'Output Deleted' : 'Not Found'}
+        </h2>
         <p className="text-muted-foreground mb-6 text-center text-sm">
-          Production output not found
+          {isNotFound
+            ? 'This production output no longer exists. It may have been deleted.'
+            : 'Production output not found'}
         </p>
         <Button onClick={() => router.push('/production-outputs')}>
           Back to List
@@ -531,12 +539,25 @@ export default function ProductionOutputDetailsPage({
           )}
         </div>
 
-        {/* Confirm Button */}
+        {/* Confirm + Delete Buttons */}
         {output.status === 'draft' && (
-          <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm">
-            <div className="container mx-auto">
+          <div className="bg-background/95 fixed right-0 bottom-16 left-0 z-50 border-t p-4 shadow-lg backdrop-blur-sm md:bottom-0 md:left-[16rem]">
+            <div className="container mx-auto flex gap-3">
               <Button
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md hover:from-emerald-600 hover:to-teal-700"
+                variant="outline"
+                size="lg"
+                className="border-destructive text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteDialogOpen(true)}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  'Delete'
+                )}
+              </Button>
+              <Button
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md hover:from-emerald-600 hover:to-teal-700"
                 size="lg"
                 onClick={() => setConfirmDialogOpen(true)}
                 disabled={confirmMutation.isPending}
@@ -583,6 +604,35 @@ export default function ProductionOutputDetailsPage({
                   </>
                 ) : (
                   'Confirm'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Production Output</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this production output? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteMutation.mutate(output.id)}
+                disabled={deleteMutation.isPending}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>
