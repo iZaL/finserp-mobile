@@ -232,6 +232,7 @@ export function OutputShiftCard({
                     isLatest={record.id === latestOutputId}
                     disabled={canSelect && !selectable}
                     showChevron={!canSelect}
+                    onDetailClick={canSelect ? () => router.push(`/production-outputs/${record.id}`) : undefined}
                     onClick={() => {
                       if (canSelect && selectable) {
                         onToggleSelection(record.id);

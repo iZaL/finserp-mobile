@@ -150,6 +150,11 @@ export default function NewBookingPage() {
       return false;
     }
 
+    if (!supplierName.trim()) {
+      toast.error(tValidation('supplierNameRequired'));
+      return false;
+    }
+
     return true;
   };
 

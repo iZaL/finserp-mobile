@@ -49,6 +49,7 @@ export interface ProductionOutputRowProps {
   isLatest?: boolean;
   disabled?: boolean;
   onClick?: () => void;
+  onDetailClick?: () => void;
 }
 
 export function ProductionOutputRow({
@@ -63,6 +64,7 @@ export function ProductionOutputRow({
   isLatest = false,
   disabled = false,
   onClick,
+  onDetailClick,
 }: ProductionOutputRowProps) {
   const typeName = output.product_type?.name || 'Unknown';
   const style = getProductTypeStyle(typeName);
@@ -219,6 +221,19 @@ export function ProductionOutputRow({
 
       {showChevron && (
         <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+      )}
+
+      {!showChevron && onDetailClick && (
+        <button
+          className="text-muted-foreground hover:text-foreground ml-1 shrink-0 p-0.5 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetailClick();
+          }}
+          aria-label="View details"
+        >
+          <ChevronRight className="size-4" />
+        </button>
       )}
     </div>
   );

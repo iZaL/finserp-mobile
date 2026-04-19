@@ -65,7 +65,10 @@ export const productionOutputService = {
     const response = await api.post<
       ApiResponse<{count: number; data: ProductionOutput[]}>
     >(`/production/outputs/bulk-store`, data);
-    return response.data.data!;
+    return {
+      count: (response.data as any).count ?? 0,
+      data: (response.data as any).data ?? [],
+    };
   },
 
   confirmProductionOutput: async (id: number): Promise<ProductionOutput> => {
@@ -83,6 +86,10 @@ export const productionOutputService = {
       config
     );
     return response.data.data!;
+  },
+
+  deleteProductionOutput: async (id: number): Promise<void> => {
+    await api.delete(`/production/outputs/${id}`);
   },
 
   calculateTotal: (

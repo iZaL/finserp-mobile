@@ -1,4 +1,5 @@
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useRouter} from '@/i18n/navigation';
 import {productionOutputService} from '@/lib/services/production-output';
 import {offlineQueueService} from '@/lib/offline-queue';
 import {productionOutputKeys} from '@/lib/query-keys';
@@ -17,7 +18,6 @@ export function useProductionOutputs(filters?: ProductionOutputFilters) {
     queryFn: async ({signal}) => {
       return productionOutputService.getProductionOutputs(filters, {signal});
     },
-    staleTime: 2 * 60 * 1000,
   });
 }
 
@@ -172,6 +172,27 @@ export function useBulkCreateProductionOutputs() {
       } else {
         toast.error(error.message || 'Failed to create production outputs');
       }
+    },
+  });
+}
+
+export function useDeleteProductionOutput() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      return productionOutputService.deleteProductionOutput(id);
+    },
+    onSuccess: async (_data, _id) => {
+      await queryClient.invalidateQueries({
+        queryKey: productionOutputKeys.lists(),
+      });
+      toast.success('Production output deleted');
+      router.back();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete production output');
     },
   });
 }
